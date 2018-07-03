@@ -6,18 +6,17 @@ import time
 import numpy as np
 import qmllib
 
-from qmllib.kernels import laplacian_kernel
-from qmllib.math import cho_solve
-from qmllib.arad import generate_arad_representation
+from qmllib.ml.math import cho_solve
+from qmllib.ml.arad import generate_arad_representation
 
-from qmllib.arad import get_local_kernels_arad
-from qmllib.arad import get_local_symmetric_kernels_arad
+from qmllib.ml.arad import get_local_kernels_arad
+from qmllib.ml.arad import get_local_symmetric_kernels_arad
 
-from qmllib.arad import get_global_kernels_arad
-from qmllib.arad import get_global_symmetric_kernels_arad
+from qmllib.ml.arad import get_global_kernels_arad
+from qmllib.ml.arad import get_global_symmetric_kernels_arad
 
-from qmllib.arad import get_atomic_kernels_arad
-from qmllib.arad import get_atomic_symmetric_kernels_arad
+from qmllib.ml.arad import get_atomic_kernels_arad
+from qmllib.ml.arad import get_atomic_symmetric_kernels_arad
 
 def get_energies(filename):
     """ Returns a dictionary with heats of formation for each xyz-file.
@@ -45,13 +44,13 @@ def test_arad():
     # Parse file containing PBE0/def2-TZVP heats of formation and xyz filenames
     data = get_energies(test_dir + "/data/hof_qm7.txt")
 
-    # Generate a list of qmllib.Compound() objects
+    # Generate a list of qmllib.data.Compound() objects
     mols = []
 
     for xyz_file in sorted(data.keys())[:10]:
 
-        # Initialize the qmllib.Compound() objects
-        mol = qmllib.Compound(xyz=test_dir + "/qm7/" + xyz_file)
+        # Initialize the qmllib.data.Compound() objects
+        mol = qmllib.data.Compound(xyz=test_dir + "/qm7/" + xyz_file)
 
         # Associate a property (heat of formation) with the object
         mol.properties = data[xyz_file]

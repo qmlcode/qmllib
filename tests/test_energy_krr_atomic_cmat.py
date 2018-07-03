@@ -24,17 +24,19 @@ from __future__ import print_function
 
 import os
 import numpy as np
+
 import qmllib
-from qmllib.kernels import laplacian_kernel
-from qmllib.math import cho_solve
+import qmllib.data
 
-from qmllib.representations import get_slatm_mbtypes
+from qmllib.ml.kernels import laplacian_kernel
+from qmllib.ml.math import cho_solve
 
-from qmllib.kernels import get_local_kernels_gaussian
-from qmllib.kernels import get_local_kernels_laplacian
+from qmllib.ml.representations import get_slatm_mbtypes
 
-from qmllib.wrappers import get_atomic_kernels_gaussian
-from qmllib.wrappers import get_atomic_kernels_laplacian
+from qmllib.ml.kernels import get_local_kernels_gaussian
+from qmllib.ml.kernels import get_local_kernels_laplacian
+
+from qmllib.ml.kernels.wrappers import get_atomic_kernels_gaussian, get_atomic_kernels_laplacian
 
 def get_energies(filename):
     """ Returns a dictionary with heats of formation for each xyz-file.
@@ -63,14 +65,14 @@ def test_krr_gaussian_local_cmat():
     # Parse file containing PBE0/def2-TZVP heats of formation and xyz filenames
     data = get_energies(test_dir + "/data/hof_qm7.txt")
 
-    # Generate a list of qmllib.Compound() objects"
+    # Generate a list of qmllib.data.Compound() objects"
     mols = []
 
 
     for xyz_file in sorted(data.keys())[:1000]:
 
-        # Initialize the qmllib.Compound() objects
-        mol = qmllib.Compound(xyz=test_dir + "/qm7/" + xyz_file)
+        # Initialize the qmllib.data.Compound() objects
+        mol = qmllib.data.Compound(xyz=test_dir + "/qm7/" + xyz_file)
 
         # Associate a property (heat of formation) with the object
         mol.properties = data[xyz_file]
@@ -134,6 +136,7 @@ def test_krr_gaussian_local_cmat():
     Yss = np.dot(Ks, alpha)
 
     mae = np.mean(np.abs(Ys - Yss))
+    print(mae)
     assert abs(19.0 - mae) < 1.0, "Error in local Gaussian kernel-ridge regression"
 
 def test_krr_laplacian_local_cmat():
@@ -143,14 +146,14 @@ def test_krr_laplacian_local_cmat():
     # Parse file containing PBE0/def2-TZVP heats of formation and xyz filenames
     data = get_energies(test_dir + "/data/hof_qm7.txt")
 
-    # Generate a list of qmllib.Compound() objects"
+    # Generate a list of qmllib.data.Compound() objects"
     mols = []
 
 
     for xyz_file in sorted(data.keys())[:1000]:
 
-        # Initialize the qmllib.Compound() objects
-        mol = qmllib.Compound(xyz=test_dir + "/qm7/" + xyz_file)
+        # Initialize the qmllib.data.Compound() objects
+        mol = qmllib.data.Compound(xyz=test_dir + "/qm7/" + xyz_file)
 
         # Associate a property (heat of formation) with the object
         mol.properties = data[xyz_file]
@@ -200,6 +203,7 @@ def test_krr_laplacian_local_cmat():
 
     # Calculate prediction kernel
     Ks = get_local_kernels_laplacian(Xs, X, Ns, N, [sigma])[0]
+
 
     Ks_test = np.loadtxt(test_dir + "/data/Ks_local_laplacian.txt")
 

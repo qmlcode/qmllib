@@ -27,9 +27,11 @@ import contextlib
 from collections import defaultdict
 import numpy as np
 import os
+
 import qmllib
-from qmllib.representations import *
-from qmllib.data import NUCLEAR_CHARGE
+
+from qmllib.ml.representations import *
+from qmllib.ml.representations.alchemy import NUCLEAR_CHARGE
 
 def get_asize(mols, pad):
 
@@ -59,7 +61,7 @@ def test_representations():
 
     mols = []
     for xyz_file in files:
-        mol = qmllib.Compound(xyz=path + "/" + xyz_file)
+        mol = qmllib.data.Compound(xyz=path + "/" + xyz_file)
         mols.append(mol)
 
     size = max(mol.nuclear_charges.size for mol in mols) + 1

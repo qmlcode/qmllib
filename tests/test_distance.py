@@ -24,7 +24,7 @@ from __future__ import print_function
 
 import numpy as np
 
-from qmllib.distance import *
+from qmllib.ml.kernels.distance import *
 
 
 def test_manhattan():
