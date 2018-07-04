@@ -1,3 +1,25 @@
+
+#
+
+#
+
+
+
+
+
+
+#
+
+
+#
+
+
+
+
+
+
+
+
 """
 Tests directly related to the class _NN and it's children.
 
@@ -349,8 +371,7 @@ def test_fit1():
     X = np.reshape(x, (len(x), 1))
     y = x ** 3
 
-    estimator = MRMP(hidden_layer_sizes=(5, 5, 5), learning_rate=0.01, iterations=35000, l2_reg=0, tf_dtype=32,
-                     scoring_function="rmse")
+    estimator = MRMP(hidden_layer_sizes=(5, 5, 5), learning_rate=0.01, iterations=35000)
     estimator.fit(X, y)
 
     x_test = np.linspace(-1.5, 1.5, 15)

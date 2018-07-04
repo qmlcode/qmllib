@@ -1,3 +1,25 @@
+
+#
+
+#
+
+
+
+
+
+
+#
+
+
+#
+
+
+
+
+
+
+
+
 """
 This file contains tests for the atom centred symmetry function module.
 """
@@ -15,8 +37,6 @@ def test_acsf_1():
     """
     This test compares the atom centred symmetry functions generated with tensorflow and numpy.
     The test system consists of 5 configurations of CH4 + CN radical.
-
-    :return: None
     """
 
     radial_cutoff = 10.0

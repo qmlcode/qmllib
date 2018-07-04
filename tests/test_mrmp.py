@@ -1,3 +1,26 @@
+
+#
+
+#
+
+
+
+
+
+
+#
+
+
+#
+
+
+
+
+
+
+
+
+
 """
 This test checks if all the ways of setting up the estimator MRMP work.
 """
