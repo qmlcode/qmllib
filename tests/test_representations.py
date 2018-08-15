@@ -28,7 +28,7 @@ import os
 
 import qmllib
 
-from qmllib.ml.representations import *
+from qmllib.representations import *
 
 def get_asize(mols, pad):
 

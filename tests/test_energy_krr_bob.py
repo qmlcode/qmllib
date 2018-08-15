@@ -28,9 +28,9 @@ import numpy as np
 import qmllib
 import qmllib.data
 
-from qmllib.ml.kernels import laplacian_kernel
-from qmllib.ml.math import cho_solve
-from qmllib.ml.representations import get_slatm_mbtypes
+from qmllib.kernels import laplacian_kernel
+from qmllib.math import cho_solve
+from qmllib.representations import get_slatm_mbtypes
 
 
 def get_energies(filename):

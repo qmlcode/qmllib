@@ -29,7 +29,7 @@ import tensorflow as tf
 import numpy as np
 
 import qmllib
-from qmllib.ml.representations import generate_acsf
+from qmllib.representations import generate_acsf
 from qmllib.aglaia import symm_funct
 import os
 

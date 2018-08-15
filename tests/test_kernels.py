@@ -25,11 +25,11 @@ from __future__ import print_function
 import sys
 import numpy as np
 import qmllib
-from qmllib.ml.kernels import laplacian_kernel
-from qmllib.ml.kernels import gaussian_kernel
-from qmllib.ml.kernels import linear_kernel
-from qmllib.ml.kernels import matern_kernel
-from qmllib.ml.kernels import sargan_kernel
+from qmllib.kernels import laplacian_kernel
+from qmllib.kernels import gaussian_kernel
+from qmllib.kernels import linear_kernel
+from qmllib.kernels import matern_kernel
+from qmllib.kernels import sargan_kernel
 
 def test_laplacian_kernel():
 

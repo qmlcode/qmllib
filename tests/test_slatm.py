@@ -25,7 +25,7 @@ import os
 import numpy as np
 
 import qmllib
-from qmllib.ml.representations import get_slatm_mbtypes
+from qmllib.representations import get_slatm_mbtypes
 
 
 def test_slatm_global_representation():
