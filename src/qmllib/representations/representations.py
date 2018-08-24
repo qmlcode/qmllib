@@ -32,7 +32,7 @@ from .frepresentations import fgenerate_atomic_coulomb_matrix
 from .frepresentations import fgenerate_eigenvalue_coulomb_matrix
 from .frepresentations import fgenerate_bob
 
-from .alchemy import NUCLEAR_CHARGE
+from qmllib.data.alchemy import NUCLEAR_CHARGE
 
 from .slatm import get_boa
 from .slatm import get_sbop
