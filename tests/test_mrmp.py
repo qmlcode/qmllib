@@ -27,7 +27,7 @@ This test checks if all the ways of setting up the estimator MRMP work.
 
 import numpy as np
 from qmllib.aglaia.aglaia import MRMP
-from qmllib.aglaia.utils import InputError
+from qmllib.utils import InputError
 import glob
 import os
 import shutil

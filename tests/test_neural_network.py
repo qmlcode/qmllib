@@ -29,7 +29,7 @@ import numpy as np
 
 # TODO relative imports
 from qmllib.aglaia.aglaia import MRMP
-from qmllib.aglaia.utils import InputError
+from qmllib.utils import InputError
 
 
 # ------------ ** All functions to test the inputs to the classes ** ---------------

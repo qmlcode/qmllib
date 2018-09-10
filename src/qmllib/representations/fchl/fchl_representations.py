@@ -25,8 +25,8 @@ from __future__ import print_function
 import numpy as np
 import copy
 
-from qmllib.data.alchemy import get_alchemy
-from qmllib.data.alchemy import ELEMENT_NAME
+from qmllib.utils.alchemy import get_alchemy
+from qmllib.utils import ELEMENT_NAME
 
 def generate_representation(coordinates, nuclear_charges,
         max_size=23, neighbors=23, cut_distance = 5.0, cell=None):
