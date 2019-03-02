@@ -67,7 +67,7 @@ def test_acsf():
 
     mols = []
     for xyz_file in files:
-        mol = qmllib.data.Compound(xyz=path + "/" + xyz_file)
+        mol = qmllib.Compound(xyz=path + "/" + xyz_file)
         mols.append(mol)
 
     elements = set()

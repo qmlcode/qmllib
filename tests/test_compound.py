@@ -24,7 +24,7 @@ from __future__ import print_function
 
 import os
 
-from qmllib.data import Compound
+from qmllib import Compound
 import numpy as np
 
 def compare_lists(a, b):

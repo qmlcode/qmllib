@@ -58,7 +58,7 @@ def test_representations():
 
     mols = []
     for xyz_file in files:
-        mol = qmllib.data.Compound(xyz=path + "/" + xyz_file)
+        mol = qmllib.Compound(xyz=path + "/" + xyz_file)
         mols.append(mol)
 
     size = max(mol.nuclear_charges.size for mol in mols) + 1

@@ -261,7 +261,7 @@ def test_kpca():
     # Parse file containing PBE0/def2-TZVP heats of formation and xyz filenam
     data = get_energies(test_dir + "/data/hof_qm7.txt")
 
-    # Generate a list of qmllib.data.Compound() objects
+    # Generate a list of qmllib.Compound() objects
     mols = []
 
     keys = sorted(data.keys())
@@ -273,7 +273,7 @@ def test_kpca():
 
     for xyz_file in keys[:n_mols]:
 
-        mol = qmllib.data.Compound(xyz=test_dir + "/qm7/" + xyz_file)
+        mol = qmllib.Compound(xyz=test_dir + "/qm7/" + xyz_file)
         mol.properties = data[xyz_file]
         mol.generate_bob()
         mols.append(mol)

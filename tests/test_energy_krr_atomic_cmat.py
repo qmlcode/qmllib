@@ -26,7 +26,6 @@ import os
 import numpy as np
 
 import qmllib
-import qmllib.data
 
 from qmllib.kernels import laplacian_kernel
 from qmllib.math import cho_solve
@@ -65,14 +64,14 @@ def test_krr_gaussian_local_cmat():
     # Parse file containing PBE0/def2-TZVP heats of formation and xyz filenames
     data = get_energies(test_dir + "/data/hof_qm7.txt")
 
-    # Generate a list of qmllib.data.Compound() objects"
+    # Generate a list of qmllib.Compound() objects"
     mols = []
 
 
     for xyz_file in sorted(data.keys())[:1000]:
 
-        # Initialize the qmllib.data.Compound() objects
-        mol = qmllib.data.Compound(xyz=test_dir + "/qm7/" + xyz_file)
+        # Initialize the qmllib.Compound() objects
+        mol = qmllib.Compound(xyz=test_dir + "/qm7/" + xyz_file)
 
         # Associate a property (heat of formation) with the object
         mol.properties = data[xyz_file]
@@ -152,8 +151,8 @@ def test_krr_laplacian_local_cmat():
 
     for xyz_file in sorted(data.keys())[:1000]:
 
-        # Initialize the qmllib.data.Compound() objects
-        mol = qmllib.data.Compound(xyz=test_dir + "/qm7/" + xyz_file)
+        # Initialize the qmllib.Compound() objects
+        mol = qmllib.Compound(xyz=test_dir + "/qm7/" + xyz_file)
 
         # Associate a property (heat of formation) with the object
         mol.properties = data[xyz_file]
