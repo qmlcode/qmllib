@@ -26,7 +26,7 @@ How to install
     raise NotImplementedError
 
 ====
-# How to use
+How to use
 ====
 
     raise NotImplementedError
