@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "qmllib"
+dynamic = ["version"]
+authors = []
+requires-python = ">=3.10"
+
+[tool.setuptools.dynamic]
+version = {attr = "qmllib.__version__"}
+
+[options.packages.find]
+where="src"

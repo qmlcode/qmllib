@@ -3,16 +3,15 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - copy
-  - ctypes
   - jupytext
   - monkeytype
-  - numpy
   - numpy
   - openbabel
   - pandas
   - pip
   - pre-commit
-  - pybel
   - pytest
+  - scikit-learn
   - scipy
+  - pip:
+     - pybel

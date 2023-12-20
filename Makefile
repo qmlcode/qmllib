@@ -6,7 +6,7 @@ pip=./env/bin/pip
 all: env
 
 env:
-	${mamba} env create -f ./environment_dev.yml -p ./env --quiet
+	${mamba} env create -f ./environment_dev.yaml -p ./env --quiet
 	${pip} install -e .
 
 setup:
