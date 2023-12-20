@@ -1,0 +1,38 @@
+
+name: Test Python package
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Testing
+    runs-on: "ubuntu-latest"
+    defaults:
+      run:
+        shell: bash -l {0}
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11', '3.12']
+    steps:
+      - uses: actions/checkout@v2
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          activate-environment: qmllib-dev
+          environment-file: environment_dev.yml
+          python-version: ${{ matrix.python-version }}
+      - run: |
+          pip install .
+      - run: |
+          ls
+          pwd
+          which python
+          conda info
+      - run: |
+          make test
+      - run: |
+          make format
