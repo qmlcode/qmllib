@@ -1,0 +1,75 @@
+repos:
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.4.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: ^tests/resources/
+      - id: end-of-file-fixer
+        exclude: ^tests/resources/
+      - id: check-yaml
+        args: ["--unsafe"]
+      - id: check-added-large-files
+      - id: check-ast
+      - id: check-json
+      - id: debug-statements
+      - id: detect-aws-credentials
+        args: [--allow-missing-credentials]
+      - id: detect-private-key
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ['--maxkb=3000']
+
+  - repo: https://github.com/myint/autoflake
+    rev: v1.4
+    hooks:
+      - id: autoflake
+        name: Removes unused variables
+        args:
+          - --in-place
+          - --remove-all-unused-imports
+          - --expand-star-imports
+          - --ignore-init-module-imports
+
+  - repo: https://github.com/pre-commit/mirrors-isort
+    rev: v5.10.1
+    hooks:
+      - id: isort
+        name: Sorts imports
+        args: [
+          # Align isort with black formatting
+          "--multi-line=3",
+          "--trailing-comma",
+          "--force-grid-wrap=0",
+          "--use-parentheses",
+          "--line-width=99",
+        ]
+
+  - repo: https://github.com/psf/black
+    rev: 22.3.0
+    hooks:
+      - id: black
+        name: Fixes formatting
+        language_version: python3
+        args: ["--line-length=99"]
+
+  - repo: https://github.com/pycqa/flake8
+    rev: 4.0.1
+    hooks:
+      - id: flake8
+        name: Checks pep8 style
+        args: [
+          "--max-line-length=99",
+          # Ignore imports in init files
+          "--per-file-ignores=*/__init__.py:F401,setup.py:E121",
+          # ignore long comments (E501), as long lines are formatted by black
+          # ignore Whitespace before ':' (E203)
+          # ignore Line break occurred before a binary operator (W503)
+          "--ignore=E501,E203,W503",
+        ]
+
+  - repo: https://github.com/pseewald/fprettify
+    rev: v0.3.7
+    hooks:
+      - id: fprettify
+        name: "Format Fortran"

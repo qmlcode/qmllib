@@ -1,48 +1,19 @@
-
-#
-
-#
-
-
-
-
-
-
-#
-
-
-#
-
-
-
-
-
-
-
-
 from __future__ import print_function
 
-import sys
-
 import os
+
 import numpy as np
 
 np.set_printoptions(linewidth=666)
 
 import qmllib
-
+from qmllib.kernels import get_local_kernel, get_local_symmetric_kernel
 from qmllib.math import cho_solve
-
 from qmllib.representations import generate_fchl_acsf
 
-from qmllib.kernels import get_local_kernel
-from qmllib.kernels import get_local_symmetric_kernel
-
-from time import time
 
 def get_energies(filename):
-    """ Returns a dictionary with heats of formation for each xyz-file.
-    """
+    """Returns a dictionary with heats of formation for each xyz-file."""
 
     f = open(filename, "r")
     lines = f.readlines()
@@ -59,6 +30,7 @@ def get_energies(filename):
         energies[xyz_name] = hof
 
     return energies
+
 
 def test_energy():
 
@@ -79,7 +51,9 @@ def test_energy():
         # Associate a property (heat of formation) with the object
         mol.properties = data[xyz_file]
 
-        mol.representation = generate_fchl_acsf(mol.nuclear_charges, mol.coordinates, gradients=False, pad=27)
+        mol.representation = generate_fchl_acsf(
+            mol.nuclear_charges, mol.coordinates, gradients=False, pad=27
+        )
 
         Qall.append(mol.nuclear_charges)
 
@@ -90,20 +64,20 @@ def test_energy():
     np.random.shuffle(mols)
 
     # Make training and test sets
-    n_test  = 99
+    n_test = 99
     n_train = 101
 
     training = mols[:n_train]
-    test  = mols[-n_test:]
+    test = mols[-n_test:]
     training_indexes = list(range(n_train))
-    test_indexes = list(range(n_train, n_train+n_test))
+    test_indexes = list(range(n_train, n_train + n_test))
 
     # List of representations
-    X  = np.array([mol.representation for mol in training])
+    X = np.array([mol.representation for mol in training])
     Xs = np.array([mol.representation for mol in test])
     Xall = np.array([mol.representation for mol in training + test])
 
-    Q  = np.array([mol.nuclear_charges for mol in training])
+    Q = np.array([mol.nuclear_charges for mol in training])
     Qs = np.array([mol.nuclear_charges for mol in test])
     Qall = np.array([mol.nuclear_charges for mol in training + test])
 
@@ -118,7 +92,7 @@ def test_energy():
     K = get_local_symmetric_kernel(X, Q, sigma)
 
     # Solve alpha
-    alpha = cho_solve(K,Y, l2reg=llambda)
+    alpha = cho_solve(K, Y, l2reg=llambda)
 
     # Calculate test kernel
     Ks = get_local_kernel(X, Xs, Q, Qs, sigma)
@@ -129,7 +103,7 @@ def test_energy():
 
     mae = np.mean(np.abs(Ys - Yss))
     assert mae < 4.0, "ERROR: Too high MAE!"
-    
+
 
 if __name__ == "__main__":
 

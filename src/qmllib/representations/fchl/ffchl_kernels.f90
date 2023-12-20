@@ -1,344 +1,312 @@
 
-!
-
-!
-
-
-
-
-
-
-!
-
-
-!
-
-
-
-
-
-
-
-
 ! Inspiration from:
 ! http://crsouza.com/2010/03/17/kernel-functions-for-machine-learning-applications/#kernel_functions
 module ffchl_kernels
 
-    implicit none
+   implicit none
 
-    public :: kernel
+   public :: kernel
 
 contains
 
+   subroutine gaussian_kernel(s11, s22, s12, parameters, k)
 
-subroutine gaussian_kernel(s11, s22, s12, parameters, k)
+      implicit none
 
-    implicit none
+      double precision, intent(in) :: s11
+      double precision, intent(in) :: s22
+      double precision, intent(in) :: s12
+      double precision, intent(in), dimension(:, :) :: parameters
 
-    double precision, intent(in) :: s11
-    double precision, intent(in) :: s22
-    double precision, intent(in) :: s12
-    double precision, intent(in), dimension(:,:) :: parameters
+      double precision, intent(out), dimension(:) :: k
 
-    double precision, intent(out), dimension(:) :: k
+      integer :: i
+      double precision :: l2
 
-    integer :: i
-    double precision :: l2
+      l2 = s11 + s22 - 2.0d0*s12
 
-    l2 = s11 + s22 - 2.0d0*s12 
+      do i = 1, size(k)
+         k(i) = exp(l2*parameters(i, 1))
+      end do
 
-    do i = 1, size(k)
-        k(i) = exp(l2 * parameters(i,1)) 
-    enddo
+   end subroutine gaussian_kernel
 
-end subroutine gaussian_kernel 
+   subroutine linear_kernel(s12, parameters, k)
 
+      implicit none
 
-subroutine linear_kernel(s12, parameters, k)
+      double precision, intent(in) :: s12
+      double precision, intent(in), dimension(:, :) :: parameters
+      double precision, intent(out), dimension(:) :: k
 
-    implicit none
+      integer :: i
 
-    double precision, intent(in) :: s12
-    double precision, intent(in), dimension(:,:) :: parameters
-    double precision, intent(out), dimension(:) :: k
+      do i = 1, size(k)
+         k(i) = s12 + parameters(i, 1)
+      end do
 
-    integer :: i
+   end subroutine linear_kernel
 
-    do i = 1, size(k)
-        k(i) = s12 + parameters(i,1)
-    enddo
+   subroutine polynomial_kernel(s12, parameters, k)
 
-end subroutine linear_kernel 
+      implicit none
 
+      double precision, intent(in) :: s12
+      double precision, intent(in), dimension(:, :) :: parameters
 
-subroutine polynomial_kernel(s12, parameters, k)
+      double precision, intent(out), dimension(:) :: k
 
-    implicit none
+      integer :: i
 
-    double precision, intent(in) :: s12
-    double precision, intent(in), dimension(:,:) :: parameters
+      do i = 1, size(k)
+         k(i) = (parameters(i, 1)*s12 + parameters(i, 2))**parameters(i, 3)
+      end do
 
-    double precision, intent(out), dimension(:) :: k
+   end subroutine polynomial_kernel
 
-    integer :: i
+   subroutine sigmoid_kernel(s12, parameters, k)
 
-    do i = 1, size(k)
-        k(i) = (parameters(i,1) * s12 + parameters(i,2))**parameters(i,3)
-    enddo
+      implicit none
+      double precision, intent(in) :: s12
+      double precision, intent(in), dimension(:, :) :: parameters
 
-end subroutine polynomial_kernel 
+      double precision, intent(out), dimension(:) :: k
 
+      integer :: i
 
-subroutine sigmoid_kernel(s12, parameters, k)
+      do i = 1, size(k)
+         k(i) = tanh(parameters(i, 1)*s12 + parameters(i, 2))
+      end do
 
-    implicit none
-    double precision, intent(in) :: s12
-    double precision, intent(in), dimension(:,:) :: parameters
+   end subroutine sigmoid_kernel
 
-    double precision, intent(out), dimension(:) :: k
+   subroutine multiquadratic_kernel(s11, s22, s12, parameters, k)
 
-    integer :: i
+      implicit none
 
-    do i = 1, size(k)
-        k(i) = tanh(parameters(i,1) * s12 + parameters(i,2))
-    enddo
+      double precision, intent(in) :: s11
+      double precision, intent(in) :: s22
+      double precision, intent(in) :: s12
+      double precision, intent(in), dimension(:, :) :: parameters
 
-end subroutine sigmoid_kernel 
+      double precision, intent(out), dimension(:) :: k
 
+      integer :: i
+      double precision :: l2
 
-subroutine multiquadratic_kernel(s11, s22, s12, parameters, k)
+      l2 = s11 + s22 - 2.0d0*s12
 
-    implicit none
+      do i = 1, size(k)
+         k(i) = sqrt(l2 + parameters(i, 1)**2)
+      end do
 
-    double precision, intent(in) :: s11
-    double precision, intent(in) :: s22
-    double precision, intent(in) :: s12
-    double precision, intent(in), dimension(:,:) :: parameters
+   end subroutine multiquadratic_kernel
 
-    double precision, intent(out), dimension(:) :: k
+   subroutine inverse_multiquadratic_kernel(s11, s22, s12, parameters, k)
 
-    integer :: i
-    double precision :: l2
-    
-    l2 = s11 + s22 - 2.0d0*s12 
+      implicit none
 
-    do i = 1, size(k)
-        k(i) = sqrt(l2 + parameters(i,1)**2)
-    enddo
+      double precision, intent(in) :: s11
+      double precision, intent(in) :: s22
+      double precision, intent(in) :: s12
+      double precision, intent(in), dimension(:, :) :: parameters
 
-end subroutine multiquadratic_kernel 
+      double precision, intent(out), dimension(:) :: k
 
+      integer :: i
+      double precision :: l2
 
-subroutine inverse_multiquadratic_kernel(s11, s22, s12, parameters, k)
+      l2 = s11 + s22 - 2.0d0*s12
 
-    implicit none
+      do i = 1, size(k)
+         k(i) = 1.0d0/sqrt(l2 + parameters(i, 1)**2)
+      end do
 
-    double precision, intent(in) :: s11
-    double precision, intent(in) :: s22
-    double precision, intent(in) :: s12
-    double precision, intent(in), dimension(:,:) :: parameters
+   end subroutine inverse_multiquadratic_kernel
 
-    double precision, intent(out), dimension(:) :: k
+   subroutine bessel_kernel(s12, parameters, k)
 
-    integer :: i
-    double precision :: l2
-    
-    l2 = s11 + s22 - 2.0d0*s12 
+      implicit none
 
-    do i = 1, size(k)
-        k(i) = 1.0d0 / sqrt(l2 + parameters(i,1)**2)
-    enddo
+      double precision, intent(in) :: s12
+      double precision, intent(in), dimension(:, :) :: parameters
 
-end subroutine inverse_multiquadratic_kernel 
+      double precision, intent(out), dimension(:) :: k
 
+      integer :: i
 
-subroutine bessel_kernel(s12, parameters, k)
+      do i = 1, size(k)
+         k(i) = BESSEL_JN(int(parameters(i, 2)), parameters(i, 1)*s12) &
+             & /(s12**(-parameters(i, 3)*(parameters(i, 2) + 1)))
+      end do
 
-    implicit none
+   end subroutine bessel_kernel
 
-    double precision, intent(in) :: s12
-    double precision, intent(in), dimension(:,:) :: parameters
+   subroutine l2_kernel(s11, s22, s12, parameters, k)
 
-    double precision, intent(out), dimension(:) :: k
+      implicit none
 
-    integer :: i
-    
-    do i = 1, size(k)
-        k(i) = BESSEL_JN(int(parameters(i,2)), parameters(i,1) *s12) & 
-            & / (s12**(-parameters(i,3)*(parameters(i,2) + 1)))
-    enddo
+      double precision, intent(in) :: s11
+      double precision, intent(in) :: s22
+      double precision, intent(in) :: s12
+      double precision, intent(in), dimension(:, :) :: parameters
 
-end subroutine bessel_kernel 
+      double precision, intent(out), dimension(:) :: k
 
-subroutine l2_kernel(s11, s22, s12, parameters, k)
+      integer :: i
+      double precision :: l2
 
-    implicit none
+      l2 = s11 + s22 - 2.0d0*s12
 
-    double precision, intent(in) :: s11
-    double precision, intent(in) :: s22
-    double precision, intent(in) :: s12
-    double precision, intent(in), dimension(:,:) :: parameters
+      do i = 1, size(k)
+         k(i) = l2*parameters(i, 1) + parameters(i, 2)
+      end do
 
-    double precision, intent(out), dimension(:) :: k
+   end subroutine l2_kernel
 
-    integer :: i
-    double precision :: l2
-    
-    l2 = s11 + s22 - 2.0d0*s12 
+   subroutine matern_kernel(s11, s22, s12, parameters, kernel)
 
-    do i = 1, size(k)
-        k(i) = l2*parameters(i,1) + parameters(i,2)
-    enddo
+      implicit none
 
-end subroutine l2_kernel 
+      double precision, intent(in) :: s11
+      double precision, intent(in) :: s22
+      double precision, intent(in) :: s12
+      double precision, intent(in), dimension(:, :) :: parameters
 
+      double precision, intent(out), dimension(:) :: kernel
 
-subroutine matern_kernel(s11, s22, s12, parameters, kernel)
+      double precision :: l2
 
-    implicit none
+      double precision :: rho
 
-    double precision, intent(in) :: s11
-    double precision, intent(in) :: s22
-    double precision, intent(in) :: s12
-    double precision, intent(in), dimension(:,:) :: parameters
+      integer :: i, k, n
+      double precision:: v, fact
 
-    double precision, intent(out), dimension(:) :: kernel
-    
-    double precision :: l2
+      l2 = sqrt(s11 + s22 - 2.0d0*s12)
 
-    double precision :: rho
+      kernel(:) = 0.0d0
 
-    integer :: i, k, n
-    double precision:: v, fact
+      do i = 1, size(kernel)
+         n = int(parameters(i, 2))
+         v = n + 0.5d0
 
-    l2 = sqrt(s11 + s22 - 2.0d0*s12)
+         rho = 2.0d0*sqrt(2.0d0*v)*l2/parameters(i, 1)
 
-    kernel(:) = 0.0d0    
+         do k = 0, n
 
-    do i = 1, size(kernel)
-        n = int(parameters(i,2))
-        v = n + 0.5d0
+            fact = parameters(i, 3 + k)
 
-        rho = 2.0d0 * sqrt(2.0d0 * v) * l2  / parameters(i,1) 
+            kernel(i) = kernel(i) + exp(-0.5d0*rho)*fact*rho**(n - k)
 
-        do k = 0, n
+         end do
+      end do
 
-            fact = parameters(i,3+k)
+   end subroutine matern_kernel
 
-            kernel(i) = kernel(i) + exp(-0.5d0 * rho) * fact * rho**(n-k)
+   subroutine cauchy_kernel(s11, s22, s12, parameters, k)
 
-        enddo
-    enddo
+      implicit none
 
-end subroutine matern_kernel 
+      double precision, intent(in) :: s11
+      double precision, intent(in) :: s22
+      double precision, intent(in) :: s12
+      double precision, intent(in), dimension(:, :) :: parameters
 
+      double precision, intent(out), dimension(:) :: k
 
-subroutine cauchy_kernel(s11, s22, s12, parameters, k)
+      integer :: i
+      double precision :: l2
 
-    implicit none
+      l2 = s11 + s22 - 2.0d0*s12
 
-    double precision, intent(in) :: s11
-    double precision, intent(in) :: s22
-    double precision, intent(in) :: s12
-    double precision, intent(in), dimension(:,:) :: parameters
+      do i = 1, size(k)
+         k(i) = 1.0d0/(1.0d0 + l2/parameters(i, 1)**2)
+      end do
 
-    double precision, intent(out), dimension(:) :: k
+   end subroutine cauchy_kernel
 
-    integer :: i
-    double precision :: l2
-    
-    l2 = s11 + s22 - 2.0d0*s12 
+   subroutine polynomial2_kernel(s12, parameters, k)
 
-    do i = 1, size(k)
-        k(i) = 1.0d0 /(1.0d0 + l2/parameters(i,1)**2)
-    enddo
+      implicit none
 
-end subroutine cauchy_kernel 
+      double precision, intent(in) :: s12
+      double precision, intent(in), dimension(:, :) :: parameters
 
-subroutine polynomial2_kernel(s12, parameters, k)
+      double precision, intent(out), dimension(:) :: k
 
-    implicit none
+      integer :: i
 
-    double precision, intent(in) :: s12
-    double precision, intent(in), dimension(:,:) :: parameters
+      do i = 1, size(k)
+         k(i) = parameters(i, 1) &
+            & + parameters(i, 2)*s12 &
+            & + parameters(i, 3)*s12**2 &
+            & + parameters(i, 4)*s12**3 &
+            & + parameters(i, 5)*s12**4 &
+            & + parameters(i, 6)*s12**5 &
+            & + parameters(i, 7)*s12**6 &
+            & + parameters(i, 8)*s12**7 &
+            & + parameters(i, 9)*s12**8 &
+            & + parameters(i, 10)*s12**9
+      end do
 
-    double precision, intent(out), dimension(:) :: k
+   end subroutine polynomial2_kernel
 
-    integer :: i
-    
-    do i = 1, size(k)
-        k(i) = parameters(i,  1) &
-           & + parameters(i,  2) * s12 &
-           & + parameters(i,  3) * s12**2 &
-           & + parameters(i,  4) * s12**3 &
-           & + parameters(i,  5) * s12**4 &
-           & + parameters(i,  6) * s12**5 &
-           & + parameters(i,  7) * s12**6 &
-           & + parameters(i,  8) * s12**7 &
-           & + parameters(i,  9) * s12**8 &
-           & + parameters(i, 10) * s12**9
-    enddo
-    
-    
-end subroutine polynomial2_kernel
+   function kernel(s11, s22, s12, kernel_idx, parameters) result(k)
 
-function kernel(s11, s22, s12, kernel_idx, parameters) result(k)
+      use ffchl_kernel_types
 
-    use ffchl_kernel_types
+      implicit none
 
-    implicit none
+      double precision, intent(in) :: s11
+      double precision, intent(in) :: s22
+      double precision, intent(in) :: s12
+      integer, intent(in) :: kernel_idx
+      double precision, intent(in), dimension(:, :) :: parameters
 
-    double precision, intent(in) :: s11
-    double precision, intent(in) :: s22
-    double precision, intent(in) :: s12
-    integer, intent(in) :: kernel_idx
-    double precision, intent(in), dimension(:,:) :: parameters
+      integer :: n
+      double precision, allocatable, dimension(:) :: k
 
-    integer :: n
-    double precision, allocatable, dimension(:) :: k
+      n = size(parameters, dim=1)
+      allocate (k(n))
 
-    n = size(parameters, dim=1)
-    allocate(k(n))
+      if (kernel_idx == GAUSSIAN) then
+         call gaussian_kernel(s11, s22, s12, parameters, k)
 
-    if (kernel_idx == GAUSSIAN) then
-        call gaussian_kernel(s11, s22, s12, parameters, k)
+      else if (kernel_idx == LINEAR) then
+         call linear_kernel(s12, parameters, k)
 
-    else if (kernel_idx == LINEAR) then
-        call linear_kernel(s12, parameters, k)
-    
-    else if (kernel_idx == POLYNOMIAL) then
-        call polynomial_kernel(s12, parameters, k)
+      else if (kernel_idx == POLYNOMIAL) then
+         call polynomial_kernel(s12, parameters, k)
 
-    else if (kernel_idx == SIGMOID) then
-        call sigmoid_kernel(s12, parameters, k)
+      else if (kernel_idx == SIGMOID) then
+         call sigmoid_kernel(s12, parameters, k)
 
-    else if (kernel_idx == MULTIQUADRATIC) then
-        call multiquadratic_kernel(s11, s22, s12, parameters, k)
+      else if (kernel_idx == MULTIQUADRATIC) then
+         call multiquadratic_kernel(s11, s22, s12, parameters, k)
 
-    else if (kernel_idx == INV_MULTIQUADRATIC) then
-        call inverse_multiquadratic_kernel(s11, s22, s12, parameters, k)
+      else if (kernel_idx == INV_MULTIQUADRATIC) then
+         call inverse_multiquadratic_kernel(s11, s22, s12, parameters, k)
 
-    else if (kernel_idx == BESSEL) then
-        call bessel_kernel(s12, parameters, k)
-    
-    else if (kernel_idx == L2) then
-        call l2_kernel(s11, s22, s12, parameters, k)
-    
-    else if (kernel_idx == MATERN) then
-        call matern_kernel(s11, s22, s12, parameters, k)
-    
-    else if (kernel_idx == CAUCHY) then
-        call cauchy_kernel(s11, s22, s12, parameters, k)
-    
-    else if (kernel_idx == POLYNOMIAL2) then
-        call polynomial2_kernel(s12, parameters, k)
+      else if (kernel_idx == BESSEL) then
+         call bessel_kernel(s12, parameters, k)
 
-    else
-        write (*,*) "QML ERROR: Unknown kernel function requested:", kernel_idx
-        stop
-    endif
+      else if (kernel_idx == L2) then
+         call l2_kernel(s11, s22, s12, parameters, k)
 
+      else if (kernel_idx == MATERN) then
+         call matern_kernel(s11, s22, s12, parameters, k)
 
-end function kernel
+      else if (kernel_idx == CAUCHY) then
+         call cauchy_kernel(s11, s22, s12, parameters, k)
+
+      else if (kernel_idx == POLYNOMIAL2) then
+         call polynomial2_kernel(s12, parameters, k)
+
+      else
+         write (*, *) "QML ERROR: Unknown kernel function requested:", kernel_idx
+         stop
+      end if
+
+   end function kernel
 
 end module ffchl_kernels

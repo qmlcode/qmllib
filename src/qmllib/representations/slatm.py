@@ -1,36 +1,12 @@
-
-#
-
-#
-
-
-
-
-
-
-#
-
-
-#
-
-
-
-
-
-
-
-
-
 from __future__ import print_function
 
-import scipy.spatial.distance as ssd
 import itertools as itl
-import numpy as np
 
-from .fslatm import fget_sbot
-from .fslatm import fget_sbot_local
-from .fslatm import fget_sbop
-from .fslatm import fget_sbop_local
+import numpy as np
+import scipy.spatial.distance as ssd
+
+from .fslatm import fget_sbop, fget_sbop_local, fget_sbot, fget_sbot_local
+
 
 def update_m(obj, ia, rcut=9.0, pbc=None):
     """
@@ -42,25 +18,44 @@ def update_m(obj, ia, rcut=9.0, pbc=None):
     vs = ssd.norm(c, axis=0)
 
     nns = []
-    for i,vi in enumerate(vs):
-        n1_doulbe = rcut/li
+    for i, vi in enumerate(vs):
+        n1_doulbe = rcut / li
         n1 = int(n1_doulbe)
         if n1 - n1_doulbe == 0:
-            n1s = range(-n1, n1+1) if pbc[i] else [0,]
+            n1s = (
+                range(-n1, n1 + 1)
+                if pbc[i]
+                else [
+                    0,
+                ]
+            )
         elif n1 == 0:
-            n1s = [-1,0,1] if pbc[i] else [0,]
+            n1s = (
+                [-1, 0, 1]
+                if pbc[i]
+                else [
+                    0,
+                ]
+            )
         else:
-            n1s = range(-n1-1, n1+2) if pbc[i] else [0,]
+            n1s = (
+                range(-n1 - 1, n1 + 2)
+                if pbc[i]
+                else [
+                    0,
+                ]
+            )
 
         nns.append(n1s)
 
-    n1s,n2s,n3s = nns
+    n1s, n2s, n3s = nns
 
-    n123s_ = np.array( list( itl.product(n1s,n2s,n3s) ) )
+    n123s_ = np.array(list(itl.product(n1s, n2s, n3s)))
     n123s = []
     for n123 in n123s_:
         n123u = list(n123)
-        if n123u != [0,0,0]: n123s.append(n123u)
+        if n123u != [0, 0, 0]:
+            n123s.append(n123u)
 
     nau = len(n123s)
     n123s = np.array(n123s, np.float)
@@ -69,27 +64,35 @@ def update_m(obj, ia, rcut=9.0, pbc=None):
     cia = coords[ia]
 
     if na == 1:
-        ds = np.array([[0.]])
+        ds = np.array([[0.0]])
     else:
-        ds = ssd.squareform( ssd.pdist(coords) )
+        ds = ssd.squareform(ssd.pdist(coords))
 
-    zs_u = []; coords_u = []
-    zs_u.append( zs[ia] ); coords_u.append( coords[ia] )
-    for i in range(na) :
-        di = ds[i,ia]
+    zs_u = []
+    coords_u = []
+    zs_u.append(zs[ia])
+    coords_u.append(coords[ia])
+    for i in range(na):
+        di = ds[i, ia]
         if (di > 0) and (di <= rcut):
-            zs_u.append(zs[i]); coords_u.append(coords[ia])
+            zs_u.append(zs[i])
+            coords_u.append(coords[ia])
 
-# add new coords by translation
-            ts = np.zeros((nau,3))
+            # add new coords by translation
+            ts = np.zeros((nau, 3))
             for iau in range(nau):
-                ts[iau] = np.dot(n123s[iau],c)
+                ts[iau] = np.dot(n123s[iau], c)
 
-            coords_iu = coords[i] + ts #np.dot(n123s, c)
-            dsi = ssd.norm(coords_iu - cia, axis=1);
-            filt = np.logical_and(dsi > 0, dsi <= rcut); nx = filt.sum()
-            zs_u += [zs[i],]*nx
-            coords_u += [ list( coords_iu[filt,:] ), ]
+            coords_iu = coords[i] + ts  # np.dot(n123s, c)
+            dsi = ssd.norm(coords_iu - cia, axis=1)
+            filt = np.logical_and(dsi > 0, dsi <= rcut)
+            nx = filt.sum()
+            zs_u += [
+                zs[i],
+            ] * nx
+            coords_u += [
+                list(coords_iu[filt, :]),
+            ]
 
     obj_u = [zs_u, coords_u]
 
@@ -97,12 +100,26 @@ def update_m(obj, ia, rcut=9.0, pbc=None):
 
 
 def get_boa(z1, zs_):
-    return z1*np.array( [(zs_ == z1).sum(), ])
-    #return -0.5*z1**2.4*np.array( [(zs_ == z1).sum(), ])
+    return z1 * np.array(
+        [
+            (zs_ == z1).sum(),
+        ]
+    )
+    # return -0.5*z1**2.4*np.array( [(zs_ == z1).sum(), ])
 
 
-def get_sbop(mbtype, obj, iloc=False, ia=None, normalize=True, sigma=0.05, \
-             rcut=4.8, dgrid=0.03, pbc='000', rpower=6):
+def get_sbop(
+    mbtype,
+    obj,
+    iloc=False,
+    ia=None,
+    normalize=True,
+    sigma=0.05,
+    rcut=4.8,
+    dgrid=0.03,
+    pbc="000",
+    rpower=6,
+):
     """
     two-body terms
 
@@ -114,11 +131,12 @@ def get_sbop(mbtype, obj, iloc=False, ia=None, normalize=True, sigma=0.05, \
     zs, coords, c = obj
 
     if iloc:
-        assert ia != None, '#ERROR: plz specify `za and `ia '
+        assert ia != None, "#ERROR: plz specify `za and `ia "
 
-    if pbc != '000':
-        if rcut < 9.0: raise '#ERROR: rcut too small for systems with pbc'
-        assert iloc, '#ERROR: for periodic system, plz use atomic rpst'
+    if pbc != "000":
+        if rcut < 9.0:
+            raise "#ERROR: rcut too small for systems with pbc"
+        assert iloc, "#ERROR: for periodic system, plz use atomic rpst"
         zs, coords = update_m(obj, ia, rcut=rcut, pbc=pbc)
 
         # after update of `m, the query atom `ia will become the first atom
@@ -126,10 +144,9 @@ def get_sbop(mbtype, obj, iloc=False, ia=None, normalize=True, sigma=0.05, \
 
     # bop potential distribution
     r0 = 0.1
-    nx = int((rcut - r0)/dgrid) + 1
+    nx = int((rcut - r0) / dgrid) + 1
 
-
-    coeff = 1/np.sqrt(2*sigma**2*np.pi) if normalize else 1.0
+    coeff = 1 / np.sqrt(2 * sigma**2 * np.pi) if normalize else 1.0
 
     if iloc:
         ys = fget_sbop_local(coords, zs, ia, z1, z2, rcut, nx, dgrid, sigma, coeff, rpower)
@@ -138,8 +155,10 @@ def get_sbop(mbtype, obj, iloc=False, ia=None, normalize=True, sigma=0.05, \
 
     return ys
 
-def get_sbot(mbtype, obj, iloc=False, ia=None, normalize=True, sigma=0.05, \
-             rcut=4.8, dgrid=0.0262, pbc='000'):
+
+def get_sbot(
+    mbtype, obj, iloc=False, ia=None, normalize=True, sigma=0.05, rcut=4.8, dgrid=0.0262, pbc="000"
+):
 
     """
     sigma -- standard deviation of gaussian distribution centered on a specific angle
@@ -152,23 +171,23 @@ def get_sbot(mbtype, obj, iloc=False, ia=None, normalize=True, sigma=0.05, \
     zs, coords, c = obj
 
     if iloc:
-        assert ia != None, '#ERROR: plz specify `za and `ia '
+        assert ia != None, "#ERROR: plz specify `za and `ia "
 
-    if pbc != '000':
-        assert iloc, '#ERROR: for periodic system, plz use atomic rpst'
+    if pbc != "000":
+        assert iloc, "#ERROR: for periodic system, plz use atomic rpst"
         zs, coords = update_m(obj, ia, rcut=rcut, pbc=pbc)
 
         # after update of `m, the query atom `ia will become the first atom
         ia = 0
 
     # for a normalized gaussian distribution, u should multiply this coeff
-    coeff = 1/np.sqrt(2*sigma**2*np.pi) if normalize else 1.0
+    coeff = 1 / np.sqrt(2 * sigma**2 * np.pi) if normalize else 1.0
 
     # Setup grid in Python
-    d2r = np.pi/180 # degree to rad
-    a0 = -20.0*d2r
-    a1 = np.pi + 20.0*d2r
-    nx = int((a1-a0)/dgrid) + 1
+    d2r = np.pi / 180  # degree to rad
+    a0 = -20.0 * d2r
+    a1 = np.pi + 20.0 * d2r
+    nx = int((a1 - a0) / dgrid) + 1
 
     if iloc:
         ys = fget_sbot_local(coords, zs, ia, z1, z2, z3, rcut, nx, dgrid, sigma, coeff)
@@ -176,4 +195,3 @@ def get_sbot(mbtype, obj, iloc=False, ia=None, normalize=True, sigma=0.05, \
         ys = fget_sbot(coords, zs, z1, z2, z3, rcut, nx, dgrid, sigma, coeff)
 
     return ys
-

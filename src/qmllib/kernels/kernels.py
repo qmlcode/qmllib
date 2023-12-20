@@ -1,230 +1,214 @@
-
-#
-
-#
-
-
-
-
-
-
-#
-
-
-#
-
-
-
-
-
-
-
-
 from __future__ import print_function
 
 import numpy as np
 
-from .fkernels import fgaussian_kernel, fgaussian_kernel_symmetric
-from .fkernels import fwasserstein_kernel
-from .fkernels import flaplacian_kernel
-from .fkernels import fgaussian_kernel_symmetric
-from .fkernels import flaplacian_kernel_symmetric
-from .fkernels import flinear_kernel
-from .fkernels import fsargan_kernel
-from .fkernels import fmatern_kernel_l2
+from .fkernels import (
+    fgaussian_kernel,
+    fgaussian_kernel_symmetric,
+    fget_local_kernels_gaussian,
+    fget_local_kernels_laplacian,
+    fkpca,
+    flaplacian_kernel,
+    flaplacian_kernel_symmetric,
+    flinear_kernel,
+    fmatern_kernel_l2,
+    fsargan_kernel,
+    fwasserstein_kernel,
+)
 
-from .fkernels import fget_local_kernels_gaussian
-from .fkernels import fget_local_kernels_laplacian
-from .fkernels import fget_vector_kernels_gaussian, fget_vector_kernels_gaussian_symmetric
-
-from .fkernels import fkpca
 
 def wasserstein_kernel(A, B, sigma, p=1, q=1):
-    """ Calculates the Wasserstein kernel matrix K, where :math:`K_{ij}`:
+    """Calculates the Wasserstein kernel matrix K, where :math:`K_{ij}`:
 
-        :math:`K_{ij} = \\exp \\big( -\\frac{(W_p(A_i, B_i))^q}{\sigma} \\big)`
+    :math:`K_{ij} = \\exp \\big( -\\frac{(W_p(A_i, B_i))^q}{\sigma} \\big)`
 
-        Where :math:`A_{i}` and :math:`B_{j}` are representation vectors.
-        K is calculated using an OpenMP parallel Fortran routine.
+    Where :math:`A_{i}` and :math:`B_{j}` are representation vectors.
+    K is calculated using an OpenMP parallel Fortran routine.
 
-        :param A: 2D array of representations - shape (N, representation size).
-        :type A: numpy array
-        :param B: 2D array of representations - shape (M, representation size).
-        :type B: numpy array
-        :param sigma: The value of sigma in the kernel matrix.
-        :type sigma: float
+    :param A: 2D array of representations - shape (N, representation size).
+    :type A: numpy array
+    :param B: 2D array of representations - shape (M, representation size).
+    :type B: numpy array
+    :param sigma: The value of sigma in the kernel matrix.
+    :type sigma: float
 
-        :return: The Wasserstein kernel matrix - shape (N, M)
-        :rtype: numpy array
+    :return: The Wasserstein kernel matrix - shape (N, M)
+    :rtype: numpy array
     """
 
     na = A.shape[0]
     nb = B.shape[0]
 
-    K = np.empty((na, nb), order='F')
+    K = np.empty((na, nb), order="F")
 
     # Note: Transposed for Fortran
     fwasserstein_kernel(A.T, na, B.T, nb, K, sigma, p, q)
 
     return K
 
+
 def laplacian_kernel(A, B, sigma):
-    """ Calculates the Laplacian kernel matrix K, where :math:`K_{ij}`:
+    """Calculates the Laplacian kernel matrix K, where :math:`K_{ij}`:
 
-            :math:`K_{ij} = \\exp \\big( -\\frac{\\|A_i - B_j\\|_1}{\sigma} \\big)`
+        :math:`K_{ij} = \\exp \\big( -\\frac{\\|A_i - B_j\\|_1}{\sigma} \\big)`
 
-        Where :math:`A_{i}` and :math:`B_{j}` are representation vectors.
-        K is calculated using an OpenMP parallel Fortran routine.
+    Where :math:`A_{i}` and :math:`B_{j}` are representation vectors.
+    K is calculated using an OpenMP parallel Fortran routine.
 
-        :param A: 2D array of representations - shape (N, representation size).
-        :type A: numpy array
-        :param B: 2D array of representations - shape (M, representation size).
-        :type B: numpy array
-        :param sigma: The value of sigma in the kernel matrix.
-        :type sigma: float
+    :param A: 2D array of representations - shape (N, representation size).
+    :type A: numpy array
+    :param B: 2D array of representations - shape (M, representation size).
+    :type B: numpy array
+    :param sigma: The value of sigma in the kernel matrix.
+    :type sigma: float
 
-        :return: The Laplacian kernel matrix - shape (N, M)
-        :rtype: numpy array
+    :return: The Laplacian kernel matrix - shape (N, M)
+    :rtype: numpy array
     """
 
     na = A.shape[0]
     nb = B.shape[0]
 
-    K = np.empty((na, nb), order='F')
+    K = np.empty((na, nb), order="F")
 
     # Note: Transposed for Fortran
     flaplacian_kernel(A.T, na, B.T, nb, K, sigma)
 
     return K
 
+
 def laplacian_kernel_symmetric(A, sigma):
-    """ Calculates the symmetric Laplacian kernel matrix K, where :math:`K_{ij}`:
+    """Calculates the symmetric Laplacian kernel matrix K, where :math:`K_{ij}`:
 
-            :math:`K_{ij} = \\exp \\big( -\\frac{\\|A_i - A_j\\|_1}{\sigma} \\big)`
+        :math:`K_{ij} = \\exp \\big( -\\frac{\\|A_i - A_j\\|_1}{\sigma} \\big)`
 
-        Where :math:`A_{i}` are representation vectors.
-        K is calculated using an OpenMP parallel Fortran routine.
+    Where :math:`A_{i}` are representation vectors.
+    K is calculated using an OpenMP parallel Fortran routine.
 
-        :param A: 2D array of representations - shape (N, representation size).
-        :type A: numpy array
-        :param sigma: The value of sigma in the kernel matrix.
-        :type sigma: float
+    :param A: 2D array of representations - shape (N, representation size).
+    :type A: numpy array
+    :param sigma: The value of sigma in the kernel matrix.
+    :type sigma: float
 
-        :return: The Laplacian kernel matrix - shape (N, N)
-        :rtype: numpy array
+    :return: The Laplacian kernel matrix - shape (N, N)
+    :rtype: numpy array
     """
 
     na = A.shape[0]
 
-    K = np.empty((na, na), order='F')
+    K = np.empty((na, na), order="F")
 
     # Note: Transposed for Fortran
     flaplacian_kernel_symmetric(A.T, na, K, sigma)
 
     return K
 
+
 def gaussian_kernel(A, B, sigma):
-    """ Calculates the Gaussian kernel matrix K, where :math:`K_{ij}`:
+    """Calculates the Gaussian kernel matrix K, where :math:`K_{ij}`:
 
-            :math:`K_{ij} = \\exp \\big( -\\frac{\\|A_i - B_j\\|_2^2}{2\sigma^2} \\big)`
+        :math:`K_{ij} = \\exp \\big( -\\frac{\\|A_i - B_j\\|_2^2}{2\sigma^2} \\big)`
 
-        Where :math:`A_{i}` and :math:`B_{j}` are representation vectors.
-        K is calculated using an OpenMP parallel Fortran routine.
+    Where :math:`A_{i}` and :math:`B_{j}` are representation vectors.
+    K is calculated using an OpenMP parallel Fortran routine.
 
-        :param A: 2D array of representations - shape (N, representation size).
-        :type A: numpy array
-        :param B: 2D array of representations - shape (M, representation size).
-        :type B: numpy array
-        :param sigma: The value of sigma in the kernel matrix.
-        :type sigma: float
+    :param A: 2D array of representations - shape (N, representation size).
+    :type A: numpy array
+    :param B: 2D array of representations - shape (M, representation size).
+    :type B: numpy array
+    :param sigma: The value of sigma in the kernel matrix.
+    :type sigma: float
 
-        :return: The Gaussian kernel matrix - shape (N, M)
-        :rtype: numpy array
+    :return: The Gaussian kernel matrix - shape (N, M)
+    :rtype: numpy array
     """
 
     na = A.shape[0]
     nb = B.shape[0]
 
-    K = np.empty((na, nb), order='F')
+    K = np.empty((na, nb), order="F")
 
     # Note: Transposed for Fortran
     fgaussian_kernel(A.T, na, B.T, nb, K, sigma)
 
     return K
 
+
 def gaussian_kernel_symmetric(A, sigma):
-    """ Calculates the symmetric Gaussian kernel matrix K, where :math:`K_{ij}`:
+    """Calculates the symmetric Gaussian kernel matrix K, where :math:`K_{ij}`:
 
-            :math:`K_{ij} = \\exp \\big( -\\frac{\\|A_i - A_j\\|_2^2}{2\sigma^2} \\big)`
+        :math:`K_{ij} = \\exp \\big( -\\frac{\\|A_i - A_j\\|_2^2}{2\sigma^2} \\big)`
 
-        Where :math:`A_{i}` are representation vectors.
-        K is calculated using an OpenMP parallel Fortran routine.
+    Where :math:`A_{i}` are representation vectors.
+    K is calculated using an OpenMP parallel Fortran routine.
 
-        :param A: 2D array of representations - shape (N, representation size).
-        :type A: numpy array
-        :param sigma: The value of sigma in the kernel matrix.
-        :type sigma: float
+    :param A: 2D array of representations - shape (N, representation size).
+    :type A: numpy array
+    :param sigma: The value of sigma in the kernel matrix.
+    :type sigma: float
 
-        :return: The Gaussian kernel matrix - shape (N, N)
-        :rtype: numpy array
+    :return: The Gaussian kernel matrix - shape (N, N)
+    :rtype: numpy array
     """
 
     na = A.shape[0]
 
-    K = np.empty((na, na), order='F')
+    K = np.empty((na, na), order="F")
 
     # Note: Transposed for Fortran
     fgaussian_kernel_symmetric(A.T, na, K, sigma)
 
     return K
 
+
 def linear_kernel(A, B):
-    """ Calculates the linear kernel matrix K, where :math:`K_{ij}`:
+    """Calculates the linear kernel matrix K, where :math:`K_{ij}`:
 
-            :math:`K_{ij} = A_i \cdot B_j`
+        :math:`K_{ij} = A_i \cdot B_j`
 
-        VWhere :math:`A_{i}` and :math:`B_{j}` are  representation vectors. 
+    VWhere :math:`A_{i}` and :math:`B_{j}` are  representation vectors.
 
-        K is calculated using an OpenMP parallel Fortran routine.
+    K is calculated using an OpenMP parallel Fortran routine.
 
-        :param A: 2D array of representations - shape (N, representation size).
-        :type A: numpy array
-        :param B: 2D array of representations - shape (M, representation size).
-        :type B: numpy array
+    :param A: 2D array of representations - shape (N, representation size).
+    :type A: numpy array
+    :param B: 2D array of representations - shape (M, representation size).
+    :type B: numpy array
 
-        :return: The Gaussian kernel matrix - shape (N, M)
-        :rtype: numpy array
+    :return: The Gaussian kernel matrix - shape (N, M)
+    :rtype: numpy array
     """
 
     na = A.shape[0]
     nb = B.shape[0]
 
-    K = np.empty((na, nb), order='F')
+    K = np.empty((na, nb), order="F")
 
     # Note: Transposed for Fortran
     flinear_kernel(A.T, na, B.T, nb, K)
 
     return K
 
+
 def sargan_kernel(A, B, sigma, gammas):
-    """ Calculates the Sargan kernel matrix K, where :math:`K_{ij}`:
+    """Calculates the Sargan kernel matrix K, where :math:`K_{ij}`:
 
-            :math:`K_{ij} = \\exp \\big( -\\frac{\\| A_i - B_j \\|_1)}{\sigma} \\big) \\big(1 + \\sum_{k} \\frac{\gamma_{k} \\| A_i - B_j \\|_1^k}{\sigma^k} \\big)`
+        :math:`K_{ij} = \\exp \\big( -\\frac{\\| A_i - B_j \\|_1)}{\sigma} \\big) \\big(1 + \\sum_{k} \\frac{\gamma_{k} \\| A_i - B_j \\|_1^k}{\sigma^k} \\big)`
 
-        Where :math:`A_{i}` and :math:`B_{j}` are representation vectors.
-        K is calculated using an OpenMP parallel Fortran routine.
+    Where :math:`A_{i}` and :math:`B_{j}` are representation vectors.
+    K is calculated using an OpenMP parallel Fortran routine.
 
-        :param A: 2D array of representations - shape (N, representation size).
-        :type A: numpy array
-        :param B: 2D array of representations - shape (M, representation size).
-        :type B: numpy array
-        :param sigma: The value of sigma in the kernel matrix.
-        :type sigma: float
-        :param gammas: 1D array of parameters in the kernel matrix.
-        :type gammas: numpy array
+    :param A: 2D array of representations - shape (N, representation size).
+    :type A: numpy array
+    :param B: 2D array of representations - shape (M, representation size).
+    :type B: numpy array
+    :param sigma: The value of sigma in the kernel matrix.
+    :type sigma: float
+    :param gammas: 1D array of parameters in the kernel matrix.
+    :type gammas: numpy array
 
-        :return: The Sargan kernel matrix - shape (N, M).
-        :rtype: numpy array
+    :return: The Sargan kernel matrix - shape (N, M).
+    :rtype: numpy array
     """
 
     ng = len(gammas)
@@ -235,40 +219,41 @@ def sargan_kernel(A, B, sigma, gammas):
     na = A.shape[0]
     nb = B.shape[0]
 
-    K = np.empty((na, nb), order='F')
+    K = np.empty((na, nb), order="F")
 
     # Note: Transposed for Fortran
     fsargan_kernel(A.T, na, B.T, nb, K, sigma, gammas, ng)
 
     return K
 
-def matern_kernel(A, B, sigma, order = 0, metric = "l1"):
-    """ Calculates the Matern kernel matrix K, where :math:`K_{ij}`:
 
-            for order = 0:
-                :math:`K_{ij} = \\exp\\big( -\\frac{d}{\sigma} \\big)`
-            for order = 1:
-                :math:`K_{ij} = \\exp\\big( -\\frac{\\sqrt{3} d}{\sigma} \\big) \\big(1 + \\frac{\\sqrt{3} d}{\sigma} \\big)`
-            for order = 2:
-                :math:`K_{ij} = \\exp\\big( -\\frac{\\sqrt{5} d}{d} \\big) \\big( 1 + \\frac{\\sqrt{5} d}{\sigma} + \\frac{5 d^2}{3\sigma^2} \\big)`
+def matern_kernel(A, B, sigma, order=0, metric="l1"):
+    """Calculates the Matern kernel matrix K, where :math:`K_{ij}`:
 
-        Where :math:`A_i` and :math:`B_j` are representation vectors, and d is a distance measure.
+        for order = 0:
+            :math:`K_{ij} = \\exp\\big( -\\frac{d}{\sigma} \\big)`
+        for order = 1:
+            :math:`K_{ij} = \\exp\\big( -\\frac{\\sqrt{3} d}{\sigma} \\big) \\big(1 + \\frac{\\sqrt{3} d}{\sigma} \\big)`
+        for order = 2:
+            :math:`K_{ij} = \\exp\\big( -\\frac{\\sqrt{5} d}{d} \\big) \\big( 1 + \\frac{\\sqrt{5} d}{\sigma} + \\frac{5 d^2}{3\sigma^2} \\big)`
 
-        K is calculated using an OpenMP parallel Fortran routine.
+    Where :math:`A_i` and :math:`B_j` are representation vectors, and d is a distance measure.
 
-        :param A: 2D array of representations - shape (N, representation size).
-        :type A: numpy array
-        :param B: 2D array of representations - shape (M, representation size).
-        :type B: numpy array
-        :param sigma: The value of sigma in the kernel matrix.
-        :type sigma: float
-        :param order: The order of the polynomial (0, 1, 2)
-        :type order: integer
-        :param metric: The distance metric ('l1', 'l2')
-        :type metric: string
+    K is calculated using an OpenMP parallel Fortran routine.
 
-        :return: The Matern kernel matrix - shape (N, M)
-        :rtype: numpy array
+    :param A: 2D array of representations - shape (N, representation size).
+    :type A: numpy array
+    :param B: 2D array of representations - shape (M, representation size).
+    :type B: numpy array
+    :param sigma: The value of sigma in the kernel matrix.
+    :type sigma: float
+    :param order: The order of the polynomial (0, 1, 2)
+    :type order: integer
+    :param metric: The distance metric ('l1', 'l2')
+    :type metric: string
+
+    :return: The Matern kernel matrix - shape (N, M)
+    :rtype: numpy array
     """
 
     if metric == "l1":
@@ -278,7 +263,7 @@ def matern_kernel(A, B, sigma, order = 0, metric = "l1"):
             gammas = [1]
             sigma /= np.sqrt(3)
         elif order == 2:
-            gammas = [1,1/3.0]
+            gammas = [1, 1 / 3.0]
             sigma /= np.sqrt(5)
         else:
             print("Order:%d not implemented in Matern Kernel" % order)
@@ -295,39 +280,40 @@ def matern_kernel(A, B, sigma, order = 0, metric = "l1"):
     na = A.shape[0]
     nb = B.shape[0]
 
-    K = np.empty((na, nb), order='F')
+    K = np.empty((na, nb), order="F")
 
     # Note: Transposed for Fortran
     fmatern_kernel_l2(A.T, na, B.T, nb, K, sigma, order)
 
     return K
 
+
 def get_local_kernels_gaussian(A, B, na, nb, sigmas):
-    """ Calculates the Gaussian kernel matrix K, for a local representation where :math:`K_{ij}`:
+    """Calculates the Gaussian kernel matrix K, for a local representation where :math:`K_{ij}`:
 
-            :math:`K_{ij} = \sum_{a \in i} \sum_{b \in j} \\exp \\big( -\\frac{\\|A_a - B_b\\|_2^2}{2\sigma^2} \\big)`
+        :math:`K_{ij} = \sum_{a \in i} \sum_{b \in j} \\exp \\big( -\\frac{\\|A_a - B_b\\|_2^2}{2\sigma^2} \\big)`
 
-        Where :math:`A_{a}` and :math:`B_{b}` are representation vectors.
+    Where :math:`A_{a}` and :math:`B_{b}` are representation vectors.
 
-        Note that the input array is one big 2D array with all atoms concatenated along the same axis.
-        Further more a series of kernels is produced (since calculating the distance matrix is expensive
-        but getting the resulting kernels elements for several sigmas is not.)
+    Note that the input array is one big 2D array with all atoms concatenated along the same axis.
+    Further more a series of kernels is produced (since calculating the distance matrix is expensive
+    but getting the resulting kernels elements for several sigmas is not.)
 
-        K is calculated using an OpenMP parallel Fortran routine.
+    K is calculated using an OpenMP parallel Fortran routine.
 
-        :param A: 2D array of descriptors - shape (total atoms A, representation size).
-        :type A: numpy array
-        :param B: 2D array of descriptors - shape (total atoms B, representation size).
-        :type B: numpy array
-        :param na: 1D array containing numbers of atoms in each compound.
-        :type na: numpy array
-        :param nb: 1D array containing numbers of atoms in each compound.
-        :type nb: numpy array
-        :param sigma: The value of sigma in the kernel matrix.
-        :type sigma: float
+    :param A: 2D array of descriptors - shape (total atoms A, representation size).
+    :type A: numpy array
+    :param B: 2D array of descriptors - shape (total atoms B, representation size).
+    :type B: numpy array
+    :param na: 1D array containing numbers of atoms in each compound.
+    :type na: numpy array
+    :param nb: 1D array containing numbers of atoms in each compound.
+    :type nb: numpy array
+    :param sigma: The value of sigma in the kernel matrix.
+    :type sigma: float
 
-        :return: The Gaussian kernel matrix - shape (nsigmas, N, M)
-        :rtype: numpy array
+    :return: The Gaussian kernel matrix - shape (nsigmas, N, M)
+    :rtype: numpy array
     """
 
     assert np.sum(na) == A.shape[0], "Error in A input"
@@ -343,32 +329,33 @@ def get_local_kernels_gaussian(A, B, na, nb, sigmas):
 
     return fget_local_kernels_gaussian(A.T, B.T, na, nb, sigmas, nma, nmb, nsigmas)
 
+
 def get_local_kernels_laplacian(A, B, na, nb, sigmas):
-    """ Calculates the Local Laplacian kernel matrix K, for a local representation where :math:`K_{ij}`:
+    """Calculates the Local Laplacian kernel matrix K, for a local representation where :math:`K_{ij}`:
 
-            :math:`K_{ij} = \sum_{a \in i} \sum_{b \in j} \\exp \\big( -\\frac{\\|A_a - B_b\\|_1}{\sigma} \\big)`
+        :math:`K_{ij} = \sum_{a \in i} \sum_{b \in j} \\exp \\big( -\\frac{\\|A_a - B_b\\|_1}{\sigma} \\big)`
 
-        Where :math:`A_{a}` and :math:`B_{b}` are representation vectors.
+    Where :math:`A_{a}` and :math:`B_{b}` are representation vectors.
 
-        Note that the input array is one big 2D array with all atoms concatenated along the same axis.
-        Further more a series of kernels is produced (since calculating the distance matrix is expensive
-        but getting the resulting kernels elements for several sigmas is not.)
-        
-        K is calculated using an OpenMP parallel Fortran routine.
+    Note that the input array is one big 2D array with all atoms concatenated along the same axis.
+    Further more a series of kernels is produced (since calculating the distance matrix is expensive
+    but getting the resulting kernels elements for several sigmas is not.)
 
-        :param A: 2D array of descriptors - shape (N, representation size).
-        :type A: numpy array
-        :param B: 2D array of descriptors - shape (M, representation size).
-        :type B: numpy array
-        :param na: 1D array containing numbers of atoms in each compound.
-        :type na: numpy array
-        :param nb: 1D array containing numbers of atoms in each compound.
-        :type nb: numpy array
-        :param sigmas: List of the sigmas.
-        :type sigmas: list
+    K is calculated using an OpenMP parallel Fortran routine.
 
-        :return: The Laplacian kernel matrix - shape (nsigmas, N, M)
-        :rtype: numpy array
+    :param A: 2D array of descriptors - shape (N, representation size).
+    :type A: numpy array
+    :param B: 2D array of descriptors - shape (M, representation size).
+    :type B: numpy array
+    :param na: 1D array containing numbers of atoms in each compound.
+    :type na: numpy array
+    :param nb: 1D array containing numbers of atoms in each compound.
+    :type nb: numpy array
+    :param sigmas: List of the sigmas.
+    :type sigmas: list
+
+    :return: The Laplacian kernel matrix - shape (nsigmas, N, M)
+    :rtype: numpy array
     """
 
     assert np.sum(na) == A.shape[0], "Error in A input"
@@ -378,7 +365,7 @@ def get_local_kernels_laplacian(A, B, na, nb, sigmas):
 
     nma = len(na)
     nmb = len(nb)
-     
+
     sigmas = np.asarray(sigmas)
     nsigmas = len(sigmas)
 
@@ -386,22 +373,22 @@ def get_local_kernels_laplacian(A, B, na, nb, sigmas):
 
 
 def kpca(K, n=2, centering=True):
-    """ Calculates `n` first principal components for the kernel :math:`K`.
+    """Calculates `n` first principal components for the kernel :math:`K`.
 
-        The PCA is calculated using an OpenMP parallel Fortran routine.
+    The PCA is calculated using an OpenMP parallel Fortran routine.
 
-        A square, symmetric kernel matrix is required. Centering of the kernel matrix 
-        is enabled by default, although this isn't a strict requirement.
+    A square, symmetric kernel matrix is required. Centering of the kernel matrix
+    is enabled by default, although this isn't a strict requirement.
 
-        :param K: 2D kernel matrix
-        :type K: numpy array
-        :param n: Number of kernel PCAs to return (default=2)
-        :type n: integer
-        :param centering: Whether to center the kernel matrix (default=True)
-        :type centering: bool
+    :param K: 2D kernel matrix
+    :type K: numpy array
+    :param n: Number of kernel PCAs to return (default=2)
+    :type n: integer
+    :param centering: Whether to center the kernel matrix (default=True)
+    :type centering: bool
 
-        :return: array containing the principal components
-        :rtype: numpy array
+    :return: array containing the principal components
+    :rtype: numpy array
     """
 
     assert K.shape[0] == K.shape[1], "ERROR: Square matrix required for Kernel PCA."

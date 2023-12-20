@@ -1,40 +1,16 @@
-
-#
-
-#
-
-
-
-
-
-
-#
-
-
-#
-
-
-
-
-
-
-
-
 from __future__ import print_function
 
 import os
+
 import numpy as np
 
 import qmllib
-
 from qmllib.kernels import laplacian_kernel
 from qmllib.math import cho_solve
-from qmllib.representations import get_slatm_mbtypes
 
 
 def get_energies(filename):
-    """ Returns a dictionary with heats of formation for each xyz-file.
-    """
+    """Returns a dictionary with heats of formation for each xyz-file."""
 
     f = open(filename, "r")
     lines = f.readlines()
@@ -51,6 +27,7 @@ def get_energies(filename):
         energies[xyz_name] = hof
 
     return energies
+
 
 def test_krr_cmat():
 
@@ -80,14 +57,14 @@ def test_krr_cmat():
     np.random.shuffle(mols)
 
     # Make training and test sets
-    n_test  = 300
+    n_test = 300
     n_train = 700
 
     training = mols[:n_train]
-    test  = mols[-n_test:]
+    test = mols[-n_test:]
 
     # List of representations
-    X  = np.array([mol.representation for mol in training])
+    X = np.array([mol.representation for mol in training])
     Xs = np.array([mol.representation for mol in test])
 
     # List of properties
@@ -95,15 +72,15 @@ def test_krr_cmat():
     Ys = np.array([mol.properties for mol in test])
 
     # Set hyper-parameters
-    sigma = 10**(4.2)
-    llambda = 10**(-10.0)
+    sigma = 10 ** (4.2)
+    llambda = 10 ** (-10.0)
 
     # Generate training Kernel
     K = laplacian_kernel(X, X, sigma)
 
     # Solve alpha
     K[np.diag_indices_from(K)] += llambda
-    alpha = cho_solve(K,Y)
+    alpha = cho_solve(K, Y)
 
     # Calculate prediction kernel
     Ks = laplacian_kernel(X, Xs, sigma)
@@ -112,6 +89,7 @@ def test_krr_cmat():
     mae = np.mean(np.abs(Ys - Yss))
 
     assert mae < 6.0, "ERROR: Too high MAE!"
+
 
 if __name__ == "__main__":
 

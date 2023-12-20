@@ -1,17 +1,17 @@
 
-!
-
-!
 
 
 
 
 
 
-!
 
 
-!
+
+
+
+
+
 
 
 
@@ -434,13 +434,13 @@ subroutine fgenerate_acsf_and_gradients(coordinates, nuclear_charges, elements, 
                 do k = 1, 3
                     ! The gradients wrt coordinates
                     part = radial_part * (coordinates(i,k) - coordinates(j,k))
-                    grad_subset(i, (n-1)*nbasis2 + 1:n*nbasis2, i, k) = & 
+                    grad_subset(i, (n-1)*nbasis2 + 1:n*nbasis2, i, k) = &
                         grad_subset(i, (n-1)*nbasis2 + 1:n*nbasis2, i, k) + part
-                    grad_subset(i, (n-1)*nbasis2 + 1:n*nbasis2, j, k) = & 
+                    grad_subset(i, (n-1)*nbasis2 + 1:n*nbasis2, j, k) = &
                         grad_subset(i, (n-1)*nbasis2 + 1:n*nbasis2, j, k) - part
-                    grad_subset(j, (m-1)*nbasis2 + 1:m*nbasis2, j, k) = & 
+                    grad_subset(j, (m-1)*nbasis2 + 1:m*nbasis2, j, k) = &
                         grad_subset(j, (m-1)*nbasis2 + 1:m*nbasis2, j, k) - part
-                    grad_subset(j, (m-1)*nbasis2 + 1:m*nbasis2, i, k) = & 
+                    grad_subset(j, (m-1)*nbasis2 + 1:m*nbasis2, i, k) = &
                         grad_subset(j, (m-1)*nbasis2 + 1:m*nbasis2, i, k) + part
                 enddo
             endif
@@ -593,7 +593,7 @@ subroutine fgenerate_acsf_and_gradients(coordinates, nuclear_charges, elements, 
                         atom_grad(z:z + nabasis - 1, k, t) = atom_grad(z:z + nabasis - 1, k, t) + &
                             & d_angular * d_angular_d_k(t) * radial(l) + &
                             & angular * d_radial(l) * d_radial_d_k(t) - &
-                            & angular * radial(l) * rdecay(i,j) * d_ikdecay(t) 
+                            & angular * radial(l) * rdecay(i,j) * d_ikdecay(t)
                     enddo
                 enddo
             enddo
@@ -743,7 +743,7 @@ subroutine fgenerate_fchl_acsf(coordinates, nuclear_charges, elements, &
                 sigma = sqrt(log(1.0d0 + eta2  / rij**2))
                 radial(:) = 0.0d0
 
-                do k = 1, nbasis2 
+                do k = 1, nbasis2
                    radial(k) = 1.0d0/(sigma* sqrt(2.0d0*pi) * Rs2(k)) * rdecay(i,j) &
                               & * exp( - (log(Rs2(k)) - mu)**2 / (2.0d0 * sigma**2) ) / rij**two_body_decay
                 enddo
@@ -810,23 +810,23 @@ subroutine fgenerate_fchl_acsf(coordinates, nuclear_charges, elements, &
 
                 ! The radial part of the three body terms including decay
                 radial = exp(-eta3*(0.5d0 * (rij+rik) - Rs3)**2) * rdecay(i,j) * rdecay(i,k)
-               
+
                 ksi3 = (1.0d0 + 3.0d0 * cos_1 * cos_2 * cos_3) &
                      & / (distance_matrix(i,k) * distance_matrix(i,j) * distance_matrix(j,k) &
                  & )**three_body_decay * three_body_weight
 
-                angular = 0.0d0 
+                angular = 0.0d0
                 do l = 1, nabasis/2
 
                     o = l*2-1
                     angular(2*l-1) = angular(2*l-1) + 2*cos(o * angle) &
                         & * exp(-(zeta * o)**2 /2)
-                    
+
                     angular(2*l) = angular(2*l) + 2*sin(o * angle) &
                         & * exp(-(zeta * o)**2 /2)
 
                 enddo
-                
+
                 ! The lowest of the element indices for atoms j and k
                 p = min(n,m) - 1
                 ! The highest of the element indices for atoms j and k
@@ -878,7 +878,7 @@ subroutine fgenerate_fchl_acsf_and_gradients(coordinates, nuclear_charges, eleme
     double precision, intent(in) :: zeta
     double precision, intent(in) :: rcut
     double precision, intent(in) :: acut
-    
+
     double precision, intent(in) :: two_body_decay
     double precision, intent(in) :: three_body_decay
     double precision, intent(in) :: three_body_weight
@@ -1014,14 +1014,14 @@ subroutine fgenerate_fchl_acsf_and_gradients(coordinates, nuclear_charges, eleme
                 sigma = sqrt(log(1.0d0 + eta2  * inv_sq_distance_matrix(i, j)))
                 exp_s2 = exp(sigma**2)
                 exp_ln = exp(-(log_Rs2(:) - mu)**2 / sigma**2 * 0.5d0) * sqrt(2.0d0)
-                
+
                 scaling = 1.0d0 / rij**two_body_decay
 
 
                 radial_base(:) = 1.0d0/(sigma* sqrt(2.0d0*pi) * Rs2(:)) * exp(-(log_Rs2(:) - mu)**2 / (2.0d0 * sigma**2))
 
-                radial(:) = radial_base(:) * scaling * rdecay(i,j) 
-                
+                radial(:) = radial_base(:) * scaling * rdecay(i,j)
+
                 rep(i, (n-1)*nbasis2 + 1:n*nbasis2) = rep(i, (n-1)*nbasis2 + 1:n*nbasis2) + radial
                 rep(j, (m-1)*nbasis2 + 1:m*nbasis2) = rep(j, (m-1)*nbasis2 + 1:m*nbasis2) + radial
 
@@ -1029,7 +1029,7 @@ subroutine fgenerate_fchl_acsf_and_gradients(coordinates, nuclear_charges, eleme
                 do k = 1, 3
 
                     dx = -(coordinates(i,k) - coordinates(j,k))
-                    
+
                     part(:) = ((log_Rs2(:) - mu) * (-dx *(rij**2 * exp_s2 + eta2) / (rij * sqrt(exp_s2))**3) &
                         &* sqrt(exp_s2) / (sigma**2 * rij) + (log_Rs2(:) - mu) ** 2 * eta2 * dx / &
                         &(sigma**4 * rij**4 * exp_s2)) * exp_ln / (Rs2(:) * sigma  * sqrt(pi) * 2) &
@@ -1161,7 +1161,7 @@ subroutine fgenerate_fchl_acsf_and_gradients(coordinates, nuclear_charges, eleme
                 cos_i = calc_cos_angle(a,b,c)
                 cos_k = calc_cos_angle(a,c,b)
                 cos_j = calc_cos_angle(b,a,c)
-                
+
                 ! part of the radial part of the 3body terms
                 radial_base(:) = exp(-eta3*(0.5d0 * (rij+rik) - Rs3(:))**2)
                 radial(:) = radial_base(:) ! * scaling
@@ -1171,7 +1171,7 @@ subroutine fgenerate_fchl_acsf_and_gradients(coordinates, nuclear_charges, eleme
                 q = max(n,m) - 1
                 ! Dot product between the vectors connecting atom i,j and i,k
                 dot = dot_product(a-b,c-b)
-                
+
                 angular(1)   =  exp(-(zeta**2)*0.5d0) * 2 * cos(angle)
                 angular(2)   =  exp(-(zeta**2)*0.5d0) * 2 * sin(angle)
 
@@ -1199,7 +1199,7 @@ subroutine fgenerate_fchl_acsf_and_gradients(coordinates, nuclear_charges, eleme
                 d_ijdecay = - pi * (b - a) * sin(pi * rij * invcut) * 0.5d0 * invrij * invcut
                 ! Part of the derivative of the i,k decay functions wrt coordinates (dim(3))
                 d_ikdecay = - pi * (b - c) * sin(pi * rik * invcut) * 0.5d0 * invrik * invcut
-               
+
                 invr_atm = (invrij * invrjk *invrik)**three_body_decay
 
                 ! Axilrod-Teller-Muto term
@@ -1208,15 +1208,15 @@ subroutine fgenerate_fchl_acsf_and_gradients(coordinates, nuclear_charges, eleme
                 atm_i = (3.0d0 * cos_j * cos_k) * invr_atm * invrij * invrik
                 atm_j = (3.0d0 * cos_k * cos_i) * invr_atm * invrij * invrjk
                 atm_k = (3.0d0 * cos_i * cos_j) * invr_atm * invrjk * invrik
-               
+
                 vi = dot_product(a-b,c-b)
                 vj = dot_product(c-a,b-a)
                 vk = dot_product(b-c,a-c)
-                
+
                 d_atm_ii(:) = 2 * b - a - c - vi * ((b-a)*invrij**2 + (b-c)*invrik**2)
                 d_atm_ij(:) = c - a - vj * (b-a)*invrij**2
                 d_atm_ik(:) = a - c - vk * (b-c)*invrik**2
-                
+
                 d_atm_ji(:) = c - b - vi * (a-b)*invrij**2
                 d_atm_jj(:) = 2 * a - b - c - vj * ((a-b)*invrij**2 + (a-c)*invrjk**2)
                 d_atm_jk(:) = b - c - vk * (a-c)*invrjk**2
@@ -1242,7 +1242,7 @@ subroutine fgenerate_fchl_acsf_and_gradients(coordinates, nuclear_charges, eleme
                         & + angular * radial(l) * atm * rdecay(i,j) * rdecay(i,k)
 
                     do t = 1, 3
-                        
+
                         ! Add up all gradient contributions wrt atom i
                         atom_grad(z:z + nabasis - 1, i, t) = atom_grad(z:z + nabasis - 1, i, t) + &
                             & d_angular * d_angular_d_i(t) * radial(l) * atm * rdecay(i,j) * rdecay(i,k) + &
@@ -1266,7 +1266,7 @@ subroutine fgenerate_fchl_acsf_and_gradients(coordinates, nuclear_charges, eleme
                             & angular * radial(l) * (atm_i * d_atm_ki(t) + atm_j * d_atm_kj(t) &
                             & + atm_k * d_atm_kk(t) + d_atm_extra_k(t)) * three_body_weight * rdecay(i,j) * rdecay(i,k) - &
                             & angular * radial(l) * rdecay(i,j) * d_ikdecay(t) * atm
-                    
+
                     enddo
                 enddo
             enddo

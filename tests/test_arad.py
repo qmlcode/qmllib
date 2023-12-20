@@ -1,48 +1,23 @@
-
-#
-
-#
-
-
-
-
-
-
-#
-
-
-#
-
-
-
-
-
-
-
-
 from __future__ import print_function
 
 import os
-import sys
-import time
+
 import numpy as np
+from qmllib.arad import (
+    generate_arad_representation,
+    get_atomic_kernels_arad,
+    get_atomic_symmetric_kernels_arad,
+    get_global_kernels_arad,
+    get_global_symmetric_kernels_arad,
+    get_local_kernels_arad,
+    get_local_symmetric_kernels_arad,
+)
+
 import qmllib
 
-from qmllib.math import cho_solve
-from qmllib.arad import generate_arad_representation
-
-from qmllib.arad import get_local_kernels_arad
-from qmllib.arad import get_local_symmetric_kernels_arad
-
-from qmllib.arad import get_global_kernels_arad
-from qmllib.arad import get_global_symmetric_kernels_arad
-
-from qmllib.arad import get_atomic_kernels_arad
-from qmllib.arad import get_atomic_symmetric_kernels_arad
 
 def get_energies(filename):
-    """ Returns a dictionary with heats of formation for each xyz-file.
-    """
+    """Returns a dictionary with heats of formation for each xyz-file."""
 
     f = open(filename, "r")
     lines = f.readlines()
@@ -59,6 +34,7 @@ def get_energies(filename):
         energies[xyz_name] = hof
 
     return energies
+
 
 def test_arad():
     test_dir = os.path.dirname(os.path.realpath(__file__))
@@ -79,9 +55,8 @@ def test_arad():
 
         # This is a Molecular Coulomb matrix sorted by row norm
 
-        mol.representation = generate_arad_representation(mol.coordinates,
-                mol.nuclear_charges)
-        
+        mol.representation = generate_arad_representation(mol.coordinates, mol.nuclear_charges)
+
         mols.append(mol)
 
     sigmas = [25.0]
@@ -92,26 +67,34 @@ def test_arad():
     K_local_symm = get_local_symmetric_kernels_arad(X1, sigmas)
 
     assert np.allclose(K_local_symm, K_local_asymm), "Symmetry error in local kernels"
-    assert np.invert(np.all(np.isnan(K_local_asymm))), "ERROR: ARAD local symmetric kernel contains NaN"
+    assert np.invert(
+        np.all(np.isnan(K_local_asymm))
+    ), "ERROR: ARAD local symmetric kernel contains NaN"
 
     K_global_asymm = get_global_kernels_arad(X1, X1, sigmas)
     K_global_symm = get_global_symmetric_kernels_arad(X1, sigmas)
 
     assert np.allclose(K_global_symm, K_global_asymm), "Symmetry error in global kernels"
-    assert np.invert(np.all(np.isnan(K_global_asymm))), "ERROR: ARAD global symmetric kernel contains NaN"
+    assert np.invert(
+        np.all(np.isnan(K_global_asymm))
+    ), "ERROR: ARAD global symmetric kernel contains NaN"
 
     molid = 5
-    X1 = generate_arad_representation(mols[molid].coordinates,
-                mols[molid].nuclear_charges, size = mols[molid].natoms)
-    XA = X1[:mols[molid].natoms]
+    X1 = generate_arad_representation(
+        mols[molid].coordinates, mols[molid].nuclear_charges, size=mols[molid].natoms
+    )
+    XA = X1[: mols[molid].natoms]
 
     K_atomic_asymm = get_atomic_kernels_arad(XA, XA, sigmas)
     K_atomic_symm = get_atomic_symmetric_kernels_arad(XA, sigmas)
 
     assert np.allclose(K_atomic_symm, K_atomic_asymm), "Symmetry error in atomic kernels"
-    assert np.invert(np.all(np.isnan(K_atomic_asymm))), "ERROR: ARAD atomic symmetric kernel contains NaN"
-    
+    assert np.invert(
+        np.all(np.isnan(K_atomic_asymm))
+    ), "ERROR: ARAD atomic symmetric kernel contains NaN"
+
     K_atomic_asymm = get_atomic_kernels_arad(XA, XA, sigmas)
+
 
 if __name__ == "__main__":
 

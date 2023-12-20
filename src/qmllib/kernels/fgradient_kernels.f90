@@ -1,17 +1,17 @@
 
-!
-
-!
 
 
 
 
 
 
-!
 
 
-!
+
+
+
+
+
 
 
 
@@ -651,105 +651,105 @@ end subroutine fatomic_local_gradient_kernel
 
 
 ! NOTE: Legacy code without any fancy BLAS calls, for reference
-!
+
 ! subroutine fatomic_local_gradient_kernel(x1, x2, dx2, q1, q2, n1, n2, nm1, nm2, na1, naq2, sigma, kernel)
-!
+
 !     implicit none
-!
+
 !     double precision, dimension(:,:,:), intent(in) :: x1
 !     double precision, dimension(:,:,:), intent(in) :: x2
-!
+
 !     double precision, dimension(:,:,:,:,:), intent(in) :: dx2
-!
+
 !     integer, dimension(:,:), intent(in) :: q1
 !     integer, dimension(:,:), intent(in) :: q2
-!
+
 !     integer, dimension(:), intent(in) :: n1
 !     integer, dimension(:), intent(in) :: n2
-!
+
 !     integer, intent(in) :: nm1
 !     integer, intent(in) :: nm2
 !     integer, intent(in) :: na1
 !     integer, intent(in) :: naq2
-!
+
 !     double precision, intent(in) :: sigma
-!
+
 !     double precision, dimension(naq2,na1), intent(out) :: kernel
-!
+
 !     integer :: i2, j1, j2
 !     integer :: na, nb, xyz2
 !     integer :: a, b
 !     integer :: idx1_end, idx1_start, idx2_end, idx2_start, idx2, idx1
-!
+
 !     integer :: rep_size
-!
+
 !     double precision :: expd
 !     double precision :: inv_2sigma2
 !     double precision :: inv_sigma2
-!
+
 !     double precision, allocatable, dimension(:) :: d
-!
+
 !     rep_size = size(x1, dim=3)
 !     allocate(d(rep_size))
-!
+
 !     inv_2sigma2 = -1.0d0 / (2 * sigma**2)
 !     inv_sigma2 = -1.0d0 / (sigma**2)
-!
+
 !     kernel = 0.0d0
-!
+
 !     ! Molecule 1
 !     do a = 1, nm1
-!
+
 !         na = n1(a)
-!
+
 !         idx1_end = sum(n1(:a))
 !         idx1_start = idx1_end - na + 1
-!
-!
+
+
 !         ! Atom in Molecule 1
 !         do j1 = 1, na
 !             idx1 = idx1_start - 1 + j1
-!
+
 !             ! Molecule 2
 !             do b = 1, nm2
 !                 nb = n2(b)
-!
+
 !                 idx2_end = sum(n2(:b))
 !                 idx2_start = idx2_end - nb + 1
-!
+
 !                 !Atom in Molecule2
 !                 do j2 = 1, nb
-!
+
 !                     if (q1(j1,a) == q2(j2,b)) then
-!
+
 !                         d(:) = x1(a,j1,:)- x2(b,j2,:)
 !                         ! expd = -1.0d0/sigma**2 * exp(-(norm2(d)**2) / (2 * sigma**2))
 !                         expd = inv_sigma2 * exp((norm2(d)**2) * inv_2sigma2) ! Possibly 4??
-!
+
 !                         ! Derivative WRT this atom in Molecule 2
 !                         do i2 = 1, nb
-!
+
 !                                 ! Loop over XYZ
 !                                 do xyz2 = 1, 3
-!
+
 !                                     idx2 = (idx2_start-1)*3 + (i2-1)*3 + xyz2
 !                                     kernel(idx2, idx1) = kernel(idx2, idx1) +  expd * dot_product(d, dx2(b, j2,:,i2,xyz2))
-!
+
 !                                 enddo
-!
+
 !                             endif
 !                         enddo
-!
+
 !                     endif
-!
+
 !                 enddo
 !             enddo
 !         enddo
 !     enddo
-!
-!
-!
-!
+
+
+
+
 ! end subroutine fatomic_local_gradient_kernel
 
 

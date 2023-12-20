@@ -3,458 +3,455 @@ subroutine fget_kernels_fchl(x1, x2, verbose, n1, n2, nneigh1, nneigh2, nm1, nm2
        & distance_scale, angular_scale, alchemy, two_body_power, three_body_power, &
        & kernel_idx, parameters, kernels)
 
-    use ffchl_module, only: scalar, get_angular_norm2, get_pmax, get_ksi, init_cosp_sinp, get_selfscalar
-    
-    use ffchl_kernels, only: kernel
+   use ffchl_module, only: scalar, get_angular_norm2, get_pmax, get_ksi, init_cosp_sinp, get_selfscalar
 
-    implicit none
+   use ffchl_kernels, only: kernel
 
-    ! fchl descriptors for the training set, format (i,maxatoms,5,maxneighbors)
-    double precision, dimension(:,:,:,:), intent(in) :: x1
-    double precision, dimension(:,:,:,:), intent(in) :: x2
+   implicit none
 
-    ! Whether to be verbose with output
-    logical, intent(in) :: verbose
+   ! fchl descriptors for the training set, format (i,maxatoms,5,maxneighbors)
+   double precision, dimension(:, :, :, :), intent(in) :: x1
+   double precision, dimension(:, :, :, :), intent(in) :: x2
 
-    ! List of numbers of atoms in each molecule
-    integer, dimension(:), intent(in) :: n1
-    integer, dimension(:), intent(in) :: n2
-    
-    ! Number of molecules
-    integer, intent(in) :: nm1
-    integer, intent(in) :: nm2
+   ! Whether to be verbose with output
+   logical, intent(in) :: verbose
 
-    ! Number of sigmas
-    integer, intent(in) :: nsigmas
+   ! List of numbers of atoms in each molecule
+   integer, dimension(:), intent(in) :: n1
+   integer, dimension(:), intent(in) :: n2
 
-    ! Number of neighbors for each atom in each compound
-    integer, dimension(:,:), intent(in) :: nneigh1
-    integer, dimension(:,:), intent(in) :: nneigh2
+   ! Number of molecules
+   integer, intent(in) :: nm1
+   integer, intent(in) :: nm2
 
-    ! Angular Gaussian width
-    double precision, intent(in) :: t_width
+   ! Number of sigmas
+   integer, intent(in) :: nsigmas
 
-    ! Distance Gaussian width
-    double precision, intent(in) :: d_width
+   ! Number of neighbors for each atom in each compound
+   integer, dimension(:, :), intent(in) :: nneigh1
+   integer, dimension(:, :), intent(in) :: nneigh2
 
-    ! Fraction of cut_distance at which cut-off starts
-    double precision, intent(in) :: cut_start
-    double precision, intent(in) :: cut_distance
-    
-    ! Truncation order for Fourier terms
-    integer, intent(in) :: order
+   ! Angular Gaussian width
+   double precision, intent(in) :: t_width
 
-    ! Periodic table distance matrix
-    double precision, dimension(:,:), intent(in) :: pd
+   ! Distance Gaussian width
+   double precision, intent(in) :: d_width
 
-    ! Scaling for angular and distance terms
-    double precision, intent(in) :: distance_scale
-    double precision, intent(in) :: angular_scale
+   ! Fraction of cut_distance at which cut-off starts
+   double precision, intent(in) :: cut_start
+   double precision, intent(in) :: cut_distance
 
-    ! Switch alchemy on or off
-    logical, intent(in) :: alchemy
+   ! Truncation order for Fourier terms
+   integer, intent(in) :: order
 
-    ! Decaying power laws for two- and three-body terms
-    double precision, intent(in) :: two_body_power
-    double precision, intent(in) :: three_body_power
+   ! Periodic table distance matrix
+   double precision, dimension(:, :), intent(in) :: pd
 
-    ! Kernel ID and corresponding parameters
-    integer, intent(in) :: kernel_idx
-    double precision, dimension(:,:), intent(in) :: parameters
+   ! Scaling for angular and distance terms
+   double precision, intent(in) :: distance_scale
+   double precision, intent(in) :: angular_scale
 
-    ! Resulting alpha vector
-    double precision, dimension(nsigmas,nm1,nm2), intent(out) :: kernels
+   ! Switch alchemy on or off
+   logical, intent(in) :: alchemy
 
-    ! Internal counters
-    integer :: i, j
-    integer :: ni, nj
-    integer :: a, b
+   ! Decaying power laws for two- and three-body terms
+   double precision, intent(in) :: two_body_power
+   double precision, intent(in) :: three_body_power
 
-    ! Temporary variables necessary for parallelization
-    double precision :: s12
+   ! Kernel ID and corresponding parameters
+   integer, intent(in) :: kernel_idx
+   double precision, dimension(:, :), intent(in) :: parameters
 
-    ! Pre-computed terms in the full distance matrix
-    double precision, allocatable, dimension(:,:) :: self_scalar1
-    double precision, allocatable, dimension(:,:) :: self_scalar2
+   ! Resulting alpha vector
+   double precision, dimension(nsigmas, nm1, nm2), intent(out) :: kernels
 
-    ! Pre-computed two-body weights
-    double precision, allocatable, dimension(:,:,:) :: ksi1
-    double precision, allocatable, dimension(:,:,:) :: ksi2
+   ! Internal counters
+   integer :: i, j
+   integer :: ni, nj
+   integer :: a, b
 
-    ! Pre-computed terms for the Fourier expansion of the three-body term
-    double precision, allocatable, dimension(:,:,:,:,:) :: sinp1
-    double precision, allocatable, dimension(:,:,:,:,:) :: sinp2
-    double precision, allocatable, dimension(:,:,:,:,:) :: cosp1
-    double precision, allocatable, dimension(:,:,:,:,:) :: cosp2
+   ! Temporary variables necessary for parallelization
+   double precision :: s12
 
-    ! Max index in the periodic table
-    integer :: pmax1
-    integer :: pmax2
+   ! Pre-computed terms in the full distance matrix
+   double precision, allocatable, dimension(:, :) :: self_scalar1
+   double precision, allocatable, dimension(:, :) :: self_scalar2
 
-    ! Angular normalization constant
-    double precision :: ang_norm2
-   
-    ! Max number of neighbors 
-    integer :: maxneigh1
-    integer :: maxneigh2
-    
-    kernels(:,:,:) = 0.0d0
+   ! Pre-computed two-body weights
+   double precision, allocatable, dimension(:, :, :) :: ksi1
+   double precision, allocatable, dimension(:, :, :) :: ksi2
 
-    ! Get max number of neighbors
-    maxneigh1 = maxval(nneigh1)
-    maxneigh2 = maxval(nneigh2)
+   ! Pre-computed terms for the Fourier expansion of the three-body term
+   double precision, allocatable, dimension(:, :, :, :, :) :: sinp1
+   double precision, allocatable, dimension(:, :, :, :, :) :: sinp2
+   double precision, allocatable, dimension(:, :, :, :, :) :: cosp1
+   double precision, allocatable, dimension(:, :, :, :, :) :: cosp2
 
-    ! Calculate angular normalization constant
-    ang_norm2 = get_angular_norm2(t_width)
+   ! Max index in the periodic table
+   integer :: pmax1
+   integer :: pmax2
 
-    ! pmax = max nuclear charge
-    pmax1 = get_pmax(x1, n1)
-    pmax2 = get_pmax(x2, n2)
+   ! Angular normalization constant
+   double precision :: ang_norm2
 
-    ! Get two-body weight function
-    ksi1 = get_ksi(x1, n1, nneigh1, two_body_power, cut_start, cut_distance, verbose)
-    ksi2 = get_ksi(x2, n2, nneigh2, two_body_power, cut_start, cut_distance, verbose)
+   ! Max number of neighbors
+   integer :: maxneigh1
+   integer :: maxneigh2
 
-    ! Allocate three-body Fourier terms
-    allocate(cosp1(nm1, maxval(n1), pmax1, order, maxneigh1))
-    allocate(sinp1(nm1, maxval(n1), pmax1, order, maxneigh1))
+   kernels(:, :, :) = 0.0d0
 
-    ! Initialize and pre-calculate three-body Fourier terms
-    call init_cosp_sinp(x1, n1, nneigh1, three_body_power, order, cut_start,  cut_distance, &
-        & cosp1,sinp1, verbose)
+   ! Get max number of neighbors
+   maxneigh1 = maxval(nneigh1)
+   maxneigh2 = maxval(nneigh2)
 
-    ! Allocate three-body Fourier terms
-    allocate(cosp2(nm2, maxval(n2), pmax2, order, maxneigh2))
-    allocate(sinp2(nm2, maxval(n2), pmax2, order, maxneigh2))
-    
-    ! Initialize and pre-calculate three-body Fourier terms
-    call init_cosp_sinp(x2, n2, nneigh2, three_body_power, order, cut_start, cut_distance, &
-        & cosp2,sinp2, verbose)
+   ! Calculate angular normalization constant
+   ang_norm2 = get_angular_norm2(t_width)
 
-    ! Pre-calculate self-scalar terms 
-    self_scalar1 = get_selfscalar(x1, nm1, n1, nneigh1, ksi1, sinp1, cosp1, t_width, d_width, &
-         & cut_distance, order, pd, ang_norm2,distance_scale, angular_scale, alchemy, verbose)
+   ! pmax = max nuclear charge
+   pmax1 = get_pmax(x1, n1)
+   pmax2 = get_pmax(x2, n2)
 
-    ! Pre-calculate self-scalar terms 
-    self_scalar2 = get_selfscalar(x2, nm2, n2, nneigh2, ksi2, sinp2, cosp2, t_width, d_width, &
-         & cut_distance, order, pd, ang_norm2,distance_scale, angular_scale, alchemy, verbose)
-    
-    !$OMP PARALLEL DO schedule(dynamic) PRIVATE(s12,ni,nj)
-    do b = 1, nm2
-        nj = n2(b)
-        do a = 1, nm1
-            ni = n1(a)
+   ! Get two-body weight function
+   ksi1 = get_ksi(x1, n1, nneigh1, two_body_power, cut_start, cut_distance, verbose)
+   ksi2 = get_ksi(x2, n2, nneigh2, two_body_power, cut_start, cut_distance, verbose)
 
-            do i = 1, ni
-                do j = 1, nj
+   ! Allocate three-body Fourier terms
+   allocate (cosp1(nm1, maxval(n1), pmax1, order, maxneigh1))
+   allocate (sinp1(nm1, maxval(n1), pmax1, order, maxneigh1))
 
-                    s12 = scalar(x1(a,i,:,:), x2(b,j,:,:), &
-                        & nneigh1(a,i), nneigh2(b,j), ksi1(a,i,:), ksi2(b,j,:), &
-                        & sinp1(a,i,:,:,:), sinp2(b,j,:,:,:), &
-                        & cosp1(a,i,:,:,:), cosp2(b,j,:,:,:), &
-                        & t_width, d_width, cut_distance, order, &
-                        & pd, ang_norm2, distance_scale, angular_scale, alchemy)
+   ! Initialize and pre-calculate three-body Fourier terms
+   call init_cosp_sinp(x1, n1, nneigh1, three_body_power, order, cut_start, cut_distance, &
+       & cosp1, sinp1, verbose)
 
-                    kernels(:, a, b) = kernels(:, a, b) &
-                        & + kernel(self_scalar1(a,i),  self_scalar2(b,j), s12, &
-                        & kernel_idx, parameters)
-                    
-                enddo
-            enddo
+   ! Allocate three-body Fourier terms
+   allocate (cosp2(nm2, maxval(n2), pmax2, order, maxneigh2))
+   allocate (sinp2(nm2, maxval(n2), pmax2, order, maxneigh2))
 
-        enddo
-    enddo
-    !$OMP END PARALLEL DO
+   ! Initialize and pre-calculate three-body Fourier terms
+   call init_cosp_sinp(x2, n2, nneigh2, three_body_power, order, cut_start, cut_distance, &
+       & cosp2, sinp2, verbose)
 
-    deallocate(self_scalar1)
-    deallocate(self_scalar2)
-    deallocate(ksi1)
-    deallocate(ksi2)
-    deallocate(cosp1)
-    deallocate(cosp2)
-    deallocate(sinp1)
-    deallocate(sinp2)
+   ! Pre-calculate self-scalar terms
+   self_scalar1 = get_selfscalar(x1, nm1, n1, nneigh1, ksi1, sinp1, cosp1, t_width, d_width, &
+        & cut_distance, order, pd, ang_norm2, distance_scale, angular_scale, alchemy, verbose)
+
+   ! Pre-calculate self-scalar terms
+   self_scalar2 = get_selfscalar(x2, nm2, n2, nneigh2, ksi2, sinp2, cosp2, t_width, d_width, &
+        & cut_distance, order, pd, ang_norm2, distance_scale, angular_scale, alchemy, verbose)
+
+   !$OMP PARALLEL DO schedule(dynamic) PRIVATE(s12,ni,nj)
+   do b = 1, nm2
+      nj = n2(b)
+      do a = 1, nm1
+         ni = n1(a)
+
+         do i = 1, ni
+            do j = 1, nj
+
+               s12 = scalar(x1(a, i, :, :), x2(b, j, :, :), &
+                   & nneigh1(a, i), nneigh2(b, j), ksi1(a, i, :), ksi2(b, j, :), &
+                   & sinp1(a, i, :, :, :), sinp2(b, j, :, :, :), &
+                   & cosp1(a, i, :, :, :), cosp2(b, j, :, :, :), &
+                   & t_width, d_width, cut_distance, order, &
+                   & pd, ang_norm2, distance_scale, angular_scale, alchemy)
+
+               kernels(:, a, b) = kernels(:, a, b) &
+                   & + kernel(self_scalar1(a, i), self_scalar2(b, j), s12, &
+                   & kernel_idx, parameters)
+
+            end do
+         end do
+
+      end do
+   end do
+   !$OMP END PARALLEL DO
+
+   deallocate (self_scalar1)
+   deallocate (self_scalar2)
+   deallocate (ksi1)
+   deallocate (ksi2)
+   deallocate (cosp1)
+   deallocate (cosp2)
+   deallocate (sinp1)
+   deallocate (sinp2)
 
 end subroutine fget_kernels_fchl
-
 
 subroutine fget_symmetric_kernels_fchl(x1, verbose, n1, nneigh1, nm1, nsigmas, &
        & t_width, d_width, cut_start, cut_distance, order, pd, &
        & distance_scale, angular_scale, alchemy, two_body_power, three_body_power, &
        & kernel_idx, parameters, kernels)
 
-    use ffchl_module, only: scalar, get_angular_norm2, get_pmax, get_ksi, init_cosp_sinp, get_selfscalar
-    
-    use ffchl_kernels, only: kernel
+   use ffchl_module, only: scalar, get_angular_norm2, get_pmax, get_ksi, init_cosp_sinp, get_selfscalar
 
-    implicit none
+   use ffchl_kernels, only: kernel
 
-    ! FCHL descriptors for the training set, format (i,j_1,5,m_1)
-    double precision, dimension(:,:,:,:), intent(in) :: x1
+   implicit none
 
-    ! Whether to be verbose with output
-    logical, intent(in) :: verbose
+   ! FCHL descriptors for the training set, format (i,j_1,5,m_1)
+   double precision, dimension(:, :, :, :), intent(in) :: x1
 
-    ! List of numbers of atoms in each molecule
-    integer, dimension(:), intent(in) :: n1
+   ! Whether to be verbose with output
+   logical, intent(in) :: verbose
 
-    ! Number of neighbors for each atom in each compound
-    integer, dimension(:,:), intent(in) :: nneigh1
+   ! List of numbers of atoms in each molecule
+   integer, dimension(:), intent(in) :: n1
 
-    ! Number of molecules
-    integer, intent(in) :: nm1
+   ! Number of neighbors for each atom in each compound
+   integer, dimension(:, :), intent(in) :: nneigh1
 
-    ! Number of sigmas
-    integer, intent(in) :: nsigmas
+   ! Number of molecules
+   integer, intent(in) :: nm1
 
-    double precision, intent(in) :: two_body_power
-    double precision, intent(in) :: three_body_power
+   ! Number of sigmas
+   integer, intent(in) :: nsigmas
 
-    double precision, intent(in) :: t_width
-    double precision, intent(in) :: d_width
-    double precision, intent(in) :: cut_start
-    double precision, intent(in) :: cut_distance
-    integer, intent(in) :: order
-    double precision, intent(in) :: distance_scale
-    double precision, intent(in) :: angular_scale
+   double precision, intent(in) :: two_body_power
+   double precision, intent(in) :: three_body_power
 
-    logical, intent(in) :: alchemy
-    double precision, dimension(:,:), intent(in) :: pd
+   double precision, intent(in) :: t_width
+   double precision, intent(in) :: d_width
+   double precision, intent(in) :: cut_start
+   double precision, intent(in) :: cut_distance
+   integer, intent(in) :: order
+   double precision, intent(in) :: distance_scale
+   double precision, intent(in) :: angular_scale
 
-    ! Resulting alpha vector
-    double precision, dimension(nsigmas,nm1,nm1), intent(out) :: kernels
+   logical, intent(in) :: alchemy
+   double precision, dimension(:, :), intent(in) :: pd
 
-    ! Internal counters
-    integer :: i, j, ni, nj
-    integer :: a, b
+   ! Resulting alpha vector
+   double precision, dimension(nsigmas, nm1, nm1), intent(out) :: kernels
 
-    ! Temporary variables necessary for parallelization
-    double precision :: s12
+   ! Internal counters
+   integer :: i, j, ni, nj
+   integer :: a, b
 
-    ! Pre-computed terms in the full distance matrix
-    double precision, allocatable, dimension(:,:) :: self_scalar1
+   ! Temporary variables necessary for parallelization
+   double precision :: s12
 
-    ! Pre-computed terms
-    double precision, allocatable, dimension(:,:,:) :: ksi1
+   ! Pre-computed terms in the full distance matrix
+   double precision, allocatable, dimension(:, :) :: self_scalar1
 
-    double precision, allocatable, dimension(:,:,:,:,:) :: sinp1
-    double precision, allocatable, dimension(:,:,:,:,:) :: cosp1
+   ! Pre-computed terms
+   double precision, allocatable, dimension(:, :, :) :: ksi1
 
-    integer, intent(in) :: kernel_idx
-    double precision, dimension(:,:), intent(in) :: parameters
+   double precision, allocatable, dimension(:, :, :, :, :) :: sinp1
+   double precision, allocatable, dimension(:, :, :, :, :) :: cosp1
 
-    ! counter for periodic distance
-    integer :: pmax1
-    ! integer :: nneighi
+   integer, intent(in) :: kernel_idx
+   double precision, dimension(:, :), intent(in) :: parameters
 
-    double precision :: ang_norm2
+   ! counter for periodic distance
+   integer :: pmax1
+   ! integer :: nneighi
 
-    integer :: maxneigh1
-    
-    kernels(:,:,:) = 0.0d0
+   double precision :: ang_norm2
 
-    ang_norm2 = get_angular_norm2(t_width)
+   integer :: maxneigh1
 
-    maxneigh1 = maxval(nneigh1)
-    pmax1 = get_pmax(x1, n1)
+   kernels(:, :, :) = 0.0d0
 
-    ksi1 = get_ksi(x1, n1, nneigh1, two_body_power, cut_start, cut_distance, verbose)
+   ang_norm2 = get_angular_norm2(t_width)
 
-    allocate(cosp1(nm1, maxval(n1), pmax1, order, maxval(nneigh1)))
-    allocate(sinp1(nm1, maxval(n1), pmax1, order, maxval(nneigh1)))
+   maxneigh1 = maxval(nneigh1)
+   pmax1 = get_pmax(x1, n1)
 
-    call init_cosp_sinp(x1, n1, nneigh1, three_body_power, order, cut_start,  cut_distance, &
-        & cosp1,sinp1, verbose)
+   ksi1 = get_ksi(x1, n1, nneigh1, two_body_power, cut_start, cut_distance, verbose)
 
-    self_scalar1 = get_selfscalar(x1, nm1, n1, nneigh1, ksi1, sinp1, cosp1, t_width, d_width, &
-         & cut_distance, order, pd, ang_norm2,distance_scale, angular_scale, alchemy, verbose)
+   allocate (cosp1(nm1, maxval(n1), pmax1, order, maxval(nneigh1)))
+   allocate (sinp1(nm1, maxval(n1), pmax1, order, maxval(nneigh1)))
 
-    !$OMP PARALLEL DO schedule(dynamic) PRIVATE(s12,ni,nj)
-    do b = 1, nm1
-        nj = n1(b)
-        do a = b, nm1
-            ni = n1(a)
+   call init_cosp_sinp(x1, n1, nneigh1, three_body_power, order, cut_start, cut_distance, &
+       & cosp1, sinp1, verbose)
 
-            do i = 1, ni
-                do j = 1, nj
+   self_scalar1 = get_selfscalar(x1, nm1, n1, nneigh1, ksi1, sinp1, cosp1, t_width, d_width, &
+        & cut_distance, order, pd, ang_norm2, distance_scale, angular_scale, alchemy, verbose)
 
-                    s12 = scalar(x1(a,i,:,:), x1(b,j,:,:), &
-                        & nneigh1(a,i), nneigh1(b,j), ksi1(a,i,:), ksi1(b,j,:), &
-                        & sinp1(a,i,:,:,:), sinp1(b,j,:,:,:), &
-                        & cosp1(a,i,:,:,:), cosp1(b,j,:,:,:), &
-                        & t_width, d_width, cut_distance, order, &
-                        & pd, ang_norm2, distance_scale, angular_scale, alchemy)
+   !$OMP PARALLEL DO schedule(dynamic) PRIVATE(s12,ni,nj)
+   do b = 1, nm1
+      nj = n1(b)
+      do a = b, nm1
+         ni = n1(a)
 
-                    kernels(:, a, b) = kernels(:, a, b) &
-                        & + kernel(self_scalar1(a,i),  self_scalar1(b,j), s12, &
-                        & kernel_idx, parameters)
-                    
-                    kernels(:, b, a) = kernels(:, a, b)
+         do i = 1, ni
+            do j = 1, nj
 
-                enddo
-            enddo
+               s12 = scalar(x1(a, i, :, :), x1(b, j, :, :), &
+                   & nneigh1(a, i), nneigh1(b, j), ksi1(a, i, :), ksi1(b, j, :), &
+                   & sinp1(a, i, :, :, :), sinp1(b, j, :, :, :), &
+                   & cosp1(a, i, :, :, :), cosp1(b, j, :, :, :), &
+                   & t_width, d_width, cut_distance, order, &
+                   & pd, ang_norm2, distance_scale, angular_scale, alchemy)
 
-        enddo
-    enddo
-    !$OMP END PARALLEL DO
+               kernels(:, a, b) = kernels(:, a, b) &
+                   & + kernel(self_scalar1(a, i), self_scalar1(b, j), s12, &
+                   & kernel_idx, parameters)
 
-    deallocate(self_scalar1)
-    deallocate(ksi1)
-    deallocate(cosp1)
-    deallocate(sinp1)
+               kernels(:, b, a) = kernels(:, a, b)
+
+            end do
+         end do
+
+      end do
+   end do
+   !$OMP END PARALLEL DO
+
+   deallocate (self_scalar1)
+   deallocate (ksi1)
+   deallocate (cosp1)
+   deallocate (sinp1)
 
 end subroutine fget_symmetric_kernels_fchl
-
 
 subroutine fget_global_symmetric_kernels_fchl(x1, verbose, n1, nneigh1, nm1, nsigmas, &
        & t_width, d_width, cut_start, cut_distance, order, pd, &
        & distance_scale, angular_scale, alchemy, two_body_power, three_body_power, &
        & kernel_idx, parameters, kernels)
 
-    use ffchl_module, only: scalar, get_angular_norm2, get_pmax, get_ksi, init_cosp_sinp
-    use ffchl_kernels, only: kernel
-    
-    implicit none
+   use ffchl_module, only: scalar, get_angular_norm2, get_pmax, get_ksi, init_cosp_sinp
+   use ffchl_kernels, only: kernel
 
-    ! FCHL descriptors for the training set, format (i,j_1,5,m_1)
-    double precision, dimension(:,:,:,:), intent(in) :: x1
+   implicit none
 
-    ! Whether to be verbose with output
-    logical, intent(in) :: verbose
+   ! FCHL descriptors for the training set, format (i,j_1,5,m_1)
+   double precision, dimension(:, :, :, :), intent(in) :: x1
 
-    ! List of numbers of atoms in each molecule
-    integer, dimension(:), intent(in) :: n1
+   ! Whether to be verbose with output
+   logical, intent(in) :: verbose
 
-    ! Number of neighbors for each atom in each compound
-    integer, dimension(:,:), intent(in) :: nneigh1
+   ! List of numbers of atoms in each molecule
+   integer, dimension(:), intent(in) :: n1
 
-    ! Number of molecules
-    integer, intent(in) :: nm1
+   ! Number of neighbors for each atom in each compound
+   integer, dimension(:, :), intent(in) :: nneigh1
 
-    ! Number of sigmas
-    integer, intent(in) :: nsigmas
+   ! Number of molecules
+   integer, intent(in) :: nm1
 
-    double precision, intent(in) :: two_body_power
-    double precision, intent(in) :: three_body_power
+   ! Number of sigmas
+   integer, intent(in) :: nsigmas
 
-    double precision, intent(in) :: t_width
-    double precision, intent(in) :: d_width
-    double precision, intent(in) :: cut_start
-    double precision, intent(in) :: cut_distance
-    integer, intent(in) :: order
-    double precision, intent(in) :: distance_scale
-    double precision, intent(in) :: angular_scale
-    logical, intent(in) :: alchemy
+   double precision, intent(in) :: two_body_power
+   double precision, intent(in) :: three_body_power
 
-    double precision, dimension(:,:), intent(in) :: pd
+   double precision, intent(in) :: t_width
+   double precision, intent(in) :: d_width
+   double precision, intent(in) :: cut_start
+   double precision, intent(in) :: cut_distance
+   integer, intent(in) :: order
+   double precision, intent(in) :: distance_scale
+   double precision, intent(in) :: angular_scale
+   logical, intent(in) :: alchemy
 
-    ! Resulting alpha vector
-    double precision, dimension(nsigmas,nm1,nm1), intent(out) :: kernels
+   double precision, dimension(:, :), intent(in) :: pd
 
-    ! Internal counters
-    integer :: i, j, ni, nj
-    integer :: a, b
+   ! Resulting alpha vector
+   double precision, dimension(nsigmas, nm1, nm1), intent(out) :: kernels
 
-    ! Temporary variables necessary for parallelization
-    double precision :: s12
+   ! Internal counters
+   integer :: i, j, ni, nj
+   integer :: a, b
 
-    ! Pre-computed terms in the full distance matrix
-    double precision, allocatable, dimension(:) :: self_scalar1
+   ! Temporary variables necessary for parallelization
+   double precision :: s12
 
-    ! Pre-computed terms
-    double precision, allocatable, dimension(:,:,:) :: ksi1
+   ! Pre-computed terms in the full distance matrix
+   double precision, allocatable, dimension(:) :: self_scalar1
 
-    double precision, allocatable, dimension(:,:,:,:,:) :: sinp1
-    double precision, allocatable, dimension(:,:,:,:,:) :: cosp1
+   ! Pre-computed terms
+   double precision, allocatable, dimension(:, :, :) :: ksi1
 
-    integer, intent(in) :: kernel_idx
-    double precision, dimension(:,:), intent(in) :: parameters
+   double precision, allocatable, dimension(:, :, :, :, :) :: sinp1
+   double precision, allocatable, dimension(:, :, :, :, :) :: cosp1
 
-    ! counter for periodic distance
-    integer :: pmax1
+   integer, intent(in) :: kernel_idx
+   double precision, dimension(:, :), intent(in) :: parameters
 
-    double precision :: ang_norm2
+   ! counter for periodic distance
+   integer :: pmax1
 
-    double precision :: mol_dist
+   double precision :: ang_norm2
 
-    integer :: maxneigh1
+   double precision :: mol_dist
 
-    maxneigh1 = maxval(nneigh1)
+   integer :: maxneigh1
 
-    ang_norm2 = get_angular_norm2(t_width)
+   maxneigh1 = maxval(nneigh1)
 
-    pmax1 = get_pmax(x1, n1)
+   ang_norm2 = get_angular_norm2(t_width)
 
-    ksi1 = get_ksi(x1, n1, nneigh1, two_body_power, cut_start, cut_distance, verbose)
+   pmax1 = get_pmax(x1, n1)
 
-    allocate(cosp1(nm1, maxval(n1), pmax1, order, maxval(nneigh1)))
-    allocate(sinp1(nm1, maxval(n1), pmax1, order, maxval(nneigh1)))
+   ksi1 = get_ksi(x1, n1, nneigh1, two_body_power, cut_start, cut_distance, verbose)
 
-    call init_cosp_sinp(x1, n1, nneigh1, three_body_power, order, cut_start,  cut_distance, &
-        & cosp1,sinp1, verbose)
+   allocate (cosp1(nm1, maxval(n1), pmax1, order, maxval(nneigh1)))
+   allocate (sinp1(nm1, maxval(n1), pmax1, order, maxval(nneigh1)))
 
-    allocate(self_scalar1(nm1))
+   call init_cosp_sinp(x1, n1, nneigh1, three_body_power, order, cut_start, cut_distance, &
+       & cosp1, sinp1, verbose)
 
-    self_scalar1 = 0.0d0
+   allocate (self_scalar1(nm1))
 
-    !$OMP PARALLEL DO PRIVATE(ni) REDUCTION(+:self_scalar1)
-    do a = 1, nm1
-        ni = n1(a)
-        do i = 1, ni
-            do j = 1, ni
+   self_scalar1 = 0.0d0
 
-            self_scalar1(a) = self_scalar1(a) + scalar(x1(a,i,:,:), x1(a,j,:,:), &
-                & nneigh1(a,i), nneigh1(a,j), ksi1(a,i,:), ksi1(a,j,:), &
-                & sinp1(a,i,:,:,:), sinp1(a,j,:,:,:), &
-                & cosp1(a,i,:,:,:), cosp1(a,j,:,:,:), &
+   !$OMP PARALLEL DO PRIVATE(ni) REDUCTION(+:self_scalar1)
+   do a = 1, nm1
+      ni = n1(a)
+      do i = 1, ni
+         do j = 1, ni
+
+            self_scalar1(a) = self_scalar1(a) + scalar(x1(a, i, :, :), x1(a, j, :, :), &
+                & nneigh1(a, i), nneigh1(a, j), ksi1(a, i, :), ksi1(a, j, :), &
+                & sinp1(a, i, :, :, :), sinp1(a, j, :, :, :), &
+                & cosp1(a, i, :, :, :), cosp1(a, j, :, :, :), &
                 & t_width, d_width, cut_distance, order, &
-                & pd, ang_norm2,distance_scale, angular_scale, alchemy)
-            enddo
-        enddo
-    enddo
-    !$OMP END PARALLEL DO
+                & pd, ang_norm2, distance_scale, angular_scale, alchemy)
+         end do
+      end do
+   end do
+   !$OMP END PARALLEL DO
 
-    kernels(:,:,:) = 0.0d0
+   kernels(:, :, :) = 0.0d0
 
-    !$OMP PARALLEL DO schedule(dynamic) PRIVATE(s12,ni,nj,mol_dist)
-    do b = 1, nm1
-        nj = n1(b)
-        do a = b, nm1
-            ni = n1(a)
+   !$OMP PARALLEL DO schedule(dynamic) PRIVATE(s12,ni,nj,mol_dist)
+   do b = 1, nm1
+      nj = n1(b)
+      do a = b, nm1
+         ni = n1(a)
 
-            mol_dist = 0.0d0
+         mol_dist = 0.0d0
 
-            do i = 1, ni
-                do j = 1, nj
+         do i = 1, ni
+            do j = 1, nj
 
-                    s12 = scalar(x1(a,i,:,:), x1(b,j,:,:), &
-                        & nneigh1(a,i), nneigh1(b,j), ksi1(a,i,:), ksi1(b,j,:), &
-                        & sinp1(a,i,:,:,:), sinp1(b,j,:,:,:), &
-                        & cosp1(a,i,:,:,:), cosp1(b,j,:,:,:), &
-                        & t_width, d_width, cut_distance, order, &
-                        & pd, ang_norm2, distance_scale, angular_scale, alchemy)
+               s12 = scalar(x1(a, i, :, :), x1(b, j, :, :), &
+                   & nneigh1(a, i), nneigh1(b, j), ksi1(a, i, :), ksi1(b, j, :), &
+                   & sinp1(a, i, :, :, :), sinp1(b, j, :, :, :), &
+                   & cosp1(a, i, :, :, :), cosp1(b, j, :, :, :), &
+                   & t_width, d_width, cut_distance, order, &
+                   & pd, ang_norm2, distance_scale, angular_scale, alchemy)
 
-                    mol_dist = mol_dist + s12
+               mol_dist = mol_dist + s12
 
-                enddo
-            enddo
+            end do
+         end do
 
-            kernels(:, a, b) = kernel(self_scalar1(a),  self_scalar1(b), mol_dist, &
-                & kernel_idx, parameters)
+         kernels(:, a, b) = kernel(self_scalar1(a), self_scalar1(b), mol_dist, &
+             & kernel_idx, parameters)
 
-            kernels(:, b, a) = kernels(:, a, b)
+         kernels(:, b, a) = kernels(:, a, b)
 
-        enddo
-    enddo
-    !$OMP END PARALLEL DO
+      end do
+   end do
+   !$OMP END PARALLEL DO
 
-    deallocate(self_scalar1)
-    deallocate(ksi1)
-    deallocate(cosp1)
-    deallocate(sinp1)
+   deallocate (self_scalar1)
+   deallocate (ksi1)
+   deallocate (cosp1)
+   deallocate (sinp1)
 
 end subroutine fget_global_symmetric_kernels_fchl
-
 
 subroutine fget_global_kernels_fchl(x1, x2, verbose, n1, n2, nneigh1, nneigh2, &
        & nm1, nm2, nsigmas, &
@@ -462,193 +459,190 @@ subroutine fget_global_kernels_fchl(x1, x2, verbose, n1, n2, nneigh1, nneigh2, &
        & distance_scale, angular_scale, alchemy, two_body_power, three_body_power, &
        & kernel_idx, parameters, kernels)
 
-    use ffchl_module, only: scalar, get_angular_norm2, get_pmax, get_ksi, init_cosp_sinp
-    use ffchl_kernels, only: kernel
+   use ffchl_module, only: scalar, get_angular_norm2, get_pmax, get_ksi, init_cosp_sinp
+   use ffchl_kernels, only: kernel
 
-    implicit none
+   implicit none
 
-    ! fchl descriptors for the training set, format (i,maxatoms,5,maxneighbors)
-    double precision, dimension(:,:,:,:), intent(in) :: x1
-    double precision, dimension(:,:,:,:), intent(in) :: x2
+   ! fchl descriptors for the training set, format (i,maxatoms,5,maxneighbors)
+   double precision, dimension(:, :, :, :), intent(in) :: x1
+   double precision, dimension(:, :, :, :), intent(in) :: x2
 
-    ! Whether to be verbose with output
-    logical, intent(in) :: verbose
+   ! Whether to be verbose with output
+   logical, intent(in) :: verbose
 
-    ! List of numbers of atoms in each molecule
-    integer, dimension(:), intent(in) :: n1
-    integer, dimension(:), intent(in) :: n2
+   ! List of numbers of atoms in each molecule
+   integer, dimension(:), intent(in) :: n1
+   integer, dimension(:), intent(in) :: n2
 
-    ! Number of neighbors for each atom in each compound
-    integer, dimension(:,:), intent(in) :: nneigh1
-    integer, dimension(:,:), intent(in) :: nneigh2
+   ! Number of neighbors for each atom in each compound
+   integer, dimension(:, :), intent(in) :: nneigh1
+   integer, dimension(:, :), intent(in) :: nneigh2
 
-    ! Number of molecules
-    integer, intent(in) :: nm1
-    integer, intent(in) :: nm2
+   ! Number of molecules
+   integer, intent(in) :: nm1
+   integer, intent(in) :: nm2
 
-    ! Number of sigmas
-    integer, intent(in) :: nsigmas
+   ! Number of sigmas
+   integer, intent(in) :: nsigmas
 
-    double precision, intent(in) :: two_body_power
-    double precision, intent(in) :: three_body_power
+   double precision, intent(in) :: two_body_power
+   double precision, intent(in) :: three_body_power
 
-    double precision, intent(in) :: t_width
-    double precision, intent(in) :: d_width
-    double precision, intent(in) :: cut_start
-    double precision, intent(in) :: cut_distance
-    integer, intent(in) :: order
-    double precision, intent(in) :: distance_scale
-    double precision, intent(in) :: angular_scale
-    logical, intent(in) :: alchemy
+   double precision, intent(in) :: t_width
+   double precision, intent(in) :: d_width
+   double precision, intent(in) :: cut_start
+   double precision, intent(in) :: cut_distance
+   integer, intent(in) :: order
+   double precision, intent(in) :: distance_scale
+   double precision, intent(in) :: angular_scale
+   logical, intent(in) :: alchemy
 
-    double precision, dimension(:,:), intent(in) :: pd
+   double precision, dimension(:, :), intent(in) :: pd
 
-    ! Resulting alpha vector
-    double precision, dimension(nsigmas,nm1,nm2), intent(out) :: kernels
+   ! Resulting alpha vector
+   double precision, dimension(nsigmas, nm1, nm2), intent(out) :: kernels
 
-    ! Internal counters
-    integer :: i, j
-    integer :: ni, nj
-    integer :: a, b
+   ! Internal counters
+   integer :: i, j
+   integer :: ni, nj
+   integer :: a, b
 
-    ! Temporary variables necessary for parallelization
-    double precision :: s12
-    ! double precision, allocatable, dimension(:,:) :: atomic_distance
+   ! Temporary variables necessary for parallelization
+   double precision :: s12
+   ! double precision, allocatable, dimension(:,:) :: atomic_distance
 
-    ! Pre-computed terms in the full distance matrix
-    double precision, allocatable, dimension(:) :: self_scalar1
-    double precision, allocatable, dimension(:) :: self_scalar2
+   ! Pre-computed terms in the full distance matrix
+   double precision, allocatable, dimension(:) :: self_scalar1
+   double precision, allocatable, dimension(:) :: self_scalar2
 
-    ! Pre-computed terms
-    double precision, allocatable, dimension(:,:,:) :: ksi1
-    double precision, allocatable, dimension(:,:,:) :: ksi2
+   ! Pre-computed terms
+   double precision, allocatable, dimension(:, :, :) :: ksi1
+   double precision, allocatable, dimension(:, :, :) :: ksi2
 
-    double precision, allocatable, dimension(:,:,:,:,:) :: sinp1
-    double precision, allocatable, dimension(:,:,:,:,:) :: sinp2
-    double precision, allocatable, dimension(:,:,:,:,:) :: cosp1
-    double precision, allocatable, dimension(:,:,:,:,:) :: cosp2
+   double precision, allocatable, dimension(:, :, :, :, :) :: sinp1
+   double precision, allocatable, dimension(:, :, :, :, :) :: sinp2
+   double precision, allocatable, dimension(:, :, :, :, :) :: cosp1
+   double precision, allocatable, dimension(:, :, :, :, :) :: cosp2
 
-    integer, intent(in) :: kernel_idx
-    double precision, dimension(:,:), intent(in) :: parameters
+   integer, intent(in) :: kernel_idx
+   double precision, dimension(:, :), intent(in) :: parameters
 
-    ! counter for periodic distance
-    integer :: pmax1
-    integer :: pmax2
-    ! integer :: nneighi
-    double precision :: ang_norm2
+   ! counter for periodic distance
+   integer :: pmax1
+   integer :: pmax2
+   ! integer :: nneighi
+   double precision :: ang_norm2
 
-    double precision :: mol_dist
+   double precision :: mol_dist
 
-    integer :: maxneigh1
-    integer :: maxneigh2
+   integer :: maxneigh1
+   integer :: maxneigh2
 
-    maxneigh1 = maxval(nneigh1)
-    maxneigh2 = maxval(nneigh2)
+   maxneigh1 = maxval(nneigh1)
+   maxneigh2 = maxval(nneigh2)
 
-    ang_norm2 = get_angular_norm2(t_width)
+   ang_norm2 = get_angular_norm2(t_width)
 
-    pmax1 = get_pmax(x1, n1)
-    pmax2 = get_pmax(x2, n2)
-    
-    ksi1 = get_ksi(x1, n1, nneigh1, two_body_power, cut_start, cut_distance, verbose)
-    ksi2 = get_ksi(x2, n2, nneigh2, two_body_power, cut_start, cut_distance, verbose)
-    
-    
-    allocate(cosp1(nm1, maxval(n1), pmax1, order, maxval(nneigh1)))
-    allocate(sinp1(nm1, maxval(n1), pmax1, order, maxval(nneigh1)))
+   pmax1 = get_pmax(x1, n1)
+   pmax2 = get_pmax(x2, n2)
 
-    call init_cosp_sinp(x1, n1, nneigh1, three_body_power, order, cut_start,  cut_distance, &
-        & cosp1,sinp1, verbose)
+   ksi1 = get_ksi(x1, n1, nneigh1, two_body_power, cut_start, cut_distance, verbose)
+   ksi2 = get_ksi(x2, n2, nneigh2, two_body_power, cut_start, cut_distance, verbose)
 
-    allocate(cosp2(nm2, maxval(n2), pmax2, order, maxval(nneigh2)))
-    allocate(sinp2(nm2, maxval(n2), pmax2, order, maxval(nneigh2)))
-    
-    call init_cosp_sinp(x2, n2, nneigh2, three_body_power, order, cut_start, cut_distance, &
-        & cosp2,sinp2, verbose)
+   allocate (cosp1(nm1, maxval(n1), pmax1, order, maxval(nneigh1)))
+   allocate (sinp1(nm1, maxval(n1), pmax1, order, maxval(nneigh1)))
 
+   call init_cosp_sinp(x1, n1, nneigh1, three_body_power, order, cut_start, cut_distance, &
+       & cosp1, sinp1, verbose)
 
-    ! Global self-scalar have their own summation and are not a general function
-    allocate(self_scalar1(nm1))
-    allocate(self_scalar2(nm2))
+   allocate (cosp2(nm2, maxval(n2), pmax2, order, maxval(nneigh2)))
+   allocate (sinp2(nm2, maxval(n2), pmax2, order, maxval(nneigh2)))
 
-    self_scalar1 = 0.0d0
-    self_scalar2 = 0.0d0
+   call init_cosp_sinp(x2, n2, nneigh2, three_body_power, order, cut_start, cut_distance, &
+       & cosp2, sinp2, verbose)
 
-    !$OMP PARALLEL DO PRIVATE(ni) REDUCTION(+:self_scalar1)
-    do a = 1, nm1
-        ni = n1(a)
-        do i = 1, ni
-            do j= 1, ni
+   ! Global self-scalar have their own summation and are not a general function
+   allocate (self_scalar1(nm1))
+   allocate (self_scalar2(nm2))
 
-            self_scalar1(a) = self_scalar1(a) + scalar(x1(a,i,:,:), x1(a,j,:,:), &
-                & nneigh1(a,i), nneigh1(a,j), ksi1(a,i,:), ksi1(a,j,:), &
-                & sinp1(a,i,:,:,:), sinp1(a,j,:,:,:), &
-                & cosp1(a,i,:,:,:), cosp1(a,j,:,:,:), &
-                & t_width, d_width, cut_distance, order, &
-                & pd, ang_norm2,distance_scale, angular_scale, alchemy)
-            enddo
-        enddo
-    enddo
-    !$OMP END PARALLEL DO
+   self_scalar1 = 0.0d0
+   self_scalar2 = 0.0d0
 
-    !$OMP PARALLEL DO PRIVATE(ni) REDUCTION(+:self_scalar2)
-    do a = 1, nm2
-        ni = n2(a)
-        do i = 1, ni
-            do j= 1, ni
-            self_scalar2(a) = self_scalar2(a) + scalar(x2(a,i,:,:), x2(a,j,:,:), &
-                & nneigh2(a,i), nneigh2(a,j), ksi2(a,i,:), ksi2(a,j,:), &
-                & sinp2(a,i,:,:,:), sinp2(a,j,:,:,:), &
-                & cosp2(a,i,:,:,:), cosp2(a,j,:,:,:), &
+   !$OMP PARALLEL DO PRIVATE(ni) REDUCTION(+:self_scalar1)
+   do a = 1, nm1
+      ni = n1(a)
+      do i = 1, ni
+         do j = 1, ni
+
+            self_scalar1(a) = self_scalar1(a) + scalar(x1(a, i, :, :), x1(a, j, :, :), &
+                & nneigh1(a, i), nneigh1(a, j), ksi1(a, i, :), ksi1(a, j, :), &
+                & sinp1(a, i, :, :, :), sinp1(a, j, :, :, :), &
+                & cosp1(a, i, :, :, :), cosp1(a, j, :, :, :), &
                 & t_width, d_width, cut_distance, order, &
                 & pd, ang_norm2, distance_scale, angular_scale, alchemy)
-            enddo
-        enddo
-    enddo
-    !$OMP END PARALLEL DO
-    
-    kernels(:,:,:) = 0.0d0
-    
-    !$OMP PARALLEL DO schedule(dynamic) PRIVATE(s12,ni,nj,mol_dist)
-    do b = 1, nm2
-        nj = n2(b)
-        do a = 1, nm1
-            ni = n1(a)
+         end do
+      end do
+   end do
+   !$OMP END PARALLEL DO
 
-            mol_dist = 0.0d0
+   !$OMP PARALLEL DO PRIVATE(ni) REDUCTION(+:self_scalar2)
+   do a = 1, nm2
+      ni = n2(a)
+      do i = 1, ni
+         do j = 1, ni
+            self_scalar2(a) = self_scalar2(a) + scalar(x2(a, i, :, :), x2(a, j, :, :), &
+                & nneigh2(a, i), nneigh2(a, j), ksi2(a, i, :), ksi2(a, j, :), &
+                & sinp2(a, i, :, :, :), sinp2(a, j, :, :, :), &
+                & cosp2(a, i, :, :, :), cosp2(a, j, :, :, :), &
+                & t_width, d_width, cut_distance, order, &
+                & pd, ang_norm2, distance_scale, angular_scale, alchemy)
+         end do
+      end do
+   end do
+   !$OMP END PARALLEL DO
 
-            do i = 1, ni
-                do j = 1, nj
+   kernels(:, :, :) = 0.0d0
 
-                    s12 = scalar(x1(a,i,:,:), x2(b,j,:,:), &
-                        & nneigh1(a,i), nneigh2(b,j), ksi1(a,i,:), ksi2(b,j,:), &
-                        & sinp1(a,i,:,:,:), sinp2(b,j,:,:,:), &
-                        & cosp1(a,i,:,:,:), cosp2(b,j,:,:,:), &
-                        & t_width, d_width, cut_distance, order, &
-                        & pd, ang_norm2, distance_scale, angular_scale, alchemy)
+   !$OMP PARALLEL DO schedule(dynamic) PRIVATE(s12,ni,nj,mol_dist)
+   do b = 1, nm2
+      nj = n2(b)
+      do a = 1, nm1
+         ni = n1(a)
 
-                    mol_dist = mol_dist + s12
+         mol_dist = 0.0d0
 
-                enddo
-            enddo
-            kernels(:, a, b) = kernel(self_scalar1(a),  self_scalar2(b), mol_dist, &
-                & kernel_idx, parameters)
+         do i = 1, ni
+            do j = 1, nj
 
-        enddo
-    enddo
-    !$OMP END PARALLEL DO
+               s12 = scalar(x1(a, i, :, :), x2(b, j, :, :), &
+                   & nneigh1(a, i), nneigh2(b, j), ksi1(a, i, :), ksi2(b, j, :), &
+                   & sinp1(a, i, :, :, :), sinp2(b, j, :, :, :), &
+                   & cosp1(a, i, :, :, :), cosp2(b, j, :, :, :), &
+                   & t_width, d_width, cut_distance, order, &
+                   & pd, ang_norm2, distance_scale, angular_scale, alchemy)
 
-    deallocate(self_scalar1)
-    deallocate(self_scalar2)
-    deallocate(ksi1)
-    deallocate(ksi2)
-    deallocate(cosp1)
-    deallocate(cosp2)
-    deallocate(sinp1)
-    deallocate(sinp2)
+               mol_dist = mol_dist + s12
+
+            end do
+         end do
+         kernels(:, a, b) = kernel(self_scalar1(a), self_scalar2(b), mol_dist, &
+             & kernel_idx, parameters)
+
+      end do
+   end do
+   !$OMP END PARALLEL DO
+
+   deallocate (self_scalar1)
+   deallocate (self_scalar2)
+   deallocate (ksi1)
+   deallocate (ksi2)
+   deallocate (cosp1)
+   deallocate (cosp2)
+   deallocate (sinp1)
+   deallocate (sinp2)
 
 end subroutine fget_global_kernels_fchl
-
 
 subroutine fget_atomic_kernels_fchl(x1, x2, verbose, nneigh1, nneigh2, &
        & na1, na2, nsigmas, &
@@ -656,286 +650,283 @@ subroutine fget_atomic_kernels_fchl(x1, x2, verbose, nneigh1, nneigh2, &
        & distance_scale, angular_scale, alchemy, two_body_power, three_body_power, &
        & kernel_idx, parameters, kernels)
 
-    use ffchl_module, only: scalar, get_angular_norm2, &
-        & get_pmax_atomic, get_ksi_atomic, init_cosp_sinp_atomic
-    
-    use ffchl_kernels, only: kernel
-    
-    implicit none
+   use ffchl_module, only: scalar, get_angular_norm2, &
+       & get_pmax_atomic, get_ksi_atomic, init_cosp_sinp_atomic
 
-    ! fchl descriptors for the training set, format (i,maxatoms,5,maxneighbors)
-    double precision, dimension(:,:,:), intent(in) :: x1
-    double precision, dimension(:,:,:), intent(in) :: x2
+   use ffchl_kernels, only: kernel
 
-    ! Whether to be verbose with output
-    logical, intent(in) :: verbose
+   implicit none
 
-    ! Number of neighbors for each atom in each compound
-    integer, dimension(:), intent(in) :: nneigh1
-    integer, dimension(:), intent(in) :: nneigh2
+   ! fchl descriptors for the training set, format (i,maxatoms,5,maxneighbors)
+   double precision, dimension(:, :, :), intent(in) :: x1
+   double precision, dimension(:, :, :), intent(in) :: x2
 
-    ! Number of molecules
-    integer, intent(in) :: na1
-    integer, intent(in) :: na2
+   ! Whether to be verbose with output
+   logical, intent(in) :: verbose
 
-    ! Number of sigmas
-    integer, intent(in) :: nsigmas
+   ! Number of neighbors for each atom in each compound
+   integer, dimension(:), intent(in) :: nneigh1
+   integer, dimension(:), intent(in) :: nneigh2
 
-    double precision, intent(in) :: two_body_power
-    double precision, intent(in) :: three_body_power
+   ! Number of molecules
+   integer, intent(in) :: na1
+   integer, intent(in) :: na2
 
-    double precision, intent(in) :: t_width
-    double precision, intent(in) :: d_width
-    double precision, intent(in) :: cut_start
-    double precision, intent(in) :: cut_distance
-    integer, intent(in) :: order
-    double precision, intent(in) :: distance_scale
-    double precision, intent(in) :: angular_scale
-    logical, intent(in) :: alchemy
+   ! Number of sigmas
+   integer, intent(in) :: nsigmas
 
-    double precision, dimension(:,:), intent(in) :: pd
+   double precision, intent(in) :: two_body_power
+   double precision, intent(in) :: three_body_power
 
-    ! Resulting alpha vector
-    double precision, dimension(nsigmas,na1,na2), intent(out) :: kernels
+   double precision, intent(in) :: t_width
+   double precision, intent(in) :: d_width
+   double precision, intent(in) :: cut_start
+   double precision, intent(in) :: cut_distance
+   integer, intent(in) :: order
+   double precision, intent(in) :: distance_scale
+   double precision, intent(in) :: angular_scale
+   logical, intent(in) :: alchemy
 
-    ! Internal counters
-    integer :: i, j
+   double precision, dimension(:, :), intent(in) :: pd
 
-    ! Temporary variables necessary for parallelization
-    double precision :: s12
+   ! Resulting alpha vector
+   double precision, dimension(nsigmas, na1, na2), intent(out) :: kernels
 
-    ! Pre-computed terms in the full distance matrix
-    double precision, allocatable, dimension(:) :: self_scalar1
-    double precision, allocatable, dimension(:) :: self_scalar2
+   ! Internal counters
+   integer :: i, j
 
-    ! Pre-computed terms
-    double precision, allocatable, dimension(:,:) :: ksi1
-    double precision, allocatable, dimension(:,:) :: ksi2
+   ! Temporary variables necessary for parallelization
+   double precision :: s12
 
-    double precision, allocatable, dimension(:,:,:,:) :: sinp1
-    double precision, allocatable, dimension(:,:,:,:) :: sinp2
-    double precision, allocatable, dimension(:,:,:,:) :: cosp1
-    double precision, allocatable, dimension(:,:,:,:) :: cosp2
-    
-    integer, intent(in) :: kernel_idx
-    double precision, dimension(:,:), intent(in) :: parameters
+   ! Pre-computed terms in the full distance matrix
+   double precision, allocatable, dimension(:) :: self_scalar1
+   double precision, allocatable, dimension(:) :: self_scalar2
 
-    ! counter for periodic distance
-    integer :: pmax1
-    integer :: pmax2
-    double precision :: ang_norm2
-    
-    integer :: maxneigh1
-    integer :: maxneigh2
+   ! Pre-computed terms
+   double precision, allocatable, dimension(:, :) :: ksi1
+   double precision, allocatable, dimension(:, :) :: ksi2
 
-    maxneigh1 = maxval(nneigh1)
-    maxneigh2 = maxval(nneigh2)
+   double precision, allocatable, dimension(:, :, :, :) :: sinp1
+   double precision, allocatable, dimension(:, :, :, :) :: sinp2
+   double precision, allocatable, dimension(:, :, :, :) :: cosp1
+   double precision, allocatable, dimension(:, :, :, :) :: cosp2
 
-    ang_norm2 = get_angular_norm2(t_width)
+   integer, intent(in) :: kernel_idx
+   double precision, dimension(:, :), intent(in) :: parameters
 
-    pmax1 = get_pmax_atomic(x1, nneigh1) 
-    pmax2 = get_pmax_atomic(x2, nneigh2) 
-    
-    ksi1 = get_ksi_atomic(x1, na1, nneigh1, two_body_power, cut_start, cut_distance, verbose)
-    ksi2 = get_ksi_atomic(x2, na2, nneigh2, two_body_power, cut_start, cut_distance, verbose)
+   ! counter for periodic distance
+   integer :: pmax1
+   integer :: pmax2
+   double precision :: ang_norm2
 
+   integer :: maxneigh1
+   integer :: maxneigh2
 
-    allocate(cosp1(na1, pmax1, order, maxneigh1))
-    allocate(sinp1(na1, pmax1, order, maxneigh1))
+   maxneigh1 = maxval(nneigh1)
+   maxneigh2 = maxval(nneigh2)
 
-    call init_cosp_sinp_atomic(x1, na1, nneigh1, three_body_power, order, cut_start,  cut_distance, &
-        & cosp1,sinp1, verbose)
-    
-    allocate(cosp2(na2, pmax2, order, maxneigh2))
-    allocate(sinp2(na2, pmax2, order, maxneigh2))
+   ang_norm2 = get_angular_norm2(t_width)
 
-    call init_cosp_sinp_atomic(x2, na2, nneigh2, three_body_power, order, cut_start,  cut_distance, &
-        & cosp2,sinp2, verbose)
+   pmax1 = get_pmax_atomic(x1, nneigh1)
+   pmax2 = get_pmax_atomic(x2, nneigh2)
 
-    allocate(self_scalar1(na1))
-    allocate(self_scalar2(na2))
+   ksi1 = get_ksi_atomic(x1, na1, nneigh1, two_body_power, cut_start, cut_distance, verbose)
+   ksi2 = get_ksi_atomic(x2, na2, nneigh2, two_body_power, cut_start, cut_distance, verbose)
 
-    self_scalar1 = 0.0d0
-    self_scalar2 = 0.0d0
+   allocate (cosp1(na1, pmax1, order, maxneigh1))
+   allocate (sinp1(na1, pmax1, order, maxneigh1))
 
-    !$OMP PARALLEL DO
-    do i = 1, na1
-        self_scalar1(i) = scalar(x1(i,:,:), x1(i,:,:), &
-            & nneigh1(i), nneigh1(i), ksi1(i,:), ksi1(i,:), &
-            & sinp1(i,:,:,:), sinp1(i,:,:,:), &
-            & cosp1(i,:,:,:), cosp1(i,:,:,:), &
-            & t_width, d_width, cut_distance, order, &
-            & pd, ang_norm2,distance_scale, angular_scale, alchemy)
-    enddo
-    !$OMP END PARALLEL DO
+   call init_cosp_sinp_atomic(x1, na1, nneigh1, three_body_power, order, cut_start, cut_distance, &
+       & cosp1, sinp1, verbose)
 
-    !$OMP PARALLEL DO
-    do i = 1, na2
-        self_scalar2(i) = scalar(x2(i,:,:), x2(i,:,:), &
-            & nneigh2(i), nneigh2(i), ksi2(i,:), ksi2(i,:), &
-            & sinp2(i,:,:,:), sinp2(i,:,:,:), &
-            & cosp2(i,:,:,:), cosp2(i,:,:,:), &
-            & t_width, d_width, cut_distance, order, &
-            & pd, ang_norm2,distance_scale, angular_scale, alchemy)
-    enddo
-    !$OMP END PARALLEL DO
+   allocate (cosp2(na2, pmax2, order, maxneigh2))
+   allocate (sinp2(na2, pmax2, order, maxneigh2))
 
-    kernels(:,:,:) = 0.0d0
+   call init_cosp_sinp_atomic(x2, na2, nneigh2, three_body_power, order, cut_start, cut_distance, &
+       & cosp2, sinp2, verbose)
 
-    !$OMP PARALLEL DO schedule(dynamic) PRIVATE(s12)
-    do i = 1, na1
-        do j = 1, na2
+   allocate (self_scalar1(na1))
+   allocate (self_scalar2(na2))
 
-            s12 =  scalar(x1(i,:,:), x2(j,:,:), &
-                & nneigh1(i), nneigh2(j), ksi1(i,:), ksi2(j,:), &
-                & sinp1(i,:,:,:), sinp2(j,:,:,:), &
-                & cosp1(i,:,:,:), cosp2(j,:,:,:), &
-                & t_width, d_width, cut_distance, order, &
-                & pd, ang_norm2, distance_scale, angular_scale, alchemy)
+   self_scalar1 = 0.0d0
+   self_scalar2 = 0.0d0
 
-            kernels(:, i, j) = kernel(self_scalar1(i),  self_scalar2(j), s12, &
-                    & kernel_idx, parameters)
+   !$OMP PARALLEL DO
+   do i = 1, na1
+      self_scalar1(i) = scalar(x1(i, :, :), x1(i, :, :), &
+          & nneigh1(i), nneigh1(i), ksi1(i, :), ksi1(i, :), &
+          & sinp1(i, :, :, :), sinp1(i, :, :, :), &
+          & cosp1(i, :, :, :), cosp1(i, :, :, :), &
+          & t_width, d_width, cut_distance, order, &
+          & pd, ang_norm2, distance_scale, angular_scale, alchemy)
+   end do
+   !$OMP END PARALLEL DO
 
-        enddo
-    enddo
-    !$OMP END PARALLEL DO
+   !$OMP PARALLEL DO
+   do i = 1, na2
+      self_scalar2(i) = scalar(x2(i, :, :), x2(i, :, :), &
+          & nneigh2(i), nneigh2(i), ksi2(i, :), ksi2(i, :), &
+          & sinp2(i, :, :, :), sinp2(i, :, :, :), &
+          & cosp2(i, :, :, :), cosp2(i, :, :, :), &
+          & t_width, d_width, cut_distance, order, &
+          & pd, ang_norm2, distance_scale, angular_scale, alchemy)
+   end do
+   !$OMP END PARALLEL DO
 
-    deallocate(self_scalar1)
-    deallocate(self_scalar2)
-    deallocate(ksi1)
-    deallocate(ksi2)
-    deallocate(cosp1)
-    deallocate(cosp2)
-    deallocate(sinp1)
-    deallocate(sinp2)
+   kernels(:, :, :) = 0.0d0
+
+   !$OMP PARALLEL DO schedule(dynamic) PRIVATE(s12)
+   do i = 1, na1
+      do j = 1, na2
+
+         s12 = scalar(x1(i, :, :), x2(j, :, :), &
+             & nneigh1(i), nneigh2(j), ksi1(i, :), ksi2(j, :), &
+             & sinp1(i, :, :, :), sinp2(j, :, :, :), &
+             & cosp1(i, :, :, :), cosp2(j, :, :, :), &
+             & t_width, d_width, cut_distance, order, &
+             & pd, ang_norm2, distance_scale, angular_scale, alchemy)
+
+         kernels(:, i, j) = kernel(self_scalar1(i), self_scalar2(j), s12, &
+                 & kernel_idx, parameters)
+
+      end do
+   end do
+   !$OMP END PARALLEL DO
+
+   deallocate (self_scalar1)
+   deallocate (self_scalar2)
+   deallocate (ksi1)
+   deallocate (ksi2)
+   deallocate (cosp1)
+   deallocate (cosp2)
+   deallocate (sinp1)
+   deallocate (sinp2)
 
 end subroutine fget_atomic_kernels_fchl
-
 
 subroutine fget_atomic_symmetric_kernels_fchl(x1, verbose, nneigh1, na1, nsigmas, &
        & t_width, d_width, cut_start, cut_distance, order, pd, &
        & distance_scale, angular_scale, alchemy, two_body_power, three_body_power, &
        & kernel_idx, parameters, kernels)
 
-    use ffchl_module, only: scalar, get_angular_norm2, &
-        & get_pmax_atomic, get_ksi_atomic, init_cosp_sinp_atomic
-    use ffchl_kernels, only: kernel
-    
-    implicit none
+   use ffchl_module, only: scalar, get_angular_norm2, &
+       & get_pmax_atomic, get_ksi_atomic, init_cosp_sinp_atomic
+   use ffchl_kernels, only: kernel
 
-    ! fchl descriptors for the training set, format (i,maxatoms,5,maxneighbors)
-    double precision, dimension(:,:,:), intent(in) :: x1
+   implicit none
 
-    ! Whether to be verbose with output
-    logical, intent(in) :: verbose
+   ! fchl descriptors for the training set, format (i,maxatoms,5,maxneighbors)
+   double precision, dimension(:, :, :), intent(in) :: x1
 
-    ! Number of neighbors for each atom in each compound
-    integer, dimension(:), intent(in) :: nneigh1
+   ! Whether to be verbose with output
+   logical, intent(in) :: verbose
 
-    ! Number of molecules
-    integer, intent(in) :: na1
+   ! Number of neighbors for each atom in each compound
+   integer, dimension(:), intent(in) :: nneigh1
 
-    ! Number of sigmas
-    integer, intent(in) :: nsigmas
+   ! Number of molecules
+   integer, intent(in) :: na1
 
-    double precision, intent(in) :: two_body_power
-    double precision, intent(in) :: three_body_power
+   ! Number of sigmas
+   integer, intent(in) :: nsigmas
 
-    double precision, intent(in) :: t_width
-    double precision, intent(in) :: d_width
-    double precision, intent(in) :: cut_start
-    double precision, intent(in) :: cut_distance
-    integer, intent(in) :: order
-    double precision, intent(in) :: distance_scale
-    double precision, intent(in) :: angular_scale
-    logical, intent(in) :: alchemy
+   double precision, intent(in) :: two_body_power
+   double precision, intent(in) :: three_body_power
 
-    double precision, dimension(:,:), intent(in) :: pd
-    
-    integer, intent(in) :: kernel_idx
-    double precision, dimension(:,:), intent(in) :: parameters
+   double precision, intent(in) :: t_width
+   double precision, intent(in) :: d_width
+   double precision, intent(in) :: cut_start
+   double precision, intent(in) :: cut_distance
+   integer, intent(in) :: order
+   double precision, intent(in) :: distance_scale
+   double precision, intent(in) :: angular_scale
+   logical, intent(in) :: alchemy
 
-    ! Resulting alpha vector
-    double precision, dimension(nsigmas,na1,na1), intent(out) :: kernels
+   double precision, dimension(:, :), intent(in) :: pd
 
-    ! Internal counters
-    integer :: i, j
+   integer, intent(in) :: kernel_idx
+   double precision, dimension(:, :), intent(in) :: parameters
 
-    ! Temporary variables necessary for parallelization
-    double precision :: s12
+   ! Resulting alpha vector
+   double precision, dimension(nsigmas, na1, na1), intent(out) :: kernels
 
-    ! Pre-computed terms in the full distance matrix
-    double precision, allocatable, dimension(:) :: self_scalar1
+   ! Internal counters
+   integer :: i, j
 
-    ! Pre-computed terms
-    double precision, allocatable, dimension(:,:) :: ksi1
+   ! Temporary variables necessary for parallelization
+   double precision :: s12
 
-    double precision, allocatable, dimension(:,:,:,:) :: sinp1
-    double precision, allocatable, dimension(:,:,:,:) :: cosp1
+   ! Pre-computed terms in the full distance matrix
+   double precision, allocatable, dimension(:) :: self_scalar1
 
-    ! counter for periodic distance
-    integer :: pmax1
-    double precision :: ang_norm2
+   ! Pre-computed terms
+   double precision, allocatable, dimension(:, :) :: ksi1
 
-    integer :: maxneigh1
+   double precision, allocatable, dimension(:, :, :, :) :: sinp1
+   double precision, allocatable, dimension(:, :, :, :) :: cosp1
 
-    maxneigh1 = maxval(nneigh1)
+   ! counter for periodic distance
+   integer :: pmax1
+   double precision :: ang_norm2
 
-    ang_norm2 = get_angular_norm2(t_width)
+   integer :: maxneigh1
 
-    pmax1 = get_pmax_atomic(x1, nneigh1)
+   maxneigh1 = maxval(nneigh1)
 
-    ksi1 = get_ksi_atomic(x1, na1, nneigh1, two_body_power, cut_start, cut_distance, verbose)
+   ang_norm2 = get_angular_norm2(t_width)
 
-    allocate(cosp1(na1, pmax1, order, maxneigh1))
-    allocate(sinp1(na1, pmax1, order, maxneigh1))
+   pmax1 = get_pmax_atomic(x1, nneigh1)
 
-    call init_cosp_sinp_atomic(x1, na1, nneigh1, three_body_power, order, cut_start,  cut_distance, &
-        & cosp1,sinp1, verbose)
+   ksi1 = get_ksi_atomic(x1, na1, nneigh1, two_body_power, cut_start, cut_distance, verbose)
 
-    allocate(self_scalar1(na1))
+   allocate (cosp1(na1, pmax1, order, maxneigh1))
+   allocate (sinp1(na1, pmax1, order, maxneigh1))
 
-    self_scalar1 = 0.0d0
-    
-    !$OMP PARALLEL DO
-    do i = 1, na1
-        self_scalar1(i) = scalar(x1(i,:,:), x1(i,:,:), &
-            & nneigh1(i), nneigh1(i), ksi1(i,:), ksi1(i,:), &
-            & sinp1(i,:,:,:), sinp1(i,:,:,:), &
-            & cosp1(i,:,:,:), cosp1(i,:,:,:), &
-            & t_width, d_width, cut_distance, order, &
-            & pd, ang_norm2,distance_scale, angular_scale, alchemy)
-    enddo
-    !$OMP END PARALLEL DO
-    
-    kernels(:,:,:) = 0.0d0
-    
-    !$OMP PARALLEL DO schedule(dynamic) PRIVATE(s12)
-    do i = 1, na1
-        do j = i, na1
+   call init_cosp_sinp_atomic(x1, na1, nneigh1, three_body_power, order, cut_start, cut_distance, &
+       & cosp1, sinp1, verbose)
 
-            s12 = scalar(x1(i,:,:), x1(j,:,:), &
-                & nneigh1(i), nneigh1(j), ksi1(i,:), ksi1(j,:), &
-                & sinp1(i,:,:,:), sinp1(j,:,:,:), &
-                & cosp1(i,:,:,:), cosp1(j,:,:,:), &
-                & t_width, d_width, cut_distance, order, &
-                & pd, ang_norm2, distance_scale, angular_scale, alchemy)
+   allocate (self_scalar1(na1))
 
-            kernels(:, i, j) = kernel(self_scalar1(i),  self_scalar1(j), s12, &
-                    & kernel_idx, parameters)
+   self_scalar1 = 0.0d0
 
-            kernels(:, j, i) = kernels(:, i, j)
-        enddo
-    enddo
-    !$OMP END PARALLEL DO
+   !$OMP PARALLEL DO
+   do i = 1, na1
+      self_scalar1(i) = scalar(x1(i, :, :), x1(i, :, :), &
+          & nneigh1(i), nneigh1(i), ksi1(i, :), ksi1(i, :), &
+          & sinp1(i, :, :, :), sinp1(i, :, :, :), &
+          & cosp1(i, :, :, :), cosp1(i, :, :, :), &
+          & t_width, d_width, cut_distance, order, &
+          & pd, ang_norm2, distance_scale, angular_scale, alchemy)
+   end do
+   !$OMP END PARALLEL DO
 
-    deallocate(self_scalar1)
-    deallocate(ksi1)
-    deallocate(cosp1)
-    deallocate(sinp1)
+   kernels(:, :, :) = 0.0d0
+
+   !$OMP PARALLEL DO schedule(dynamic) PRIVATE(s12)
+   do i = 1, na1
+      do j = i, na1
+
+         s12 = scalar(x1(i, :, :), x1(j, :, :), &
+             & nneigh1(i), nneigh1(j), ksi1(i, :), ksi1(j, :), &
+             & sinp1(i, :, :, :), sinp1(j, :, :, :), &
+             & cosp1(i, :, :, :), cosp1(j, :, :, :), &
+             & t_width, d_width, cut_distance, order, &
+             & pd, ang_norm2, distance_scale, angular_scale, alchemy)
+
+         kernels(:, i, j) = kernel(self_scalar1(i), self_scalar1(j), s12, &
+                 & kernel_idx, parameters)
+
+         kernels(:, j, i) = kernels(:, i, j)
+      end do
+   end do
+   !$OMP END PARALLEL DO
+
+   deallocate (self_scalar1)
+   deallocate (ksi1)
+   deallocate (cosp1)
+   deallocate (sinp1)
 
 end subroutine fget_atomic_symmetric_kernels_fchl
-
 
 subroutine fget_atomic_local_kernels_fchl(x1, x2, verbose, n1, n2, nneigh1, nneigh2, &
        & nm1, nm2, na1, nsigmas, &
@@ -943,164 +934,164 @@ subroutine fget_atomic_local_kernels_fchl(x1, x2, verbose, n1, n2, nneigh1, nnei
        & distance_scale, angular_scale, alchemy, two_body_power, three_body_power, &
        & kernel_idx, parameters, kernels)
 
-    use ffchl_module, only: scalar, get_threebody_fourier, get_twobody_weights, &
-        & get_angular_norm2, get_pmax, get_ksi, init_cosp_sinp, get_selfscalar
-    use ffchl_kernels, only: kernel
-    
-    implicit none
+   use ffchl_module, only: scalar, get_threebody_fourier, get_twobody_weights, &
+       & get_angular_norm2, get_pmax, get_ksi, init_cosp_sinp, get_selfscalar
+   use ffchl_kernels, only: kernel
 
-    ! fchl descriptors for the training set, format (i,maxatoms,5,maxneighbors)
-    double precision, dimension(:,:,:,:), intent(in) :: x1
-    double precision, dimension(:,:,:,:), intent(in) :: x2
+   implicit none
 
-    ! Whether to be verbose with output
-    logical, intent(in) :: verbose
+   ! fchl descriptors for the training set, format (i,maxatoms,5,maxneighbors)
+   double precision, dimension(:, :, :, :), intent(in) :: x1
+   double precision, dimension(:, :, :, :), intent(in) :: x2
 
-    ! List of numbers of atoms in each molecule
-    integer, dimension(:), intent(in) :: n1
-    integer, dimension(:), intent(in) :: n2
+   ! Whether to be verbose with output
+   logical, intent(in) :: verbose
 
-    ! Number of neighbors for each atom in each compound
-    integer, dimension(:,:), intent(in) :: nneigh1
-    integer, dimension(:,:), intent(in) :: nneigh2
+   ! List of numbers of atoms in each molecule
+   integer, dimension(:), intent(in) :: n1
+   integer, dimension(:), intent(in) :: n2
 
-    ! Number of molecules
-    integer, intent(in) :: nm1
-    integer, intent(in) :: nm2
+   ! Number of neighbors for each atom in each compound
+   integer, dimension(:, :), intent(in) :: nneigh1
+   integer, dimension(:, :), intent(in) :: nneigh2
 
-    integer, intent(in) :: na1
+   ! Number of molecules
+   integer, intent(in) :: nm1
+   integer, intent(in) :: nm2
 
-    ! Number of sigmas
-    integer, intent(in) :: nsigmas
+   integer, intent(in) :: na1
 
-    double precision, intent(in) :: two_body_power
-    double precision, intent(in) :: three_body_power
+   ! Number of sigmas
+   integer, intent(in) :: nsigmas
 
-    double precision, intent(in) :: t_width
-    double precision, intent(in) :: d_width
-    double precision, intent(in) :: cut_start
-    double precision, intent(in) :: cut_distance
-    integer, intent(in) :: order
-    double precision, intent(in) :: distance_scale
-    double precision, intent(in) :: angular_scale
+   double precision, intent(in) :: two_body_power
+   double precision, intent(in) :: three_body_power
 
-    ! -1.0 / sigma^2 for use in the kernel
+   double precision, intent(in) :: t_width
+   double precision, intent(in) :: d_width
+   double precision, intent(in) :: cut_start
+   double precision, intent(in) :: cut_distance
+   integer, intent(in) :: order
+   double precision, intent(in) :: distance_scale
+   double precision, intent(in) :: angular_scale
 
-    double precision, dimension(:,:), intent(in) :: pd
-    
-    integer, intent(in) :: kernel_idx
-    double precision, dimension(:,:), intent(in) :: parameters
+   ! -1.0 / sigma^2 for use in the kernel
 
-    ! Resulting alpha vector
-    double precision, dimension(nsigmas,na1,nm2), intent(out) :: kernels
+   double precision, dimension(:, :), intent(in) :: pd
 
-    integer :: idx1 
-    
-    ! Internal counters
-    integer :: i, j
-    integer :: ni, nj
-    integer :: a, b
+   integer, intent(in) :: kernel_idx
+   double precision, dimension(:, :), intent(in) :: parameters
 
-    ! Temporary variables necessary for parallelization
-    double precision :: s12 
+   ! Resulting alpha vector
+   double precision, dimension(nsigmas, na1, nm2), intent(out) :: kernels
 
-    ! Pre-computed terms in the full distance matrix
-    double precision, allocatable, dimension(:,:) :: self_scalar1
-    double precision, allocatable, dimension(:,:) :: self_scalar2
+   integer :: idx1
 
-    ! Pre-computed terms
-    double precision, allocatable, dimension(:,:,:) :: ksi1
-    double precision, allocatable, dimension(:,:,:) :: ksi2
+   ! Internal counters
+   integer :: i, j
+   integer :: ni, nj
+   integer :: a, b
 
-    double precision, allocatable, dimension(:,:,:,:,:) :: sinp1
-    double precision, allocatable, dimension(:,:,:,:,:) :: sinp2
-    double precision, allocatable, dimension(:,:,:,:,:) :: cosp1
-    double precision, allocatable, dimension(:,:,:,:,:) :: cosp2
+   ! Temporary variables necessary for parallelization
+   double precision :: s12
 
-    logical, intent(in) :: alchemy
+   ! Pre-computed terms in the full distance matrix
+   double precision, allocatable, dimension(:, :) :: self_scalar1
+   double precision, allocatable, dimension(:, :) :: self_scalar2
 
-    ! Value of PI at full FORTRAN precision.
-    double precision, parameter :: pi = 4.0d0 * atan(1.0d0)
+   ! Pre-computed terms
+   double precision, allocatable, dimension(:, :, :) :: ksi1
+   double precision, allocatable, dimension(:, :, :) :: ksi2
 
-    ! counter for periodic distance
-    integer :: pmax1
-    integer :: pmax2
-    ! integer :: nneighi
+   double precision, allocatable, dimension(:, :, :, :, :) :: sinp1
+   double precision, allocatable, dimension(:, :, :, :, :) :: sinp2
+   double precision, allocatable, dimension(:, :, :, :, :) :: cosp1
+   double precision, allocatable, dimension(:, :, :, :, :) :: cosp2
 
-    double precision :: ang_norm2
+   logical, intent(in) :: alchemy
 
-    integer :: maxneigh1
-    integer :: maxneigh2
+   ! Value of PI at full FORTRAN precision.
+   double precision, parameter :: pi = 4.0d0*atan(1.0d0)
 
-    maxneigh1 = maxval(nneigh1)
-    maxneigh2 = maxval(nneigh2)
+   ! counter for periodic distance
+   integer :: pmax1
+   integer :: pmax2
+   ! integer :: nneighi
 
-    ang_norm2 = get_angular_norm2(t_width)
+   double precision :: ang_norm2
 
-    pmax1 = get_pmax(x1, n1)
-    pmax2 = get_pmax(x2, n2)
+   integer :: maxneigh1
+   integer :: maxneigh2
 
-    ksi1 = get_ksi(x1, n1, nneigh1, two_body_power, cut_start, cut_distance, verbose)
-    ksi2 = get_ksi(x2, n2, nneigh2, two_body_power, cut_start, cut_distance, verbose)
+   maxneigh1 = maxval(nneigh1)
+   maxneigh2 = maxval(nneigh2)
 
-    allocate(cosp1(nm1, maxval(n1), pmax1, order, maxval(nneigh1)))
-    allocate(sinp1(nm1, maxval(n1), pmax1, order, maxval(nneigh1)))
+   ang_norm2 = get_angular_norm2(t_width)
 
-    call init_cosp_sinp(x1, n1, nneigh1, three_body_power, order, cut_start,  cut_distance, &
-        & cosp1,sinp1, verbose)
+   pmax1 = get_pmax(x1, n1)
+   pmax2 = get_pmax(x2, n2)
 
-    allocate(cosp2(nm2, maxval(n2), pmax2, order, maxval(nneigh2)))
-    allocate(sinp2(nm2, maxval(n2), pmax2, order, maxval(nneigh2)))
-    
-    call init_cosp_sinp(x2, n2, nneigh2, three_body_power, order, cut_start, cut_distance, &
-        & cosp2,sinp2, verbose)
+   ksi1 = get_ksi(x1, n1, nneigh1, two_body_power, cut_start, cut_distance, verbose)
+   ksi2 = get_ksi(x2, n2, nneigh2, two_body_power, cut_start, cut_distance, verbose)
 
-    ! Pre-calculate self-scalar terms 
-    self_scalar1 = get_selfscalar(x1, nm1, n1, nneigh1, ksi1, sinp1, cosp1, t_width, d_width, &
-         & cut_distance, order, pd, ang_norm2,distance_scale, angular_scale, alchemy, verbose)
+   allocate (cosp1(nm1, maxval(n1), pmax1, order, maxval(nneigh1)))
+   allocate (sinp1(nm1, maxval(n1), pmax1, order, maxval(nneigh1)))
 
-    ! Pre-calculate self-scalar terms 
-    self_scalar2 = get_selfscalar(x2, nm2, n2, nneigh2, ksi2, sinp2, cosp2, t_width, d_width, &
-         & cut_distance, order, pd, ang_norm2,distance_scale, angular_scale, alchemy, verbose)
+   call init_cosp_sinp(x1, n1, nneigh1, three_body_power, order, cut_start, cut_distance, &
+       & cosp1, sinp1, verbose)
 
-    kernels(:,:,:) = 0.0d0
+   allocate (cosp2(nm2, maxval(n2), pmax2, order, maxval(nneigh2)))
+   allocate (sinp2(nm2, maxval(n2), pmax2, order, maxval(nneigh2)))
 
-    !$OMP PARALLEL DO schedule(dynamic) PRIVATE(ni,nj,idx1,s12)
-    do a = 1, nm1
-        ni = n1(a)
-        do i = 1, ni
-        
-            idx1 = sum(n1(:a)) - ni + i
+   call init_cosp_sinp(x2, n2, nneigh2, three_body_power, order, cut_start, cut_distance, &
+       & cosp2, sinp2, verbose)
 
-            do b = 1, nm2
-                nj = n2(b)
-                do j = 1, nj
+   ! Pre-calculate self-scalar terms
+   self_scalar1 = get_selfscalar(x1, nm1, n1, nneigh1, ksi1, sinp1, cosp1, t_width, d_width, &
+        & cut_distance, order, pd, ang_norm2, distance_scale, angular_scale, alchemy, verbose)
 
-                    s12 = scalar(x1(a,i,:,:), x2(b,j,:,:), &
-                        & nneigh1(a,i), nneigh2(b,j), ksi1(a,i,:), ksi2(b,j,:), &
-                        & sinp1(a,i,:,:,:), sinp2(b,j,:,:,:), &
-                        & cosp1(a,i,:,:,:), cosp2(b,j,:,:,:), &
-                        & t_width, d_width, cut_distance, order, &
-                        & pd, ang_norm2, distance_scale, angular_scale, alchemy)
-                    
-                    kernels(:, idx1, b) = kernels(:, idx1, b) &
-                        & + kernel(self_scalar1(a,i), self_scalar2(b,j), s12, &
-                        & kernel_idx, parameters)
+   ! Pre-calculate self-scalar terms
+   self_scalar2 = get_selfscalar(x2, nm2, n2, nneigh2, ksi2, sinp2, cosp2, t_width, d_width, &
+        & cut_distance, order, pd, ang_norm2, distance_scale, angular_scale, alchemy, verbose)
 
-                enddo
-            enddo
+   kernels(:, :, :) = 0.0d0
 
-        enddo
-    enddo
-    !$OMP END PARALLEL DO
+   !$OMP PARALLEL DO schedule(dynamic) PRIVATE(ni,nj,idx1,s12)
+   do a = 1, nm1
+      ni = n1(a)
+      do i = 1, ni
 
-    deallocate(self_scalar1)
-    deallocate(self_scalar2)
-    deallocate(ksi1)
-    deallocate(ksi2)
-    deallocate(cosp1)
-    deallocate(cosp2)
-    deallocate(sinp1)
-    deallocate(sinp2)
+         idx1 = sum(n1(:a)) - ni + i
+
+         do b = 1, nm2
+            nj = n2(b)
+            do j = 1, nj
+
+               s12 = scalar(x1(a, i, :, :), x2(b, j, :, :), &
+                   & nneigh1(a, i), nneigh2(b, j), ksi1(a, i, :), ksi2(b, j, :), &
+                   & sinp1(a, i, :, :, :), sinp2(b, j, :, :, :), &
+                   & cosp1(a, i, :, :, :), cosp2(b, j, :, :, :), &
+                   & t_width, d_width, cut_distance, order, &
+                   & pd, ang_norm2, distance_scale, angular_scale, alchemy)
+
+               kernels(:, idx1, b) = kernels(:, idx1, b) &
+                   & + kernel(self_scalar1(a, i), self_scalar2(b, j), s12, &
+                   & kernel_idx, parameters)
+
+            end do
+         end do
+
+      end do
+   end do
+   !$OMP END PARALLEL DO
+
+   deallocate (self_scalar1)
+   deallocate (self_scalar2)
+   deallocate (ksi1)
+   deallocate (ksi2)
+   deallocate (cosp1)
+   deallocate (cosp2)
+   deallocate (sinp1)
+   deallocate (sinp2)
 
 end subroutine fget_atomic_local_kernels_fchl

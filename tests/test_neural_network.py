@@ -1,56 +1,34 @@
-
-#
-
-#
-
-
-
-
-
-
-#
-
-
-#
-
-
-
-
-
-
-
-
 """
 Tests directly related to the class _NN and it's children.
 
 """
-import tensorflow as tf
 import numpy as np
+import tensorflow as tf
 
 # TODO relative imports
 from qmllib.aglaia.aglaia import MRMP
 from qmllib.utils import InputError
 
-
 # ------------ ** All functions to test the inputs to the classes ** ---------------
+
 
 def hidden_layer_sizes(C):
     # Exceptions that are supposed to be caught
     def catch(s):
         try:
-            C(hidden_layer_sizes = s)
+            C(hidden_layer_sizes=s)
             raise Exception
         except InputError:
             pass
 
     # This should not raise an exception
-    C(hidden_layer_sizes = [4,5])
-    C(hidden_layer_sizes = (4,5))
-    C(hidden_layer_sizes = [4.0])
+    C(hidden_layer_sizes=[4, 5])
+    C(hidden_layer_sizes=(4, 5))
+    C(hidden_layer_sizes=[4.0])
 
     # This should be caught
     catch([])
-    catch([0,4])
+    catch([0, 4])
     catch([4.2])
     catch(["x"])
     catch([None])
@@ -58,37 +36,39 @@ def hidden_layer_sizes(C):
     catch(4)
     catch([0])
 
+
 def l1_reg(C):
     # Exceptions that are supposed to be caught
     def catch(s):
         try:
-            C(l1_reg = s)
+            C(l1_reg=s)
             raise Exception
         except InputError:
             pass
 
     # This should not raise an exception
-    C(l1_reg = 0.1)
-    C(l1_reg = 0.0)
+    C(l1_reg=0.1)
+    C(l1_reg=0.0)
 
     # This should be caught
     catch(-0.1)
     catch("x")
     catch(None)
     catch([0])
+
 
 def l2_reg(C):
     # Exceptions that are supposed to be caught
     def catch(s):
         try:
-            C(l2_reg = s)
+            C(l2_reg=s)
             raise Exception
         except InputError:
             pass
 
     # This should not raise an exception
-    C(l2_reg = 0.1)
-    C(l2_reg = 0.0)
+    C(l2_reg=0.1)
+    C(l2_reg=0.0)
 
     # This should be caught
     catch(-0.1)
@@ -96,18 +76,19 @@ def l2_reg(C):
     catch(None)
     catch([0])
 
+
 def batch_size(C):
     # Exceptions that are supposed to be caught
     def catch(s):
         try:
-            C(batch_size = s)
+            C(batch_size=s)
             raise Exception
         except InputError:
             pass
 
     # This should not raise an exception
-    C(batch_size = 2)
-    C(batch_size = "auto")
+    C(batch_size=2)
+    C(batch_size="auto")
 
     # This should be caught
     catch(1)
@@ -117,17 +98,18 @@ def batch_size(C):
     catch(None)
     catch(2.0)
 
+
 def learning_rate(C):
     # Exceptions that are supposed to be caught
     def catch(s):
         try:
-            C(learning_rate = s)
+            C(learning_rate=s)
             raise Exception
         except InputError:
             pass
 
     # This should not raise an exception
-    C(learning_rate = 0.1)
+    C(learning_rate=0.1)
 
     # This should be caught
     catch(0.0)
@@ -135,17 +117,18 @@ def learning_rate(C):
     catch("x")
     catch(None)
 
+
 def iterations(C):
     # Exceptions that are supposed to be caught
     def catch(s):
         try:
-            C(iterations = s)
+            C(iterations=s)
             raise Exception
         except InputError:
             pass
 
     # This should not raise an exception
-    C(iterations = 1)
+    C(iterations=1)
 
     # This should be caught
     catch(-2)
@@ -154,45 +137,47 @@ def iterations(C):
     catch(None)
     catch(1.0)
 
+
 def tf_dtype(C):
     # Exceptions that are supposed to be caught
     def catch(s):
         try:
-            C(tf_dtype = s)
+            C(tf_dtype=s)
             raise Exception
         except InputError:
             pass
 
     # This should not raise an exception
-    C(tf_dtype = "64")
-    C(tf_dtype = 64)
-    C(tf_dtype = "float64")
-    C(tf_dtype = tf.float64)
-    C(tf_dtype = "32")
-    C(tf_dtype = 32)
-    C(tf_dtype = "float32")
-    C(tf_dtype = tf.float32)
-    C(tf_dtype = "16")
-    C(tf_dtype = 16)
-    C(tf_dtype = "float16")
-    C(tf_dtype = tf.float16)
+    C(tf_dtype="64")
+    C(tf_dtype=64)
+    C(tf_dtype="float64")
+    C(tf_dtype=tf.float64)
+    C(tf_dtype="32")
+    C(tf_dtype=32)
+    C(tf_dtype="float32")
+    C(tf_dtype=tf.float32)
+    C(tf_dtype="16")
+    C(tf_dtype=16)
+    C(tf_dtype="float16")
+    C(tf_dtype=tf.float16)
 
     # This should be caught
     catch(8)
     catch("x")
     catch(None)
 
+
 def hl1(C):
     # Exceptions that are supposed to be caught
     def catch(s):
         try:
-            C(hl1 = s)
+            C(hl1=s)
             raise Exception
         except InputError:
             pass
 
     # This should not raise an exception
-    C(hl1 = 1)
+    C(hl1=1)
 
     # This should be caught
     catch(0)
@@ -202,18 +187,19 @@ def hl1(C):
     catch(-1)
     catch(1.0)
 
+
 def hl2(C):
     # Exceptions that are supposed to be caught
     def catch(s):
         try:
-            C(hl2 = s)
+            C(hl2=s)
             raise Exception
         except InputError:
             pass
 
     # This should not raise an exception
-    C(hl2 = 1)
-    C(hl2 = 0)
+    C(hl2=1)
+    C(hl2=0)
 
     # This should be caught
     catch("x")
@@ -221,19 +207,20 @@ def hl2(C):
     catch(None)
     catch(-1)
     catch(1.0)
+
 
 def hl3(C):
     # Exceptions that are supposed to be caught
     def catch(s):
         try:
-            C(hl2 = 2, hl3 = s)
+            C(hl2=2, hl3=s)
             raise Exception
         except InputError:
             pass
 
     # This should not raise an exception
-    C(hl2 = 2, hl3 = 1)
-    C(hl2 = 2, hl3 = 0)
+    C(hl2=2, hl3=1)
+    C(hl2=2, hl3=0)
 
     # This should be caught
     catch("x")
@@ -242,26 +229,28 @@ def hl3(C):
     catch(-1)
     catch(1.0)
 
+
 def representation(C):
     # Exceptions that are supposed to be caught
     def catch(s):
         try:
-            C(representation = s)
+            C(representation=s)
             raise Exception
         except InputError:
             pass
 
     # This should not raise an exception
-    C(representation = "unsorted_couLomb_matrix")
-    C(representation = "sorted_couLomb_matrix")
-    C(representation = "bag_of_bOnds")
-    C(representation = "slAtm")
+    C(representation="unsorted_couLomb_matrix")
+    C(representation="sorted_couLomb_matrix")
+    C(representation="bag_of_bOnds")
+    C(representation="slAtm")
 
     # This should be caught
     catch("none")
     catch(4.2)
     catch(None)
     catch(-1)
+
 
 def scoringfunction(C):
     """
@@ -270,12 +259,12 @@ def scoringfunction(C):
 
     def catch(s):
         try:
-            C(scoring_function = s)
+            C(scoring_function=s)
             raise Exception
         except InputError:
             pass
 
-    accepted_inputs = ['mae', 'rmse', 'r2']
+    accepted_inputs = ["mae", "rmse", "r2"]
     unaccepted_inputs = [0, "none", True, None]
 
     # This should not raise an exception
@@ -285,6 +274,7 @@ def scoringfunction(C):
     # This should be caught
     for item in unaccepted_inputs:
         catch(item)
+
 
 def test_input():
     # Additional test that inheritance is ok
@@ -300,7 +290,9 @@ def test_input():
     tf_dtype(C)
     scoringfunction(C)
 
+
 # --------------------- ** tests for regularisation terms ** -----------------
+
 
 def test_l2_loss():
     """
@@ -323,6 +315,7 @@ def test_l2_loss():
     # Testing
     assert np.isclose(l2_loss, expected_result)
 
+
 def test_l1_loss():
     """
     This tests the evaluation of the l1 regularisation term on the weights of the neural net.
@@ -344,6 +337,7 @@ def test_l1_loss():
     # Testing
     assert np.isclose(l1_loss, expected_result)
 
+
 def test_get_batch_size():
     """
     This tests the get_batch_size function
@@ -364,19 +358,20 @@ def test_get_batch_size():
     for i in range(len(expected_batch_sizes)):
         assert actual_batch_sizes[i] == expected_batch_sizes[i]
 
+
 def test_fit1():
     """This tests that the neural net can overfit a cubic function."""
 
     x = np.linspace(-2.0, 2.0, 200)
     X = np.reshape(x, (len(x), 1))
-    y = x ** 3
+    y = x**3
 
     estimator = MRMP(hidden_layer_sizes=(5, 5, 5), learning_rate=0.01, iterations=35000)
     estimator.fit(X, y)
 
     x_test = np.linspace(-1.5, 1.5, 15)
     X_test = np.reshape(x_test, (len(x_test), 1))
-    y_test = x_test ** 3
+    y_test = x_test**3
     y_pred = estimator.predict(X_test)
 
     y_pred_row = np.reshape(y_pred, (y_pred.shape[0],))

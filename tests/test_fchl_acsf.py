@@ -1,34 +1,14 @@
-
-#
-
-#
-
-
-
-
-
-
-#
-
-
-#
-
-
-
-
-
-
-
-
 """
 This file contains tests for the atom centred symmetry function module.
 """
 from __future__ import print_function
+
 import os
 from copy import deepcopy
+
 import numpy as np
+
 np.set_printoptions(linewidth=666, edgeitems=10)
-import qmllib
 from qmllib import Compound
 from qmllib.representations import generate_fchl_acsf
 
@@ -40,8 +20,9 @@ def get_acsf_numgrad(mol, dx=1e-5):
 
     true_coords = deepcopy(mol.coordinates)
 
-    true_rep = generate_fchl_acsf(mol.nuclear_charges, mol.coordinates, 
-        gradients=False, **REP_PARAMS)
+    true_rep = generate_fchl_acsf(
+        mol.nuclear_charges, mol.coordinates, gradients=False, **REP_PARAMS
+    )
 
     gradient = np.zeros((3, mol.natoms, true_rep.shape[0], true_rep.shape[1]))
 
@@ -49,43 +30,51 @@ def get_acsf_numgrad(mol, dx=1e-5):
         for xyz, x in enumerate(coord):
 
             temp_coords = deepcopy(true_coords)
-            temp_coords[n,xyz] = x + 2.0 *dx
+            temp_coords[n, xyz] = x + 2.0 * dx
 
-            (rep, grad) = generate_fchl_acsf(mol.nuclear_charges, temp_coords, gradients=True, **REP_PARAMS)
+            (rep, grad) = generate_fchl_acsf(
+                mol.nuclear_charges, temp_coords, gradients=True, **REP_PARAMS
+            )
             gradient[xyz, n] -= rep
-            
-            temp_coords[n,xyz] = x + dx
-            (rep, grad) = generate_fchl_acsf(mol.nuclear_charges, temp_coords, gradients=True, **REP_PARAMS)
+
+            temp_coords[n, xyz] = x + dx
+            (rep, grad) = generate_fchl_acsf(
+                mol.nuclear_charges, temp_coords, gradients=True, **REP_PARAMS
+            )
             gradient[xyz, n] += 8.0 * rep
-            
-            temp_coords[n,xyz] = x - dx
-            (rep, grad) = generate_fchl_acsf(mol.nuclear_charges, temp_coords, gradients=True, **REP_PARAMS)
+
+            temp_coords[n, xyz] = x - dx
+            (rep, grad) = generate_fchl_acsf(
+                mol.nuclear_charges, temp_coords, gradients=True, **REP_PARAMS
+            )
             gradient[xyz, n] -= 8.0 * rep
-            
-            temp_coords[n,xyz] = x - 2.0 *dx
-            (rep, grad) = generate_fchl_acsf(mol.nuclear_charges, temp_coords, gradients=True, **REP_PARAMS)
+
+            temp_coords[n, xyz] = x - 2.0 * dx
+            (rep, grad) = generate_fchl_acsf(
+                mol.nuclear_charges, temp_coords, gradients=True, **REP_PARAMS
+            )
             gradient[xyz, n] += rep
 
-    gradient /= (12 * dx)
+    gradient /= 12 * dx
 
-    gradient = np.swapaxes(gradient, 0, 1 )
-    gradient = np.swapaxes(gradient, 2, 0 )
+    gradient = np.swapaxes(gradient, 0, 1)
+    gradient = np.swapaxes(gradient, 2, 0)
     gradient = np.swapaxes(gradient, 3, 1)
 
     return gradient
 
-    
+
 def test_fchl_acsf():
-    
+
     test_dir = os.path.dirname(os.path.realpath(__file__))
 
-    mol = Compound(xyz=test_dir+"/qm7/0101.xyz")
+    mol = Compound(xyz=test_dir + "/qm7/0101.xyz")
 
-    (repa, anal_grad) = generate_fchl_acsf(mol.nuclear_charges, mol.coordinates, 
-        gradients=True, **REP_PARAMS)
-    
-    repb = generate_fchl_acsf(mol.nuclear_charges, mol.coordinates, 
-        gradients=False, **REP_PARAMS)
+    (repa, anal_grad) = generate_fchl_acsf(
+        mol.nuclear_charges, mol.coordinates, gradients=True, **REP_PARAMS
+    )
+
+    repb = generate_fchl_acsf(mol.nuclear_charges, mol.coordinates, gradients=False, **REP_PARAMS)
 
     assert np.allclose(repa, repb), "Error in FCHL-ACSF representation implementation"
 
@@ -97,4 +86,3 @@ def test_fchl_acsf():
 if __name__ == "__main__":
 
     test_fchl_acsf()
-

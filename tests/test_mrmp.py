@@ -1,71 +1,62 @@
-
-#
-
-#
-
-
-
-
-
-
-#
-
-
-#
-
-
-
-
-
-
-
-
-
 """
 This test checks if all the ways of setting up the estimator MRMP work.
 """
 
-import numpy as np
-from qmllib.aglaia.aglaia import MRMP
-from qmllib.utils import InputError
 import glob
 import os
 import shutil
+
+import numpy as np
+from qmllib.aglaia.aglaia import MRMP
+from qmllib.utils import InputError
+
 try:
     import tensorflow as tf
 except ImportError:
     print("Tensorflow not found but is needed for mrmp class.")
     raise SystemExit
 
+
 def test_set_representation():
     """
     This function tests the method MRMP._set_representation.
     """
     try:
-        MRMP(representation_name='unsorted_coulomb_matrix', representation_params={'slatm_sigma1': 0.05})
+        MRMP(
+            representation_name="unsorted_coulomb_matrix",
+            representation_params={"slatm_sigma1": 0.05},
+        )
         raise Exception
     except InputError:
         pass
 
     try:
-        MRMP(representation_name='coulomb_matrix')
+        MRMP(representation_name="coulomb_matrix")
         raise Exception
     except InputError:
         pass
 
     try:
-        MRMP(representation_name='slatm', representation_params={'slatm_alchemy': 0.05})
+        MRMP(representation_name="slatm", representation_params={"slatm_alchemy": 0.05})
         raise Exception
     except InputError:
         pass
 
-    parameters ={'slatm_sigma1': 0.07, 'slatm_sigma2': 0.04, 'slatm_dgrid1': 0.02, 'slatm_dgrid2': 0.06,
-                                'slatm_rcut': 5.0, 'slatm_rpower': 7, 'slatm_alchemy': True}
+    parameters = {
+        "slatm_sigma1": 0.07,
+        "slatm_sigma2": 0.04,
+        "slatm_dgrid1": 0.02,
+        "slatm_dgrid2": 0.06,
+        "slatm_rcut": 5.0,
+        "slatm_rpower": 7,
+        "slatm_alchemy": True,
+    }
 
-    estimator = MRMP(representation_name='slatm', representation_params=parameters)
+    estimator = MRMP(representation_name="slatm", representation_params=parameters)
 
-    assert estimator.representation_name == 'slatm'
+    assert estimator.representation_name == "slatm"
     assert estimator.slatm_parameters == parameters
+
 
 def test_set_properties():
     """
@@ -73,16 +64,16 @@ def test_set_properties():
     """
     test_dir = os.path.dirname(os.path.realpath(__file__))
 
-    energies = np.loadtxt(test_dir + '/CN_isobutane/prop_kjmol_training.txt',
-                          usecols=[1])
+    energies = np.loadtxt(test_dir + "/CN_isobutane/prop_kjmol_training.txt", usecols=[1])
 
-    estimator = MRMP(representation_name='unsorted_coulomb_matrix')
+    estimator = MRMP(representation_name="unsorted_coulomb_matrix")
 
     assert estimator.properties == None
 
     estimator.set_properties(energies)
 
     assert np.all(estimator.properties == energies)
+
 
 def test_set_descriptor():
     """
@@ -111,9 +102,10 @@ def test_set_descriptor():
     except InputError:
         pass
 
+
 def test_fit_1():
     """
-    This function tests the first way of preparing for fitting the neural network: 
+    This function tests the first way of preparing for fitting the neural network:
     Compounds are created from xyz files and the energies are stored in the estimator.
     The fit method is called with the indices of the molecules we want to fit.
     """
@@ -121,11 +113,15 @@ def test_fit_1():
     test_dir = os.path.dirname(os.path.realpath(__file__))
 
     filenames = glob.glob(test_dir + "/CN_isobutane/*.xyz")
-    energies = np.loadtxt(test_dir + '/CN_isobutane/prop_kjmol_training.txt',
-                          usecols=[1])
+    energies = np.loadtxt(test_dir + "/CN_isobutane/prop_kjmol_training.txt", usecols=[1])
     filenames.sort()
 
-    available_representations = ['sorted_coulomb_matrix', 'unsorted_coulomb_matrix', 'bag_of_bonds', 'slatm']
+    available_representations = [
+        "sorted_coulomb_matrix",
+        "unsorted_coulomb_matrix",
+        "bag_of_bonds",
+        "slatm",
+    ]
 
     for rep in available_representations:
         estimator = MRMP(representation_name=rep)
@@ -135,6 +131,7 @@ def test_fit_1():
 
         idx = np.arange(0, 100)
         estimator.fit(idx)
+
 
 def test_fit_2():
     """
@@ -155,9 +152,10 @@ def test_fit_2():
     idx = np.arange(0, 100)
     estimator.fit(idx)
 
+
 def test_fit_3():
     """
-    This function tests a third way of fitting the descriptor: 
+    This function tests a third way of fitting the descriptor:
     The data is passed directly to the fit function.
     """
     test_dir = os.path.dirname(os.path.realpath(__file__))
@@ -168,6 +166,7 @@ def test_fit_3():
 
     estimator = MRMP()
     estimator.fit(descriptor, energies)
+
 
 def test_fit_4():
     """
@@ -185,6 +184,7 @@ def test_fit_4():
 
     shutil.rmtree("./tb_test_4")
 
+
 def test_score():
     """
     This function tests that all the scoring functions work.
@@ -195,17 +195,18 @@ def test_score():
     descriptor = data["arr_0"]
     energies = data["arr_1"]
 
-    estimator_1 = MRMP(scoring_function='mae')
+    estimator_1 = MRMP(scoring_function="mae")
     estimator_1.fit(descriptor, energies)
     estimator_1.score(descriptor, energies)
 
-    estimator_2 = MRMP(scoring_function='r2')
+    estimator_2 = MRMP(scoring_function="r2")
     estimator_2.fit(descriptor, energies)
     estimator_2.score(descriptor, energies)
 
-    estimator_3 = MRMP(scoring_function='rmse')
+    estimator_3 = MRMP(scoring_function="rmse")
     estimator_3.fit(descriptor, energies)
     estimator_3.score(descriptor, energies)
+
 
 def test_save_local():
     """
@@ -213,7 +214,7 @@ def test_save_local():
     """
 
     x = np.linspace(-10.0, 10.0, 2000)
-    y = x ** 2
+    y = x**2
 
     x = np.reshape(x, (x.shape[0], 1))
 
@@ -230,6 +231,7 @@ def test_save_local():
 
     shutil.rmtree("./saved_test_model")
 
+
 def test_load_external():
     """
     This function tests if a model that has been trained on a different computer can be loaded and used on a different
@@ -240,7 +242,7 @@ def test_load_external():
     test_dir = os.path.dirname(os.path.realpath(__file__))
 
     x = np.linspace(-10.0, 10.0, 2000)
-    y = x ** 2
+    y = x**2
     x = np.reshape(x, (x.shape[0], 1))
 
     estimator = MRMP()
@@ -251,23 +253,24 @@ def test_load_external():
 
     assert np.isclose(score_after_loading, score_on_other_machine)
 
+
 # def test_get_params():
 #     """
 #     This test checks whether the function get_params inherited by BaseEstimator works properly.
 #     """
-#
+
 #     slatm_params = {'slatm_sigma1': 0.1, 'slatm_sigma2': 0.2}
-#
+
 #     estimator = MRMP(l1_reg=0.1, l2_reg=0.3, representation_params=slatm_params, representation='slatm')
-#
+
 #     parameters = estimator.get_params()
-#
+
 #     assert parameters["l1_reg"] == 0.1
 #     assert parameters["l2_reg"] == 0.3
-#
+
 #     if not type(parameters["representation_params"]) is dict:
 #         raise InputError("The descriptor parameters should be a dictionary.")
-#
+
 #     for key, value in slatm_params.items():
 #         params_in_estimator = parameters["representation_params"]
 #         assert value == params_in_estimator[key]

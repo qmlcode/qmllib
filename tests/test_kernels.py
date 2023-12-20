@@ -1,50 +1,27 @@
-
-#
-
-#
-
-
-
-
-
-
-#
-
-
-#
-
-
-
-
-
-
-
-
 from __future__ import print_function
 
-import sys
 import os
-import numpy as np
-import scipy
-from scipy.stats import wasserstein_distance
 
-import sklearn
+import numpy as np
+from scipy.stats import wasserstein_distance
 from sklearn.decomposition import KernelPCA
 
 import qmllib
-from qmllib.kernels import wasserstein_kernel
-from qmllib.kernels import laplacian_kernel
-from qmllib.kernels import gaussian_kernel
-from qmllib.kernels import laplacian_kernel_symmetric
-from qmllib.kernels import gaussian_kernel_symmetric
-from qmllib.kernels import linear_kernel
-from qmllib.kernels import matern_kernel
-from qmllib.kernels import sargan_kernel
-from qmllib.kernels import kpca
+from qmllib.kernels import (
+    gaussian_kernel,
+    gaussian_kernel_symmetric,
+    kpca,
+    laplacian_kernel,
+    laplacian_kernel_symmetric,
+    linear_kernel,
+    matern_kernel,
+    sargan_kernel,
+    wasserstein_kernel,
+)
+
 
 def get_energies(filename):
-    """ Returns a dictionary with heats of formation for each xyz-file.
-    """
+    """Returns a dictionary with heats of formation for each xyz-file."""
 
     f = open(filename, "r")
     lines = f.readlines()
@@ -61,6 +38,7 @@ def get_energies(filename):
         energies[xyz_name] = hof
 
     return energies
+
 
 def test_laplacian_kernel():
 
@@ -79,7 +57,7 @@ def test_laplacian_kernel():
 
     for i in range(n_train):
         for j in range(n_test):
-            Ktest[i,j] = np.exp( np.sum(np.abs(X[i] - Xs[j])) / (-1.0 * sigma))
+            Ktest[i, j] = np.exp(np.sum(np.abs(X[i] - Xs[j])) / (-1.0 * sigma))
 
     K = laplacian_kernel(X, Xs, sigma)
 
@@ -95,6 +73,7 @@ def test_laplacian_kernel():
 
     # Check for symmetry:
     assert np.allclose(Ksymm, Ksymm2), "Error in Laplacian kernel"
+
 
 def test_gaussian_kernel():
 
@@ -113,7 +92,7 @@ def test_gaussian_kernel():
 
     for i in range(n_train):
         for j in range(n_test):
-            Ktest[i,j] = np.exp( np.sum(np.square(X[i] - Xs[j])) / (-2.0 * sigma**2))
+            Ktest[i, j] = np.exp(np.sum(np.square(X[i] - Xs[j])) / (-2.0 * sigma**2))
 
     K = gaussian_kernel(X, Xs, sigma)
 
@@ -129,6 +108,7 @@ def test_gaussian_kernel():
 
     # Check for symmetry:
     assert np.allclose(Ksymm, Ksymm2), "Error in Gaussian kernel"
+
 
 def test_linear_kernel():
 
@@ -147,7 +127,7 @@ def test_linear_kernel():
 
     for i in range(n_train):
         for j in range(n_test):
-            Ktest[i,j] = np.dot(X[i], Xs[j])
+            Ktest[i, j] = np.dot(X[i], Xs[j])
 
     K = linear_kernel(X, Xs)
 
@@ -159,6 +139,7 @@ def test_linear_kernel():
     # Check for symmetry:
     assert np.allclose(Ksymm, Ksymm.T), "Error in linear kernel"
 
+
 def test_matern_kernel():
 
     np.random.seed(666)
@@ -166,6 +147,7 @@ def test_matern_kernel():
     for metric in ("l1", "l2"):
         for order in (0, 1, 2):
             matern(metric, order)
+
 
 def matern(metric, order):
 
@@ -186,26 +168,27 @@ def matern(metric, order):
             if metric == "l1":
                 d = np.sum(abs(X[i] - Xs[j]))
             else:
-                d = np.sqrt(np.sum((X[i] - Xs[j])**2))
+                d = np.sqrt(np.sum((X[i] - Xs[j]) ** 2))
 
             if order == 0:
-                Ktest[i,j] = np.exp( - d / sigma)
+                Ktest[i, j] = np.exp(-d / sigma)
             elif order == 1:
-                Ktest[i,j] = np.exp( - np.sqrt(3) * d / sigma) \
-                    * (1 + np.sqrt(3) * d / sigma)
+                Ktest[i, j] = np.exp(-np.sqrt(3) * d / sigma) * (1 + np.sqrt(3) * d / sigma)
             else:
-                Ktest[i,j] = np.exp( - np.sqrt(5) * d / sigma) \
-                    * (1 + np.sqrt(5) * d / sigma + 5.0/3 * d**2 / sigma**2)
+                Ktest[i, j] = np.exp(-np.sqrt(5) * d / sigma) * (
+                    1 + np.sqrt(5) * d / sigma + 5.0 / 3 * d**2 / sigma**2
+                )
 
-    K = matern_kernel(X, Xs, sigma, metric = metric, order = order)
+    K = matern_kernel(X, Xs, sigma, metric=metric, order=order)
 
     # Compare two implementations:
     assert np.allclose(K, Ktest), "Error in Matern kernel"
 
-    Ksymm = matern_kernel(X, X, sigma, metric = metric, order = order)
+    Ksymm = matern_kernel(X, X, sigma, metric=metric, order=order)
 
     # Check for symmetry:
     assert np.allclose(Ksymm, Ksymm.T), "Error in Matern kernel"
+
 
 def test_sargan_kernel():
 
@@ -213,6 +196,7 @@ def test_sargan_kernel():
 
     for ngamma in (0, 1, 2):
         sargan(ngamma)
+
 
 def sargan(ngamma):
 
@@ -235,8 +219,8 @@ def sargan(ngamma):
 
             factor = 1
             for k, gamma in enumerate(gammas):
-                factor += gamma / sigma**(k+1) * d ** (k+1)
-            Ktest[i,j] = np.exp( - d / sigma) * factor
+                factor += gamma / sigma ** (k + 1) * d ** (k + 1)
+            Ktest[i, j] = np.exp(-d / sigma) * factor
 
     K = sargan_kernel(X, Xs, sigma, gammas)
 
@@ -284,9 +268,12 @@ def test_kpca():
     K = laplacian_kernel(X, X, 2e5)
 
     pcas_qml = kpca(K, n=10)
-    pcas_sklearn = KernelPCA(10, eigen_solver="dense", kernel='precomputed').fit_transform(K)
+    pcas_sklearn = KernelPCA(10, eigen_solver="dense", kernel="precomputed").fit_transform(K)
 
-    assert array_nan_close(np.abs(pcas_sklearn.T), np.abs(pcas_qml)), "Error in Kernel PCA decomposition."
+    assert array_nan_close(
+        np.abs(pcas_sklearn.T), np.abs(pcas_qml)
+    ), "Error in Kernel PCA decomposition."
+
 
 def test_wasserstein_kernel():
 
@@ -296,7 +283,7 @@ def test_wasserstein_kernel():
     n_test = 3
 
     # List of dummy representations
-    X =  np.array(np.random.randint(0, 10, size=(n_train, 3)), dtype=np.float)
+    X = np.array(np.random.randint(0, 10, size=(n_train, 3)), dtype=np.float)
     Xs = np.array(np.random.randint(0, 10, size=(n_test, 3)), dtype=np.float)
 
     sigma = 100.0
@@ -305,7 +292,7 @@ def test_wasserstein_kernel():
 
     for i in range(n_train):
         for j in range(n_test):
-            Ktest[i,j] = np.exp( wasserstein_distance(X[i], Xs[j]) / (-1.0 * sigma))
+            Ktest[i, j] = np.exp(wasserstein_distance(X[i], Xs[j]) / (-1.0 * sigma))
 
     K = wasserstein_kernel(X, Xs, sigma)
 
@@ -317,6 +304,7 @@ def test_wasserstein_kernel():
     # Check for symmetry:
     assert np.allclose(Ksymm, Ksymm.T), "Error in Wasserstein kernel"
 
+
 if __name__ == "__main__":
 
     test_laplacian_kernel()
@@ -326,4 +314,3 @@ if __name__ == "__main__":
     test_sargan_kernel()
     test_wasserstein_kernel()
     test_kpca()
-
