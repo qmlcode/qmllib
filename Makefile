@@ -18,7 +18,7 @@ format:
 	${python} pre_commit run --all-files
 
 test:
-	${python} -m pytest -rs ./tests/test_solvers.py
+	${python} -m pytest -rs ./tests/test_kernels.py
 
 types:
 	# ${python} -m monkeytype run $(which pytest) ./tests/test_solvers.py
@@ -26,6 +26,12 @@ types:
 
 cov:
 	${python} -m pytest -vrs --cov=${pkg} --cov-report html tests
+
+compile:
+	${python} _compile.py
+
+build: compile
+	${python} -m build .
 
 clean:
 	rm -rf ./env/
