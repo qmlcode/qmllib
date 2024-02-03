@@ -18,7 +18,10 @@ format:
 	${python} pre_commit run --all-files
 
 test:
-	${python} -m pytest -rs ./tests/test_kernels.py
+	${python} -m pytest -rs \
+	./tests/test_kernels.py \
+	./tests/test_solvers.py \
+	./tests/test_distance.py
 
 types:
 	# ${python} -m monkeytype run $(which pytest) ./tests/test_solvers.py

@@ -303,14 +303,3 @@ def test_wasserstein_kernel():
 
     # Check for symmetry:
     assert np.allclose(Ksymm, Ksymm.T), "Error in Wasserstein kernel"
-
-
-if __name__ == "__main__":
-
-    test_laplacian_kernel()
-    test_gaussian_kernel()
-    test_linear_kernel()
-    test_matern_kernel()
-    test_sargan_kernel()
-    test_wasserstein_kernel()
-    test_kpca()
