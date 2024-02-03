@@ -23,7 +23,8 @@ This package is and should stay free-function design oriented.
 How to install
 ====
 
-    raise NotImplementedError
+    make # build conda env
+    make compile # compile fortran extensions
 
 ====
 How to use
@@ -44,4 +45,3 @@ How to contribute
  * Raise issues
  * Create pull requests
  * Create discussions
-
