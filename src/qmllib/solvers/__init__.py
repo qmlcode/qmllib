@@ -1,4 +1,5 @@
 import numpy as np
+from numpy import ndarray
 
 from .fsolvers import (
     fbkf_invert,
@@ -12,7 +13,7 @@ from .fsolvers import (
 )
 
 
-def cho_invert(A):
+def cho_invert(A: ndarray) -> ndarray:
     """Returns the inverse of a positive definite matrix, using a Cholesky decomposition
     via calls to LAPACK dpotrf and dpotri in the F2PY module.
 
@@ -26,20 +27,20 @@ def cho_invert(A):
     if len(A.shape) != 2 or A.shape[0] != A.shape[1]:
         raise ValueError("expected square matrix")
 
-    I = np.asfortranarray(A)
+    matrix = np.asfortranarray(A)
 
-    fcho_invert(I)
+    fcho_invert(matrix)
 
     # Matrix to store the inverse
     i_lower = np.tril_indices_from(A)
 
     # Copy lower triangle to upper
-    I.T[i_lower] = I[i_lower]
+    matrix.T[i_lower] = matrix[i_lower]
 
-    return I
+    return matrix
 
 
-def cho_solve(A, y, l2reg=0.0, destructive=False):
+def cho_solve(A: ndarray, y: ndarray, l2reg: float = 0.0, destructive: bool = False) -> ndarray:
     """Solves the equation
 
         :math:`A x = y`
@@ -90,7 +91,7 @@ def cho_solve(A, y, l2reg=0.0, destructive=False):
     return x
 
 
-def bkf_invert(A):
+def bkf_invert(A: ndarray) -> ndarray:
     """Returns the inverse of a positive definite matrix, using a Bausch-Kauffman decomposition
     via calls to LAPACK dpotrf and dpotri in the F2PY module.
 
@@ -104,20 +105,20 @@ def bkf_invert(A):
     if len(A.shape) != 2 or A.shape[0] != A.shape[1]:
         raise ValueError("expected square matrix")
 
-    I = np.asfortranarray(A)
+    matrix = np.asfortranarray(A)
 
-    fbkf_invert(I)
+    fbkf_invert(matrix)
 
     # Matrix to store the inverse
     i_lower = np.tril_indices_from(A)
 
     # Copy lower triangle to upper
-    I.T[i_lower] = I[i_lower]
+    matrix.T[i_lower] = matrix[i_lower]
 
-    return I
+    return matrix
 
 
-def bkf_solve(A, y):
+def bkf_solve(A: ndarray, y: ndarray) -> ndarray:
     """Solves the equation
 
         :math:`A x = y`

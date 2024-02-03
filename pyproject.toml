@@ -9,7 +9,7 @@ authors = []
 requires-python = ">=3.10"
 
 [tool.setuptools.dynamic]
-version = {attr = "qmllib.__version__"}
+version = {attr = "qmllib.version.__version__"}
 
 [options.packages.find]
 where="src"

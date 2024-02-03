@@ -1,1 +1,1 @@
-from qmllib.__version__ import VERSION as __version__
+from qmllib.version import __version__
