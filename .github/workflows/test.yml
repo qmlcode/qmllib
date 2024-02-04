@@ -17,13 +17,13 @@ jobs:
         shell: bash -l {0}
     strategy:
       matrix:
-        python-version: ['3.10', '3.11', '3.12']
+        python-version: ['3.10', '3.11']
     steps:
       - uses: actions/checkout@v2
       - uses: conda-incubator/setup-miniconda@v2
         with:
           activate-environment: dev
-          environment-file: environment_dev.yml
+          environment-file: ./environment_dev.yaml
           python-version: ${{ matrix.python-version }}
       - run: |
           pip install .
@@ -32,7 +32,6 @@ jobs:
           pwd
           which python
           conda info
-      - run: |
-          make test
-      - run: |
-          make format
+      - run: make compile
+      - run: make test
+      - run: make format
