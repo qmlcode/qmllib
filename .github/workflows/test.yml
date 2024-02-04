@@ -32,6 +32,6 @@ jobs:
           pwd
           which python
           conda info
-      - run: make compile
-      - run: make test
-      - run: make format
+      - run: make compile python=python
+      - run: make test python=python
+      - run: make format python=python
