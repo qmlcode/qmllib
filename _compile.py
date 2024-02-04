@@ -51,6 +51,7 @@ def main():
 
     for module_name, module_sources in f90_modules.items():
 
+        # TODO Use this.python -m
         cmd = f"f2py {' '.join(flags)} -c {' '.join(module_sources)} -m {module_name}"
         print(cmd)
 
