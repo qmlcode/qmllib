@@ -2,6 +2,7 @@ python=./env/bin/python
 mamba=mamba
 pkg=qmllib
 pip=./env/bin/pip
+j=1
 
 all: env setup
 
@@ -24,8 +25,8 @@ test:
 	./tests/test_distance.py
 
 types:
-	# ${python} -m monkeytype run $(which pytest) ./tests/test_solvers.py
-	${python} -m monkeytype list-modules | grep ${pkg} | parallel -j1 "${python} -m monkeytype apply {}"
+	${python} -m monkeytype run $(which pytest) ./tests/
+	${python} -m monkeytype list-modules | grep ${pkg} | parallel -j${j} "${python} -m monkeytype apply {}"
 
 cov:
 	${python} -m pytest -vrs --cov=${pkg} --cov-report html tests
