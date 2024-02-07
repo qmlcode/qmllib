@@ -4,9 +4,9 @@ import os
 import subprocess
 
 f90_modules = {
-    # "": "representations/frepresentations.f90",
-    # "": "representations/facsf.f90",
-    # "": "representations/fslatm.f90",
+    "representations.frepresentations": ["representations/frepresentations.f90"],
+    "representations.facsf": ["representations/facsf.f90"],
+    "representations.fslatm": ["representations/fslatm.f90"],
     # "": "representations/fchl/ffchl_module.f90",
     # "": "representations/fchl/ffchl_kernels.f90",
     # "": "representations/fchl/ffchl_electric_field_kernels.f90",
@@ -51,8 +51,7 @@ def main():
 
     for module_name, module_sources in f90_modules.items():
 
-        # TODO Use this.python -m
-        cmd = f"f2py {' '.join(flags)} -c {' '.join(module_sources)} -m {module_name}"
+        cmd = f"python -m numpy.f2py {' '.join(flags)} -c {' '.join(module_sources)} -m {module_name}"
         print(cmd)
 
         proc = subprocess.run(cmd.split(), cwd="src/qmllib", capture_output=True, text=True)

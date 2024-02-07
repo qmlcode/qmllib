@@ -21,7 +21,7 @@ repos:
         args: ['--maxkb=3000']
 
   - repo: https://github.com/myint/autoflake
-    rev: v1.4
+    rev: v2.2.0
     hooks:
       - id: autoflake
         name: Removes unused variables
@@ -54,7 +54,7 @@ repos:
         args: ["--line-length=99"]
 
   - repo: https://github.com/pycqa/flake8
-    rev: 4.0.1
+    rev: 7.0.0
     hooks:
       - id: flake8
         name: Checks pep8 style
