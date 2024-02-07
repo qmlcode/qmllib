@@ -23,6 +23,10 @@ This package is and should stay free-function design oriented.
 How to install
 ====
 
+- https://www.youtube.com/watch?v=CivzdD3jxB8
+
+Build like::
+
     make # build conda env
     make compile # compile fortran extensions
 
