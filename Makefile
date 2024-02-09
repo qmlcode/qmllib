@@ -16,7 +16,7 @@ setup: ./.git/hooks/pre-commit
 	${python} -m pre_commit install
 
 format:
-	${python} pre_commit run --all-files
+	${python} -m pre_commit run --all-files
 
 test:
 	${python} -m pytest -rs \
