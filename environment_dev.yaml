@@ -13,3 +13,6 @@ dependencies:
   - pytest
   - scikit-learn
   - scipy
+  # build
+  - meson
+  - ninja

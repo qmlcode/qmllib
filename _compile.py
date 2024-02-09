@@ -4,9 +4,9 @@ import os
 import subprocess
 
 f90_modules = {
-    "representations.frepresentations": ["representations/frepresentations.f90"],
-    "representations.facsf": ["representations/facsf.f90"],
-    "representations.fslatm": ["representations/fslatm.f90"],
+    # "representations.frepresentations": ["representations/frepresentations.f90"],
+    # "representations.facsf": ["representations/facsf.f90"],
+    # "representations.fslatm": ["representations/fslatm.f90"],
     # "": "representations/fchl/ffchl_module.f90",
     # "": "representations/fchl/ffchl_kernels.f90",
     # "": "representations/fchl/ffchl_electric_field_kernels.f90",
