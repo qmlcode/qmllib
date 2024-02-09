@@ -1,42 +1,42 @@
-import os
-
 import numpy as np
+from conftest import ASSETS
 
-import qmllib
-from qmllib.representations import get_slatm_mbtypes
+from qmllib.representations import generate_slatm, get_slatm_mbtypes
+from qmllib.utils.xyz_format import read_xyz
 
 
 def test_slatm_global_representation():
 
     files = [
-        "qm7/0001.xyz",
-        "qm7/0002.xyz",
-        "qm7/0003.xyz",
-        "qm7/0004.xyz",
-        "qm7/0005.xyz",
-        "qm7/0006.xyz",
-        "qm7/0007.xyz",
-        "qm7/0008.xyz",
-        "qm7/0009.xyz",
-        "qm7/0010.xyz",
+        ASSETS / "qm7/0001.xyz",
+        ASSETS / "qm7/0002.xyz",
+        ASSETS / "qm7/0003.xyz",
+        ASSETS / "qm7/0004.xyz",
+        ASSETS / "qm7/0005.xyz",
+        ASSETS / "qm7/0006.xyz",
+        ASSETS / "qm7/0007.xyz",
+        ASSETS / "qm7/0008.xyz",
+        ASSETS / "qm7/0009.xyz",
+        ASSETS / "qm7/0010.xyz",
     ]
-
-    path = os.path.dirname(os.path.realpath(__file__))
 
     mols = []
     for xyz_file in files:
+        coordinates, atoms = read_xyz(xyz_file)
+        mols.append((coordinates, atoms))
 
-        mol = qmllib.Compound(xyz=path + "/" + xyz_file)
-        mols.append(mol)
+    charges = [atoms for _, atoms in mols]
 
-    mbtypes = get_slatm_mbtypes(np.array([mol.nuclear_charges for mol in mols]))
+    mbtypes = get_slatm_mbtypes(charges)
+    print("mbtypes:", mbtypes)
 
-    for i, mol in enumerate(mols):
+    representations = []
+    for coord, atoms in mols:
+        slatm_vector = generate_slatm(coord, atoms, mbtypes)
+        representations.append(slatm_vector)
 
-        mol.generate_slatm(mbtypes, local=False)
-
-    X_qml = np.array([mol.representation for mol in mols])
-    X_ref = np.loadtxt(path + "/data/slatm_global_representation.txt")
+    X_qml = np.array([rep for rep in representations])
+    X_ref = np.loadtxt(ASSETS / "slatm_global_representation.txt")
 
     assert np.allclose(X_qml, X_ref), "Error in SLATM generation"
 
@@ -44,38 +44,42 @@ def test_slatm_global_representation():
 def test_slatm_local_representation():
 
     files = [
-        "qm7/0001.xyz",
-        "qm7/0002.xyz",
-        "qm7/0003.xyz",
-        "qm7/0004.xyz",
-        "qm7/0005.xyz",
-        "qm7/0006.xyz",
-        "qm7/0007.xyz",
-        "qm7/0008.xyz",
-        "qm7/0009.xyz",
-        "qm7/0010.xyz",
+        ASSETS / "qm7/0001.xyz",
+        ASSETS / "qm7/0002.xyz",
+        ASSETS / "qm7/0003.xyz",
+        ASSETS / "qm7/0004.xyz",
+        ASSETS / "qm7/0005.xyz",
+        ASSETS / "qm7/0006.xyz",
+        ASSETS / "qm7/0007.xyz",
+        ASSETS / "qm7/0008.xyz",
+        ASSETS / "qm7/0009.xyz",
+        ASSETS / "qm7/0010.xyz",
     ]
-
-    path = os.path.dirname(os.path.realpath(__file__))
 
     mols = []
     for xyz_file in files:
+        coordinates, atoms = read_xyz(xyz_file)
+        mols.append((coordinates, atoms))
 
-        mol = qmllib.Compound(xyz=path + "/" + xyz_file)
-        mols.append(mol)
+    charges = [atoms for _, atoms in mols]
+    mbtypes = get_slatm_mbtypes(charges)
 
-    mbtypes = get_slatm_mbtypes(np.array([mol.nuclear_charges for mol in mols]))
+    local_representations = []
+    for _, mol in enumerate(mols):
 
-    for i, mol in enumerate(mols):
-        mol.generate_slatm(mbtypes, local=True)
+        coord, atoms = mol
+        slatm_vector = generate_slatm(coord, atoms, mbtypes, local=True)
 
+        local_representations.append(slatm_vector)
+
+    # Spread the structures into atom vectors
     X_qml = []
-    for i, mol in enumerate(mols):
-        for rep in mol.representation:
-            X_qmllib.append(rep)
+    for representation in local_representations:
+        for rep in representation:
+            X_qml.append(rep)
 
     X_qml = np.asarray(X_qml)
-    X_ref = np.loadtxt(path + "/data/slatm_local_representation.txt")
+    X_ref = np.loadtxt(ASSETS / "slatm_local_representation.txt")
 
     assert np.allclose(X_qml, X_ref), "Error in SLATM generation"
 

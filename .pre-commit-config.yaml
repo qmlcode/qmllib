@@ -65,7 +65,8 @@ repos:
           # ignore long comments (E501), as long lines are formatted by black
           # ignore Whitespace before ':' (E203)
           # ignore Line break occurred before a binary operator (W503)
-          "--ignore=E501,E203,W503",
+          # ignore ambiguous variable name (E741)
+          "--ignore=E501,E203,W503,E741",
         ]
 
   - repo: https://github.com/pseewald/fprettify

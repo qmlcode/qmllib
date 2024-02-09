@@ -22,7 +22,8 @@ test:
 	${python} -m pytest -rs \
 	./tests/test_kernels.py \
 	./tests/test_solvers.py \
-	./tests/test_distance.py
+	./tests/test_distance.py \
+	./tests/test_slatm.py
 
 types:
 	${python} -m monkeytype run $(which pytest) ./tests/
@@ -38,6 +39,8 @@ build: compile
 	${python} -m build .
 
 clean:
+	find ./src/ | grep -E "\(/__pycache__$$|\.pyc$$|\.pyo$$\|\.so$$)" | xargs rm -rf
+
+clean-env:
 	rm -rf ./env/
-	find ./src/ | grep -E "\(/__pycache__$$|\.pyc$$|\.pyo$$\)" | xargs rm -rf
 	rm ./.git/hooks/pre-commit

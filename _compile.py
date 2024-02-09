@@ -2,21 +2,24 @@
 
 import os
 import subprocess
+from pathlib import Path
 
 f90_modules = {
-    # "representations.frepresentations": ["representations/frepresentations.f90"],
-    # "representations.facsf": ["representations/facsf.f90"],
-    # "representations.fslatm": ["representations/fslatm.f90"],
-    # "": "representations/fchl/ffchl_module.f90",
-    # "": "representations/fchl/ffchl_kernels.f90",
-    # "": "representations/fchl/ffchl_electric_field_kernels.f90",
-    # "": "representations/fchl/ffchl_kernel_types.f90",
-    # "": "representations/fchl/ffchl_force_kernels.f90",
-    # "": "representations/fchl/ffchl_scalar_kernels.f90",
-    "solvers.fsolvers": ["solvers/fsolvers.f90"],
-    "kernels.fdistance": ["kernels/fdistance.f90"],
-    "kernels.fkernels": ["kernels/fkernels.f90", "kernels/fkpca.f90"],
-    "kernels.fgradient_kernels": ["kernels/fgradient_kernels.f90"],
+    "representations/frepresentations": ["frepresentations.f90"],
+    "representations/facsf": ["facsf.f90"],
+    "representations/fslatm": ["fslatm.f90"],
+    "representations/fchl/ffchl_module": [
+        "ffchl_module.f90",
+        "ffchl_scalar_kernels.f90",
+        "ffchl_kernel_types.f90",
+        "ffchl_kernels.f90",
+        "ffchl_electric_field_kernels.f90",
+        "ffchl_force_kernels.f90",
+    ],
+    "solvers/fsolvers": ["fsolvers.f90"],
+    "kernels/fdistance": ["fdistance.f90"],
+    "kernels/fkernels": ["fkernels.f90", "fkpca.f90"],
+    "kernels/fgradient_kernels": ["fgradient_kernels.f90"],
 }
 
 
@@ -51,10 +54,15 @@ def main():
 
     for module_name, module_sources in f90_modules.items():
 
-        cmd = f"python -m numpy.f2py {' '.join(flags)} -c {' '.join(module_sources)} -m {module_name}"
-        print(cmd)
+        path = Path(module_name)
 
-        proc = subprocess.run(cmd.split(), cwd="src/qmllib", capture_output=True, text=True)
+        parent = path.parent
+        stem = path.stem
+        cwd = Path("src/qmllib") / parent
+        cmd = "python -m numpy.f2py".split() + ["-c"] + flags + module_sources + ["-m", str(stem)]
+        print(cwd, " ".join(cmd))
+
+        proc = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
         log = proc.stdout
         error = proc.stderr
         exitcode = proc.returncode
