@@ -26,12 +26,11 @@ jobs:
           environment-file: ./environment_dev.yaml
           python-version: ${{ matrix.python-version }}
       - run: |
-          pip install .
-      - run: |
           ls
           pwd
           which python
           conda info
       - run: make compile python=python
+      - run: pip install -e .
       - run: make test python=python
       - run: make format python=python
