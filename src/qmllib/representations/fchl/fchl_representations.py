@@ -3,6 +3,7 @@ from __future__ import print_function
 import copy
 
 import numpy as np
+
 from qmllib.utils import ELEMENT_NAME
 
 

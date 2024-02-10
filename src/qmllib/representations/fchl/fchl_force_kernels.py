@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 import numpy as np
+
 from qmllib.utils.alchemy import get_alchemy
 
 from .fchl_kernel_functions import get_kernel_parameters

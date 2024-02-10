@@ -3,6 +3,8 @@ from __future__ import print_function
 import os
 
 import numpy as np
+
+import qmllib
 from qmllib.arad import (
     generate_arad_representation,
     get_atomic_kernels_arad,
@@ -12,8 +14,6 @@ from qmllib.arad import (
     get_local_kernels_arad,
     get_local_symmetric_kernels_arad,
 )
-
-import qmllib
 
 
 def get_energies(filename):

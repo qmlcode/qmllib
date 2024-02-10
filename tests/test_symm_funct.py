@@ -7,9 +7,9 @@ import os
 
 import numpy as np
 import tensorflow as tf
-from qmllib.aglaia import symm_funct
 
 import qmllib
+from qmllib.aglaia import symm_funct
 from qmllib.representations import generate_acsf
 
 

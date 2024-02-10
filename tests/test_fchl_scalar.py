@@ -3,6 +3,9 @@ from __future__ import print_function
 import os
 
 import numpy as np
+from scipy.special import binom, factorial, jn
+
+from qmllib import Compound
 from qmllib.fchl import (
     generate_representation,
     get_atomic_kernels,
@@ -12,9 +15,6 @@ from qmllib.fchl import (
     get_local_kernels,
     get_local_symmetric_kernels,
 )
-from scipy.special import binom, factorial, jn
-
-from qmllib import Compound
 from qmllib.math import cho_solve
 
 
