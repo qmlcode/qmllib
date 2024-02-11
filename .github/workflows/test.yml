@@ -30,6 +30,6 @@ jobs:
           pwd
           which python
           conda info
-      - run: pip install .
+      - run: pip install . -v
       - run: make test python=python
       # - run: make format python=python
