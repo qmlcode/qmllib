@@ -44,7 +44,12 @@ build:
 	ls *.whl
 
 clean:
-	find ./src/ -type f -name "*.so" -name "*.pyc" -name ".pyo" -delete
+	find ./src/ -type f \
+		-name "*.so" \
+		-name "*.pyc" \
+		-name ".pyo" \
+		-delete
+	rm -rf *.whl
 	rm -fr ./build/ ./__pycache__/
 
 clean-env:
