@@ -8,6 +8,8 @@ from copy import deepcopy
 import numpy as np
 import scipy
 import scipy.stats
+from scipy.linalg import lstsq
+
 from qmllib.fchl import (
     generate_displaced_representations,
     generate_displaced_representations_5point,
@@ -23,8 +25,6 @@ from qmllib.fchl import (
     get_local_symmetric_hessian_kernels,
     get_local_symmetric_kernels,
 )
-from scipy.linalg import lstsq
-
 from qmllib.math import cho_solve
 
 test_dir = os.path.dirname(os.path.realpath(__file__))

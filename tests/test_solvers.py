@@ -1,22 +1,19 @@
-import os
 from copy import deepcopy
 
 import numpy as np
+from conftest import ASSETS
 
-import qmllib
-import qmllib.math
+from qmllib.solvers import bkf_invert, bkf_solve, cho_invert, cho_solve
 
 
 def test_cho_solve():
 
-    test_dir = os.path.dirname(os.path.realpath(__file__))
-
-    A_ref = np.loadtxt(test_dir + "/data/K_local_gaussian.txt")
-    y_ref = np.loadtxt(test_dir + "/data/y_cho_solve.txt")
+    A_ref = np.loadtxt(ASSETS / "K_local_gaussian.txt")
+    y_ref = np.loadtxt(ASSETS / "y_cho_solve.txt")
 
     A = deepcopy(A_ref)
     y = deepcopy(y_ref)
-    x_qml = qmllib.math.cho_solve(A, y)
+    x_qml = cho_solve(A, y)
 
     # Check arrays are unchanged
     assert np.allclose(y, y_ref)
@@ -31,12 +28,10 @@ def test_cho_solve():
 
 def test_cho_invert():
 
-    test_dir = os.path.dirname(os.path.realpath(__file__))
-
-    A_ref = np.loadtxt(test_dir + "/data/K_local_gaussian.txt")
+    A_ref = np.loadtxt(ASSETS / "K_local_gaussian.txt")
 
     A = deepcopy(A_ref)
-    Ai_qml = qmllib.math.cho_invert(A)
+    Ai_qml = cho_invert(A)
 
     # Check A is unchanged
     assert np.allclose(A, A_ref)
@@ -50,12 +45,10 @@ def test_cho_invert():
 
 def test_bkf_invert():
 
-    test_dir = os.path.dirname(os.path.realpath(__file__))
-
-    A_ref = np.loadtxt(test_dir + "/data/K_local_gaussian.txt")
+    A_ref = np.loadtxt(ASSETS / "K_local_gaussian.txt")
 
     A = deepcopy(A_ref)
-    Ai_qml = qmllib.math.bkf_invert(A)
+    Ai_qml = bkf_invert(A)
 
     # Check A is unchanged
     assert np.allclose(A, A_ref)
@@ -69,14 +62,12 @@ def test_bkf_invert():
 
 def test_bkf_solve():
 
-    test_dir = os.path.dirname(os.path.realpath(__file__))
-
-    A_ref = np.loadtxt(test_dir + "/data/K_local_gaussian.txt")
-    y_ref = np.loadtxt(test_dir + "/data/y_cho_solve.txt")
+    A_ref = np.loadtxt(ASSETS / "K_local_gaussian.txt")
+    y_ref = np.loadtxt(ASSETS / "y_cho_solve.txt")
 
     A = deepcopy(A_ref)
     y = deepcopy(y_ref)
-    x_qml = qmllib.math.bkf_solve(A, y)
+    x_qml = bkf_solve(A, y)
 
     # Check arrays are unchanged
     assert np.allclose(y, y_ref)

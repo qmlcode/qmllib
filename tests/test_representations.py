@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import os
 from collections import defaultdict
 
@@ -35,7 +33,7 @@ def test_representations():
         "qm7/0110.xyz",
     ]
 
-    path = test_dir = os.path.dirname(os.path.realpath(__file__))
+    path = os.path.dirname(os.path.realpath(__file__))
 
     mols = []
     for xyz_file in files:

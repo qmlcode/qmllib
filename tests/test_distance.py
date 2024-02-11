@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import numpy as np
 
 from qmllib.kernels.distance import l2_distance, manhattan_distance, p_distance

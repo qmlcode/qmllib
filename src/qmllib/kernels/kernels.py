@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import numpy as np
 
 from .fkernels import (
@@ -20,7 +18,7 @@ from .fkernels import (
 def wasserstein_kernel(A, B, sigma, p=1, q=1):
     """Calculates the Wasserstein kernel matrix K, where :math:`K_{ij}`:
 
-    :math:`K_{ij} = \\exp \\big( -\\frac{(W_p(A_i, B_i))^q}{\sigma} \\big)`
+    :math:`K_{ij} = \\exp \\big( -\\frac{(W_p(A_i, B_i))^q}{\\sigma} \\big)`
 
     Where :math:`A_{i}` and :math:`B_{j}` are representation vectors.
     K is calculated using an OpenMP parallel Fortran routine.
@@ -50,7 +48,7 @@ def wasserstein_kernel(A, B, sigma, p=1, q=1):
 def laplacian_kernel(A, B, sigma):
     """Calculates the Laplacian kernel matrix K, where :math:`K_{ij}`:
 
-        :math:`K_{ij} = \\exp \\big( -\\frac{\\|A_i - B_j\\|_1}{\sigma} \\big)`
+        :math:`K_{ij} = \\exp \\big( -\\frac{\\|A_i - B_j\\|_1}{\\sigma} \\big)`
 
     Where :math:`A_{i}` and :math:`B_{j}` are representation vectors.
     K is calculated using an OpenMP parallel Fortran routine.
@@ -80,7 +78,7 @@ def laplacian_kernel(A, B, sigma):
 def laplacian_kernel_symmetric(A, sigma):
     """Calculates the symmetric Laplacian kernel matrix K, where :math:`K_{ij}`:
 
-        :math:`K_{ij} = \\exp \\big( -\\frac{\\|A_i - A_j\\|_1}{\sigma} \\big)`
+        :math:`K_{ij} = \\exp \\big( -\\frac{\\|A_i - A_j\\|_1}{\\sigma} \\big)`
 
     Where :math:`A_{i}` are representation vectors.
     K is calculated using an OpenMP parallel Fortran routine.
@@ -107,7 +105,7 @@ def laplacian_kernel_symmetric(A, sigma):
 def gaussian_kernel(A, B, sigma):
     """Calculates the Gaussian kernel matrix K, where :math:`K_{ij}`:
 
-        :math:`K_{ij} = \\exp \\big( -\\frac{\\|A_i - B_j\\|_2^2}{2\sigma^2} \\big)`
+        :math:`K_{ij} = \\exp \\big( -\\frac{\\|A_i - B_j\\|_2^2}{2\\sigma^2} \\big)`
 
     Where :math:`A_{i}` and :math:`B_{j}` are representation vectors.
     K is calculated using an OpenMP parallel Fortran routine.
@@ -137,7 +135,7 @@ def gaussian_kernel(A, B, sigma):
 def gaussian_kernel_symmetric(A, sigma):
     """Calculates the symmetric Gaussian kernel matrix K, where :math:`K_{ij}`:
 
-        :math:`K_{ij} = \\exp \\big( -\\frac{\\|A_i - A_j\\|_2^2}{2\sigma^2} \\big)`
+        :math:`K_{ij} = \\exp \\big( -\\frac{\\|A_i - A_j\\|_2^2}{2\\sigma^2} \\big)`
 
     Where :math:`A_{i}` are representation vectors.
     K is calculated using an OpenMP parallel Fortran routine.
@@ -164,7 +162,7 @@ def gaussian_kernel_symmetric(A, sigma):
 def linear_kernel(A, B):
     """Calculates the linear kernel matrix K, where :math:`K_{ij}`:
 
-        :math:`K_{ij} = A_i \cdot B_j`
+        :math:`K_{ij} = A_i \\cdot B_j`
 
     VWhere :math:`A_{i}` and :math:`B_{j}` are  representation vectors.
 
@@ -193,7 +191,7 @@ def linear_kernel(A, B):
 def sargan_kernel(A, B, sigma, gammas):
     """Calculates the Sargan kernel matrix K, where :math:`K_{ij}`:
 
-        :math:`K_{ij} = \\exp \\big( -\\frac{\\| A_i - B_j \\|_1)}{\sigma} \\big) \\big(1 + \\sum_{k} \\frac{\gamma_{k} \\| A_i - B_j \\|_1^k}{\sigma^k} \\big)`
+        :math:`K_{ij} = \\exp \\big( -\\frac{\\| A_i - B_j \\|_1)}{\\sigma} \\big) \\big(1 + \\sum_{k} \\frac{\\gamma_{k} \\| A_i - B_j \\|_1^k}{\\sigma^k} \\big)`
 
     Where :math:`A_{i}` and :math:`B_{j}` are representation vectors.
     K is calculated using an OpenMP parallel Fortran routine.
@@ -231,11 +229,11 @@ def matern_kernel(A, B, sigma, order=0, metric="l1"):
     """Calculates the Matern kernel matrix K, where :math:`K_{ij}`:
 
         for order = 0:
-            :math:`K_{ij} = \\exp\\big( -\\frac{d}{\sigma} \\big)`
+            :math:`K_{ij} = \\exp\\big( -\\frac{d}{\\sigma} \\big)`
         for order = 1:
-            :math:`K_{ij} = \\exp\\big( -\\frac{\\sqrt{3} d}{\sigma} \\big) \\big(1 + \\frac{\\sqrt{3} d}{\sigma} \\big)`
+            :math:`K_{ij} = \\exp\\big( -\\frac{\\sqrt{3} d}{\\sigma} \\big) \\big(1 + \\frac{\\sqrt{3} d}{\\sigma} \\big)`
         for order = 2:
-            :math:`K_{ij} = \\exp\\big( -\\frac{\\sqrt{5} d}{d} \\big) \\big( 1 + \\frac{\\sqrt{5} d}{\sigma} + \\frac{5 d^2}{3\sigma^2} \\big)`
+            :math:`K_{ij} = \\exp\\big( -\\frac{\\sqrt{5} d}{d} \\big) \\big( 1 + \\frac{\\sqrt{5} d}{\\sigma} + \\frac{5 d^2}{3\\sigma^2} \\big)`
 
     Where :math:`A_i` and :math:`B_j` are representation vectors, and d is a distance measure.
 
@@ -291,7 +289,7 @@ def matern_kernel(A, B, sigma, order=0, metric="l1"):
 def get_local_kernels_gaussian(A, B, na, nb, sigmas):
     """Calculates the Gaussian kernel matrix K, for a local representation where :math:`K_{ij}`:
 
-        :math:`K_{ij} = \sum_{a \in i} \sum_{b \in j} \\exp \\big( -\\frac{\\|A_a - B_b\\|_2^2}{2\sigma^2} \\big)`
+        :math:`K_{ij} = \\sum_{a \\in i} \\sum_{b \\in j} \\exp \\big( -\\frac{\\|A_a - B_b\\|_2^2}{2\\sigma^2} \\big)`
 
     Where :math:`A_{a}` and :math:`B_{b}` are representation vectors.
 
@@ -333,7 +331,7 @@ def get_local_kernels_gaussian(A, B, na, nb, sigmas):
 def get_local_kernels_laplacian(A, B, na, nb, sigmas):
     """Calculates the Local Laplacian kernel matrix K, for a local representation where :math:`K_{ij}`:
 
-        :math:`K_{ij} = \sum_{a \in i} \sum_{b \in j} \\exp \\big( -\\frac{\\|A_a - B_b\\|_1}{\sigma} \\big)`
+        :math:`K_{ij} = \\sum_{a \\in i} \\sum_{b \\in j} \\exp \\big( -\\frac{\\|A_a - B_b\\|_1}{\\sigma} \\big)`
 
     Where :math:`A_{a}` and :math:`B_{b}` are representation vectors.
 

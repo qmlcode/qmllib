@@ -7,6 +7,7 @@ import os
 
 import numpy as np
 import tensorflow as tf
+
 from qmllib.aglaia import np_symm_funct, symm_funct
 
 

@@ -10,43 +10,45 @@ from .fslatm import fget_sbop, fget_sbop_local, fget_sbot, fget_sbot_local
 
 def update_m(obj, ia, rcut=9.0, pbc=None):
     """
-    retrieve local structure around atom `ia
+    retrieve local structure around atom ia
     for periodic systems (or very large system)
     """
+
     zs, coords, c = obj
     v1, v2, v3 = c
     vs = ssd.norm(c, axis=0)
 
     nns = []
     for i, vi in enumerate(vs):
-        n1_doulbe = rcut / li
-        n1 = int(n1_doulbe)
-        if n1 - n1_doulbe == 0:
-            n1s = (
-                range(-n1, n1 + 1)
-                if pbc[i]
-                else [
-                    0,
-                ]
-            )
-        elif n1 == 0:
-            n1s = (
-                [-1, 0, 1]
-                if pbc[i]
-                else [
-                    0,
-                ]
-            )
-        else:
-            n1s = (
-                range(-n1 - 1, n1 + 2)
-                if pbc[i]
-                else [
-                    0,
-                ]
-            )
+        raise NotImplementedError()
+        # n1_doulbe = rcut / li  # TODO Anders, what is li
+        # n1 = int(n1_doulbe)
+        # if n1 - n1_doulbe == 0:
+        #     n1s = (
+        #         range(-n1, n1 + 1)
+        #         if pbc[i]
+        #         else [
+        #             0,
+        #         ]
+        #     )
+        # elif n1 == 0:
+        #     n1s = (
+        #         [-1, 0, 1]
+        #         if pbc[i]
+        #         else [
+        #             0,
+        #         ]
+        #     )
+        # else:
+        #     n1s = (
+        #         range(-n1 - 1, n1 + 2)
+        #         if pbc[i]
+        #         else [
+        #             0,
+        #         ]
+        #     )
 
-        nns.append(n1s)
+        # nns.append(n1s)
 
     n1s, n2s, n3s = nns
 
@@ -131,11 +133,11 @@ def get_sbop(
     zs, coords, c = obj
 
     if iloc:
-        assert ia != None, "#ERROR: plz specify `za and `ia "
+        assert ia is not None, "#ERROR: plz specify `za and `ia "
 
     if pbc != "000":
         if rcut < 9.0:
-            raise "#ERROR: rcut too small for systems with pbc"
+            raise ValueError()
         assert iloc, "#ERROR: for periodic system, plz use atomic rpst"
         zs, coords = update_m(obj, ia, rcut=rcut, pbc=pbc)
 
@@ -171,7 +173,7 @@ def get_sbot(
     zs, coords, c = obj
 
     if iloc:
-        assert ia != None, "#ERROR: plz specify `za and `ia "
+        assert ia is not None, "#ERROR: plz specify `za and `ia "
 
     if pbc != "000":
         assert iloc, "#ERROR: for periodic system, plz use atomic rpst"

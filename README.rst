@@ -23,7 +23,30 @@ This package is and should stay free-function design oriented.
 How to install
 ====
 
-    raise NotImplementedError
+A proper pip-package is on the way, for now
+
+    pip install git+https://github.com/qmlcode/qmllib
+
+or if you want a specific feature branch
+
+    pip install git+https://github.com/qmlcode/qmllib@feature_branch
+
+====
+How to start developing
+====
+
+Know a issue and want to get started developing?
+
+    git clone repo.url qmllib.git
+    cd qmllib.git
+    make # setup env
+    make compile # compile
+
+You know have a conda environment in `./env` and are ready to run
+
+    make test
+
+happy developing
 
 ====
 How to use
@@ -45,3 +68,11 @@ How to contribute
  * Create pull requests
  * Create discussions
 
+=====
+What TODO
+=====
+
+ * Setup ifort flags
+ * Setup based on FCC env variable or --global-option flags
+ * Find MKL from env (for example conda)
+ * Find what numpy has been linked too (lapack or mkl)

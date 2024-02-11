@@ -1,8 +1,7 @@
-from __future__ import print_function
-
 import os
 
 import numpy as np
+import pytest
 from scipy.stats import wasserstein_distance
 from sklearn.decomposition import KernelPCA
 
@@ -121,7 +120,7 @@ def test_linear_kernel():
     X = np.random.rand(n_train, 1000)
     Xs = np.random.rand(n_test, 1000)
 
-    sigma = 100.0
+    # UNUSED sigma = 100.0
 
     Ktest = np.zeros((n_train, n_test))
 
@@ -240,6 +239,7 @@ def array_nan_close(a, b):
     return np.allclose(a[m], b[m], atol=1e-8, rtol=0.0)
 
 
+@pytest.mark.skip(reason="Removing all Compound classes")
 def test_kpca():
 
     test_dir = os.path.dirname(os.path.realpath(__file__))
@@ -283,8 +283,8 @@ def test_wasserstein_kernel():
     n_test = 3
 
     # List of dummy representations
-    X = np.array(np.random.randint(0, 10, size=(n_train, 3)), dtype=np.float)
-    Xs = np.array(np.random.randint(0, 10, size=(n_test, 3)), dtype=np.float)
+    X = np.array(np.random.randint(0, 10, size=(n_train, 3)), dtype=np.float64)
+    Xs = np.array(np.random.randint(0, 10, size=(n_test, 3)), dtype=np.float64)
 
     sigma = 100.0
 
@@ -303,14 +303,3 @@ def test_wasserstein_kernel():
 
     # Check for symmetry:
     assert np.allclose(Ksymm, Ksymm.T), "Error in Wasserstein kernel"
-
-
-if __name__ == "__main__":
-
-    test_laplacian_kernel()
-    test_gaussian_kernel()
-    test_linear_kernel()
-    test_matern_kernel()
-    test_sargan_kernel()
-    test_wasserstein_kernel()
-    test_kpca()

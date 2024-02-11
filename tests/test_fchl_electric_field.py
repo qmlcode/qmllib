@@ -6,6 +6,8 @@ import os
 from copy import deepcopy
 
 import numpy as np
+from scipy.linalg import lstsq
+
 from qmllib.fchl import (
     generate_displaced_representations,
     generate_representation,
@@ -15,8 +17,6 @@ from qmllib.fchl import (
     get_atomic_local_kernels,
     get_gaussian_process_electric_field_kernels,
 )
-from scipy.linalg import lstsq
-
 from qmllib.math import cho_solve
 
 DEBYE_TO_EAA = 0.20819434

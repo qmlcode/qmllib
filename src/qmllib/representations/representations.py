@@ -1,9 +1,8 @@
-from __future__ import print_function
-
-import itertools as itl
+import itertools
 
 import numpy as np
-from qmllib.utils import NUCLEAR_CHARGE
+
+from qmllib.constants.periodic_table import NUCLEAR_CHARGE
 
 from .facsf import (
     fgenerate_acsf,
@@ -133,17 +132,17 @@ def generate_atomic_coulomb_matrix(
 
             f_{ij} =
               \\begin{cases}
-                 1 & \\text{if } \\|{\\bf R}_{i} - {\\bf R}_{j} \\| \\leq r - \Delta r \\\\
+                 1 & \\text{if } \\|{\\bf R}_{i} - {\\bf R}_{j} \\| \\leq r - \\Delta r \\\\
                  \\tfrac{1}{2} \\big(1 + \\cos\\big(\\pi \\tfrac{\\|{\\bf R}_{i} - {\\bf R}_{j} \\|
-                    - r + \Delta r}{\Delta r} \\big)\\big)
-                    & \\text{if } r - \Delta r < \\|{\\bf R}_{i} - {\\bf R}_{j} \\| \\leq r - \Delta r \\\\
+                    - r + \\Delta r}{\\Delta r} \\big)\\big)
+                    & \\text{if } r - \\Delta r < \\|{\\bf R}_{i} - {\\bf R}_{j} \\| \\leq r - \\Delta r \\\\
                  0 & \\text{if } \\|{\\bf R}_{i} - {\\bf R}_{j} \\| > r
               \\end{cases},
 
         where the parameters ``central_cutoff`` and ``central_decay`` corresponds to the variables
-        :math:`r` and :math:`\Delta r` respectively for interactions involving the central atom,
+        :math:`r` and :math:`\\Delta r` respectively for interactions involving the central atom,
         and ``interaction_cutoff`` and ``interaction_decay`` corresponds to the variables
-        :math:`r` and :math:`\Delta r` respectively for interactions not involving the central atom.
+        :math:`r` and :math:`\\Delta r` respectively for interactions not involving the central atom.
 
         if ``sorting = 'row-norm'``, the atom indices are ordered such that
 
@@ -191,10 +190,11 @@ def generate_atomic_coulomb_matrix(
         :rtype: numpy array
     """
 
-    if indices == None:
+    if indices is None:
         nindices = len(nuclear_charges)
         indices = np.arange(1, 1 + nindices, 1, dtype=int)
-    elif type("") == type(indices):
+    # elif type("") == type(indices):
+    elif isinstance(indices, str):
         if indices in NUCLEAR_CHARGE:
             indices = np.where(nuclear_charges == NUCLEAR_CHARGE[indices])[0] + 1
             nindices = indices.size
@@ -355,7 +355,7 @@ def get_slatm_mbtypes(nuclear_charges, pbc="000"):
     zsmax = np.array(list(zsmax))
     nass = []
     for i in range(nm):
-        zsi = np.array(zs[i], np.int)
+        zsi = np.array(zs[i], np.int32)
         nass.append([(zi == zsi).sum() for zi in zsmax])
 
     nzmax = np.max(np.array(nass), axis=0)
@@ -375,7 +375,8 @@ def get_slatm_mbtypes(nuclear_charges, pbc="000"):
         ]
         for zi in zsmax
     ]
-    bops = [[zi, zi] for zi in zsmax] + list(itl.combinations(zsmax, 2))
+
+    bops = [[zi, zi] for zi in zsmax] + [list(x) for x in itertools.combinations(zsmax, 2)]
 
     bots = []
     for i in zsmax:
@@ -438,13 +439,13 @@ def generate_slatm(
     """
 
     c = unit_cell
-    iprt = False
+    # UNUSED iprt = False
     if c is None:
         c = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
 
     if pbc != "000":
         # print(' -- handling systems with periodic boundary condition')
-        assert c != None, "ERROR: Please specify unit cell for SLATM"
+        assert c is not None, "ERROR: Please specify unit cell for SLATM"
         # =======================================================================
         # PBC may introduce new many-body terms, so at the stage of get statistics
         # info from db, we've already considered this point by letting maximal number
@@ -467,7 +468,7 @@ def generate_slatm(
             n2 = 0
             n3 = 0
             mbs_ia = np.zeros(0)
-            icount = 0
+            # UNUSED icount = 0
             for mbtype in mbtypes:
                 if len(mbtype) == 1:
                     mbsi = get_boa(
@@ -487,7 +488,7 @@ def generate_slatm(
                         elif n1_0 == 1:
                             mbs_ia += mbsi
                         else:
-                            raise "#ERROR"
+                            raise ValueError()
                     else:
                         n1 += len(mbsi)
                         mbs_ia = np.concatenate((mbs_ia, mbsi), axis=0)
@@ -515,7 +516,7 @@ def generate_slatm(
                             t = mbs_ia[n1 : n1 + n2] + mbsi
                             mbs_ia[n1 : n1 + n2] = t
                         else:
-                            raise "#ERROR"
+                            raise ValueError()
                     else:
                         n2 += len(mbsi)
                         mbs_ia = np.concatenate((mbs_ia, mbsi), axis=0)
@@ -540,7 +541,7 @@ def generate_slatm(
                             t = mbs_ia[n1 + n2 : n1 + n2 + n3] + mbsi
                             mbs_ia[n1 + n2 : n1 + n2 + n3] = t
                         else:
-                            raise "#ERROR"
+                            raise ValueError()
                     else:
                         n3 += len(mbsi)
                         mbs_ia = np.concatenate((mbs_ia, mbsi), axis=0)
@@ -550,12 +551,14 @@ def generate_slatm(
             if X2N not in X2Ns:
                 X2Ns.append(X2N)
         assert len(X2Ns) == 1, "#ERROR: multiple `X2N ???"
+
     else:
         n1 = 0
         n2 = 0
         n3 = 0
         mbs = np.zeros(0)
         for mbtype in mbtypes:
+            print(mbtype)
             if len(mbtype) == 1:
                 mbsi = get_boa(mbtype[0], zs)
                 if alchemy:
@@ -566,7 +569,7 @@ def generate_slatm(
                     elif n1_0 == 1:
                         mbs += sum(mbsi)
                     else:
-                        raise "#ERROR"
+                        raise ValueError()
                 else:
                     n1 += len(mbsi)
                     mbs = np.concatenate((mbs, mbsi), axis=0)
@@ -584,7 +587,7 @@ def generate_slatm(
                         t = mbs[n1 : n1 + n2] + mbsi
                         mbs[n1 : n1 + n2] = t
                     else:
-                        raise "#ERROR"
+                        raise ValueError()
                 else:
                     n2 += len(mbsi)
                     mbs = np.concatenate((mbs, mbsi), axis=0)
@@ -600,7 +603,7 @@ def generate_slatm(
                         t = mbs[n1 + n2 : n1 + n2 + n3] + mbsi
                         mbs[n1 + n2 : n1 + n2 + n3] = t
                     else:
-                        raise "#ERROR"
+                        raise ValueError()
                 else:
                     n3 += len(mbsi)
                     mbs = np.concatenate((mbs, mbsi), axis=0)
@@ -827,7 +830,7 @@ def generate_fchl_acsf(
     else:
 
         if nFourier > 1:
-            print("Error: FCHL-ACSF only supports nFourier=1, requested", nfourier)
+            print("Error: FCHL-ACSF only supports nFourier=1, requested", nFourier)
             exit()
 
         (rep, grad) = fgenerate_fchl_acsf_and_gradients(

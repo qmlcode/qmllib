@@ -21,7 +21,7 @@ repos:
         args: ['--maxkb=3000']
 
   - repo: https://github.com/myint/autoflake
-    rev: v1.4
+    rev: v2.2.0
     hooks:
       - id: autoflake
         name: Removes unused variables
@@ -54,7 +54,7 @@ repos:
         args: ["--line-length=99"]
 
   - repo: https://github.com/pycqa/flake8
-    rev: 4.0.1
+    rev: 7.0.0
     hooks:
       - id: flake8
         name: Checks pep8 style
@@ -65,7 +65,8 @@ repos:
           # ignore long comments (E501), as long lines are formatted by black
           # ignore Whitespace before ':' (E203)
           # ignore Line break occurred before a binary operator (W503)
-          "--ignore=E501,E203,W503",
+          # ignore ambiguous variable name (E741)
+          "--ignore=E501,E203,W503,E741",
         ]
 
   - repo: https://github.com/pseewald/fprettify
