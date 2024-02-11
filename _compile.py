@@ -41,7 +41,7 @@ def find_flags(fcc: str):
     #                 "-Wno-maybe-uninitialized", "-Wno-unused-function", "-Wno-cpp"]
     # LINKER_FLAGS = ["-lgomp"]
 
-    flags = ["-L/usr/lib/", "-lblas", "-llapack", "-fopenmp"]
+    flags = ["-L/usr/lib/", "-lblas", "-llapack"]
 
     return flags
 
@@ -70,23 +70,18 @@ def main():
         parent = path.parent
         stem = path.stem
         cwd = Path("src/qmllib") / parent
-        cmd = (
-            ["python", "-m", "numpy.f2py", "--backend", "meson", "-c"]
-            + flags
-            + module_sources
-            + ["-m", str(stem)]
-        )
+        cmd = ["python", "-m", "numpy.f2py", "-c"] + flags + module_sources + ["-m", str(stem)]
         print(cwd, " ".join(cmd))
 
         proc = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
-        log = proc.stdout
-        error = proc.stderr
+        stdout = proc.stdout
+        stderr = proc.stderr
         exitcode = proc.returncode
 
         if exitcode > 0:
-            print(log)
+            print(stdout)
             print()
-            print(error)
+            print(stderr)
             exit(exitcode)
 
 

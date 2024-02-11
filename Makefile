@@ -44,8 +44,8 @@ build:
 	ls *.whl
 
 clean:
-	find ./src/ | grep -E "\(/__pycache__$$|\.pyc$$|\.pyo$$\|\.so$$)" | xargs rm -rf
-	rm -r ./build/ ./__pycache__/
+	find ./src/ -type f -name "*.so" -name "*.pyc" -name ".pyo" -delete
+	rm -fr ./build/ ./__pycache__/
 
 clean-env:
 	rm -rf ./env/
