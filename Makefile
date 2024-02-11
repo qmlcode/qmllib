@@ -4,6 +4,8 @@ pkg=qmllib
 pip=./env/bin/pip
 j=1
 
+.PHONY: build
+
 all: env setup
 
 env:
@@ -35,11 +37,15 @@ cov:
 compile:
 	${python} _compile.py
 
-build: compile
-	${python} -m build .
+build:
+	@#${python} -m build .
+	# ${python} -m pip wheel --no-deps -v .
+	${python} -m pip wheel -v .
+	ls *.whl
 
 clean:
 	find ./src/ | grep -E "\(/__pycache__$$|\.pyc$$|\.pyo$$\|\.so$$)" | xargs rm -rf
+	rm -r ./build/ ./__pycache__/
 
 clean-env:
 	rm -rf ./env/

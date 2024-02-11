@@ -31,7 +31,17 @@ def find_mkl():
 def find_flags(fcc: str):
     """Find compiler flags"""
 
-    flags = ["-L/usr/lib/", "-lblas", "-llapack"]
+    # TODO Find math lib
+    # TODO Find os
+
+    # -lgomp", "-lpthread", "-lm", "-ldl
+    # ["-L${MKLROOT}/lib/intel64", "-lmkl_rt"]
+
+    # COMPILER_FLAGS = ["-O3", "-fopenmp", "-m64", "-march=native", "-fPIC",
+    #                 "-Wno-maybe-uninitialized", "-Wno-unused-function", "-Wno-cpp"]
+    # LINKER_FLAGS = ["-lgomp"]
+
+    flags = ["-L/usr/lib/", "-lblas", "-llapack", "-fopenmp"]
 
     return flags
 
@@ -39,6 +49,7 @@ def find_flags(fcc: str):
 def find_fcc():
     """Find the fortran compiler. Either gnu or intel"""
 
+    # fcc = "ifort"
     fcc = "gfortran"
 
     return fcc
@@ -59,7 +70,12 @@ def main():
         parent = path.parent
         stem = path.stem
         cwd = Path("src/qmllib") / parent
-        cmd = "python -m numpy.f2py".split() + ["-c"] + flags + module_sources + ["-m", str(stem)]
+        cmd = (
+            ["python", "-m", "numpy.f2py", "--backend", "meson", "-c"]
+            + flags
+            + module_sources
+            + ["-m", str(stem)]
+        )
         print(cwd, " ".join(cmd))
 
         proc = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
@@ -72,8 +88,6 @@ def main():
             print()
             print(error)
             exit(exitcode)
-
-    exit(0)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,7 @@
 # repo specific
 ./env
 *.sqlite3
+*.whl
 
 
 # Byte-compiled / optimized / DLL files

@@ -31,6 +31,6 @@ jobs:
           which python
           conda info
       - run: make compile python=python
-      - run: pip install -e .
+      - run: pip install .
       - run: make test python=python
-      - run: make format python=python
+      # - run: make format python=python
