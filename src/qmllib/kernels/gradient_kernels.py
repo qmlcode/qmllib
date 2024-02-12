@@ -1,5 +1,3 @@
-import ctypes
-
 import numpy as np
 
 from .fgradient_kernels import (
@@ -20,29 +18,31 @@ from .fgradient_kernels import (
 
 def mkl_set_num_threads(cores):
 
-    if cores is None:
-        return
+    raise NotImplementedError("Should not be here")
+    # if cores is None:
+    #     return
 
-    try:
-        mkl_rt = ctypes.CDLL("libmkl_rt.so")
-        mkl_rt.mkl_set_num_threads(ctypes.byref(ctypes.c_int(cores)))
+    # try:
+    #     mkl_rt = ctypes.CDLL("libmkl_rt.so")
+    #     mkl_rt.mkl_set_num_threads(ctypes.byref(ctypes.c_int(cores)))
 
-    except:
+    # except:
 
-        pass
+    #     pass
 
 
 def mkl_get_num_threads():
 
-    try:
-        mkl_rt = ctypes.CDLL("libmkl_rt.so")
-        mkl_num_threads = mkl_rt.mkl_get_max_threads()
+    raise NotImplementedError("Should not be here")
+    # try:
+    #     mkl_rt = ctypes.CDLL("libmkl_rt.so")
+    #     mkl_num_threads = mkl_rt.mkl_get_max_threads()
 
-        return mkl_num_threads
+    #     return mkl_num_threads
 
-    except:
+    # except:
 
-        return None
+    #     return None
 
 
 def get_global_kernel(X1, X2, Q1, Q2, SIGMA):

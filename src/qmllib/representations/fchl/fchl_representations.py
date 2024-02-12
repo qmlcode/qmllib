@@ -1,10 +1,6 @@
-from __future__ import print_function
-
 import copy
 
 import numpy as np
-
-from qmllib.utils import ELEMENT_NAME
 
 
 def generate_representation(
@@ -214,91 +210,93 @@ def generate_representation_electric_field(
     :rtype: numpy array
     """
 
-    partial_charges = None
+    raise NotImplementedError("Needs to be re-written")
 
-    # If a list is given, assume these are the fictitious charges
-    if isinstance(fictitious_charges, (list,)) or isinstance(fictitious_charges, (np.ndarray,)):
+    # partial_charges = None
 
-        assert len(fictitious_charges) == len(
-            nuclear_charges
-        ), "Error: incorrect length of fictitious charge list"
+    # # If a list is given, assume these are the fictitious charges
+    # if isinstance(fictitious_charges, (list,)) or isinstance(fictitious_charges, (np.ndarray,)):
 
-        partial_charges = fictitious_charges
+    #     assert len(fictitious_charges) == len(
+    #         nuclear_charges
+    #     ), "Error: incorrect length of fictitious charge list"
 
-    # Otherwise, if a string is given, assume this is the name of a charge model
-    # in Open Babel//Pybel.
-    elif isinstance(fictitious_charges, (basestring,)):
+    #     partial_charges = fictitious_charges
 
-        # Dirty hack for now.
-        try:
-            import openbabel
-            import pybel
-        except ImportError:
-            print(
-                "QML ERROR: Could not generate fictitious charges because OpenBabel/Pybel was not found."
-            )
-            exit()
+    # # Otherwise, if a string is given, assume this is the name of a charge model
+    # # in Open Babel//Pybel.
+    # elif isinstance(fictitious_charges, (basestring,)):
 
-        temp_xyz = "%i\n\n" % len(nuclear_charges)
+    #     # Dirty hack for now.
+    #     try:
+    #         import openbabel
+    #         import pybel
+    #     except ImportError:
+    #         print(
+    #             "QML ERROR: Could not generate fictitious charges because OpenBabel/Pybel was not found."
+    #         )
+    #         exit()
 
-        for i, nuc in enumerate(nuclear_charges):
-            temp_xyz += "%s %f %f %f\n" % (
-                ELEMENT_NAME[nuc],
-                coordinates[i][0],
-                coordinates[i][1],
-                coordinates[i][2],
-            )
+    #     temp_xyz = "%i\n\n" % len(nuclear_charges)
 
-        mol = pybel.readstring("xyz", temp_xyz)
+    #     for i, nuc in enumerate(nuclear_charges):
+    #         temp_xyz += "%s %f %f %f\n" % (
+    #             ELEMENT_NAME[nuc],
+    #             coordinates[i][0],
+    #             coordinates[i][1],
+    #             coordinates[i][2],
+    #         )
 
-        this_charge_model = openbabel.OBChargeModel.FindType(fictitious_charges)
-        this_charge_model.ComputeCharges(mol.OBMol)
+    #     mol = pybel.readstring("xyz", temp_xyz)
 
-        partial_charges = [atom.partialcharge for atom in mol]
+    #     this_charge_model = openbabel.OBChargeModel.FindType(fictitious_charges)
+    #     this_charge_model.ComputeCharges(mol.OBMol)
 
-    else:
-        print("QML ERROR: Unable to parse argument for fictitious charges", fictitious_charges)
-        exit()
+    #     partial_charges = [atom.partialcharge for atom in mol]
 
-    size = max_size
-    neighbors = size
+    # else:
+    #     print("QML ERROR: Unable to parse argument for fictitious charges", fictitious_charges)
+    #     exit()
 
-    L = len(coordinates)
-    coords = np.asarray(coordinates)
-    ocupationList = np.asarray(nuclear_charges)
-    partial_charges = np.asarray(partial_charges)
-    M = np.zeros((size, 6, neighbors))
+    # size = max_size
+    # neighbors = size
 
-    coordsExt = copy.copy(coords)
-    partialExt = copy.copy(partial_charges)
-    ocupationListExt = copy.copy(ocupationList)
+    # L = len(coordinates)
+    # coords = np.asarray(coordinates)
+    # ocupationList = np.asarray(nuclear_charges)
+    # partial_charges = np.asarray(partial_charges)
+    # M = np.zeros((size, 6, neighbors))
 
-    M[:, 0, :] = 1e100
+    # coordsExt = copy.copy(coords)
+    # partialExt = copy.copy(partial_charges)
+    # ocupationListExt = copy.copy(ocupationList)
 
-    for i in range(L):
-        cD = -coords[i] + coordsExt[:]
+    # M[:, 0, :] = 1e100
 
-        ocExt = np.asarray(ocupationListExt)
-        qExt = np.asarray(partialExt)
+    # for i in range(L):
+    #     cD = -coords[i] + coordsExt[:]
 
-        D1 = np.sqrt(np.sum(cD**2, axis=1))
-        args = np.argsort(D1)
-        D1 = D1[args]
+    #     ocExt = np.asarray(ocupationListExt)
+    #     qExt = np.asarray(partialExt)
 
-        ocExt = np.asarray([ocExt[l] for l in args])
-        qExt = np.asarray([qExt[l] for l in args])
+    #     D1 = np.sqrt(np.sum(cD**2, axis=1))
+    #     args = np.argsort(D1)
+    #     D1 = D1[args]
 
-        cD = cD[args]
+    #     ocExt = np.asarray([ocExt[l] for l in args])
+    #     qExt = np.asarray([qExt[l] for l in args])
 
-        args = np.where(D1 < cut_distance)[0]
-        D1 = D1[args]
-        ocExt = np.asarray([ocExt[l] for l in args])
-        qExt = np.asarray([qExt[l] for l in args])
+    #     cD = cD[args]
 
-        cD = cD[args]
-        M[i, 0, : len(D1)] = D1
-        M[i, 1, : len(D1)] = ocExt[:]
-        M[i, 2:5, : len(D1)] = cD.T
-        M[i, 5, : len(D1)] = qExt[:]
+    #     args = np.where(D1 < cut_distance)[0]
+    #     D1 = D1[args]
+    #     ocExt = np.asarray([ocExt[l] for l in args])
+    #     qExt = np.asarray([qExt[l] for l in args])
 
-    return M
+    #     cD = cD[args]
+    #     M[i, 0, : len(D1)] = D1
+    #     M[i, 1, : len(D1)] = ocExt[:]
+    #     M[i, 2:5, : len(D1)] = cD.T
+    #     M[i, 5, : len(D1)] = qExt[:]
+
+    # return M
