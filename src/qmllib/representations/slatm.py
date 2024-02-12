@@ -1,9 +1,7 @@
-from __future__ import print_function
-
 import itertools as itl
 
 import numpy as np
-import scipy.spatial.distance as ssd
+import scipy.spatial.distance as spatial_distance
 
 from .fslatm import fget_sbop, fget_sbop_local, fget_sbot, fget_sbot_local
 
@@ -16,7 +14,7 @@ def update_m(obj, ia, rcut=9.0, pbc=None):
 
     zs, coords, c = obj
     v1, v2, v3 = c
-    vs = ssd.norm(c, axis=0)
+    vs = spatial_distance.norm(c, axis=0)
 
     nns = []
     for i, vi in enumerate(vs):
@@ -68,7 +66,7 @@ def update_m(obj, ia, rcut=9.0, pbc=None):
     if na == 1:
         ds = np.array([[0.0]])
     else:
-        ds = ssd.squareform(ssd.pdist(coords))
+        ds = spatial_distance.squareform(spatial_distance.pdist(coords))
 
     zs_u = []
     coords_u = []
@@ -86,7 +84,7 @@ def update_m(obj, ia, rcut=9.0, pbc=None):
                 ts[iau] = np.dot(n123s[iau], c)
 
             coords_iu = coords[i] + ts  # np.dot(n123s, c)
-            dsi = ssd.norm(coords_iu - cia, axis=1)
+            dsi = spatial_distance.norm(coords_iu - cia, axis=1)
             filt = np.logical_and(dsi > 0, dsi <= rcut)
             nx = filt.sum()
             zs_u += [

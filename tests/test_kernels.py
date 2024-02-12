@@ -1,11 +1,10 @@
-import os
+from pathlib import Path
 
 import numpy as np
-import pytest
+from conftest import ASSETS
 from scipy.stats import wasserstein_distance
 from sklearn.decomposition import KernelPCA
 
-import qmllib
 from qmllib.kernels import (
     gaussian_kernel,
     gaussian_kernel_symmetric,
@@ -17,14 +16,15 @@ from qmllib.kernels import (
     sargan_kernel,
     wasserstein_kernel,
 )
+from qmllib.representations import generate_bob
+from qmllib.utils.xyz_format import read_xyz
 
 
-def get_energies(filename):
+def get_energies(filename: Path):
     """Returns a dictionary with heats of formation for each xyz-file."""
 
-    f = open(filename, "r")
-    lines = f.readlines()
-    f.close()
+    with open(filename, "r") as f:
+        lines = f.readlines()
 
     energies = dict()
 
@@ -239,16 +239,10 @@ def array_nan_close(a, b):
     return np.allclose(a[m], b[m], atol=1e-8, rtol=0.0)
 
 
-@pytest.mark.skip(reason="Removing all Compound classes")
 def test_kpca():
 
-    test_dir = os.path.dirname(os.path.realpath(__file__))
-
     # Parse file containing PBE0/def2-TZVP heats of formation and xyz filenam
-    data = get_energies(test_dir + "/data/hof_qm7.txt")
-
-    # Generate a list of qmllib.Compound() objects
-    mols = []
+    data = get_energies(ASSETS / "hof_qm7.txt")
 
     keys = sorted(data.keys())
 
@@ -257,17 +251,24 @@ def test_kpca():
 
     n_mols = 100
 
+    representations = []
+
     for xyz_file in keys[:n_mols]:
 
-        mol = qmllib.Compound(xyz=test_dir + "/qm7/" + xyz_file)
-        mol.properties = data[xyz_file]
-        mol.generate_bob()
-        mols.append(mol)
+        filename = ASSETS / "qm7" / xyz_file
+        coordinates, atoms = read_xyz(filename)
 
-    X = np.array([mol.representation for mol in mols])
+        atomtypes = np.unique(atoms)
+        representation = generate_bob(atoms, coordinates, atomtypes)
+        representations.append(representation)
+
+    X = np.array([representation for representation in representations])
     K = laplacian_kernel(X, X, 2e5)
 
+    # calculate pca
     pcas_qml = kpca(K, n=10)
+
+    # Calculate with sklearn
     pcas_sklearn = KernelPCA(10, eigen_solver="dense", kernel="precomputed").fit_transform(K)
 
     assert array_nan_close(
