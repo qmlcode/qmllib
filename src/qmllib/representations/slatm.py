@@ -1,4 +1,4 @@
-import itertools as itl
+import itertools
 
 import numpy as np
 import scipy.spatial.distance as spatial_distance
@@ -50,7 +50,7 @@ def update_m(obj, ia, rcut=9.0, pbc=None):
 
     n1s, n2s, n3s = nns
 
-    n123s_ = np.array(list(itl.product(n1s, n2s, n3s)))
+    n123s_ = np.array(list(itertools.product(n1s, n2s, n3s)))
     n123s = []
     for n123 in n123s_:
         n123u = list(n123)
@@ -58,7 +58,7 @@ def update_m(obj, ia, rcut=9.0, pbc=None):
             n123s.append(n123u)
 
     nau = len(n123s)
-    n123s = np.array(n123s, np.float)
+    n123s = np.array(n123s, np.float64)
 
     na = len(zs)
     cia = coords[ia]
@@ -134,13 +134,14 @@ def get_sbop(
         assert ia is not None, "#ERROR: plz specify `za and `ia "
 
     if pbc != "000":
-        if rcut < 9.0:
-            raise ValueError()
-        assert iloc, "#ERROR: for periodic system, plz use atomic rpst"
-        zs, coords = update_m(obj, ia, rcut=rcut, pbc=pbc)
+        raise NotImplementedError("Periodic boundary conditions not implemented")
+        # if rcut < 9.0:
+        #     raise ValueError()
+        # assert iloc, "#ERROR: for periodic system, plz use atomic rpst"
+        # zs, coords = update_m(obj, ia, rcut=rcut, pbc=pbc)
 
         # after update of `m, the query atom `ia will become the first atom
-        ia = 0
+        # ia = 0
 
     # bop potential distribution
     r0 = 0.1
@@ -174,11 +175,12 @@ def get_sbot(
         assert ia is not None, "#ERROR: plz specify `za and `ia "
 
     if pbc != "000":
-        assert iloc, "#ERROR: for periodic system, plz use atomic rpst"
-        zs, coords = update_m(obj, ia, rcut=rcut, pbc=pbc)
+        raise NotImplementedError("Periodic boundary conditions not implemented")
+        # assert iloc, "#ERROR: for periodic system, plz use atomic rpst"
+        # zs, coords = update_m(obj, ia, rcut=rcut, pbc=pbc)
 
-        # after update of `m, the query atom `ia will become the first atom
-        ia = 0
+        # # after update of `m, the query atom `ia will become the first atom
+        # ia = 0
 
     # for a normalized gaussian distribution, u should multiply this coeff
     coeff = 1 / np.sqrt(2 * sigma**2 * np.pi) if normalize else 1.0

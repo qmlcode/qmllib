@@ -1,7 +1,5 @@
-from pathlib import Path
-
 import numpy as np
-from conftest import ASSETS
+from conftest import ASSETS, get_energies
 from scipy.stats import wasserstein_distance
 from sklearn.decomposition import KernelPCA
 
@@ -18,25 +16,6 @@ from qmllib.kernels import (
 )
 from qmllib.representations import generate_bob
 from qmllib.utils.xyz_format import read_xyz
-
-
-def get_energies(filename: Path):
-    """Returns a dictionary with heats of formation for each xyz-file."""
-
-    with open(filename, "r") as f:
-        lines = f.readlines()
-
-    energies = dict()
-
-    for line in lines:
-        tokens = line.split()
-
-        xyz_name = tokens[0]
-        hof = float(tokens[1])
-
-        energies[xyz_name] = hof
-
-    return energies
 
 
 def test_laplacian_kernel():
