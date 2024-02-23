@@ -193,7 +193,6 @@ def generate_atomic_coulomb_matrix(
     if indices is None:
         nindices = len(nuclear_charges)
         indices = np.arange(1, 1 + nindices, 1, dtype=int)
-    # elif type("") == type(indices):
     elif isinstance(indices, str):
         if indices in NUCLEAR_CHARGE:
             indices = np.where(nuclear_charges == NUCLEAR_CHARGE[indices])[0] + 1
@@ -310,6 +309,8 @@ def generate_bob(
     :return: 1D representation
     :rtype: numpy array
     """
+
+    # TODO Moving between str and int is _, should translate everything to use int
 
     n = 0
     atoms = sorted(asize, key=asize.get)
