@@ -29,7 +29,7 @@ test:
 		tests/test_solvers.py \
 		tests/test_fchl_acsf.py \
 		tests/test_fchl_acsf_energy.py \
-		# tests/test_fchl_acsf_forces.py \
+		tests/test_fchl_acsf_forces.py \
 		# tests/test_fchl_electric_field.py \
 		# tests/test_fchl_force.py \
 		# tests/test_fchl_scalar.py

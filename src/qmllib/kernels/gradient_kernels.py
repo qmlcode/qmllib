@@ -1,5 +1,11 @@
 import numpy as np
 
+from qmllib.utils.environment_manipulation import (
+    mkl_get_num_threads,
+    mkl_reset_num_threads,
+    mkl_set_num_threads,
+)
+
 from .fgradient_kernels import (
     fatomic_local_gradient_kernel,
     fatomic_local_kernel,
@@ -14,35 +20,6 @@ from .fgradient_kernels import (
     fsymmetric_local_kernel,
     fsymmetric_local_kernels,
 )
-
-
-def mkl_set_num_threads(cores):
-
-    raise NotImplementedError("Should not be here")
-    # if cores is None:
-    #     return
-
-    # try:
-    #     mkl_rt = ctypes.CDLL("libmkl_rt.so")
-    #     mkl_rt.mkl_set_num_threads(ctypes.byref(ctypes.c_int(cores)))
-
-    # except:
-
-    #     pass
-
-
-def mkl_get_num_threads():
-
-    raise NotImplementedError("Should not be here")
-    # try:
-    #     mkl_rt = ctypes.CDLL("libmkl_rt.so")
-    #     mkl_num_threads = mkl_rt.mkl_get_max_threads()
-
-    #     return mkl_num_threads
-
-    # except:
-
-    #     return None
 
 
 def get_global_kernel(X1, X2, Q1, Q2, SIGMA):
@@ -427,7 +404,10 @@ def get_atomic_local_gradient_kernel(X1, X2, dX2, Q1, Q2, SIGMA):
     )
 
     # Reset MKL_NUM_THREADS back to its original value
-    mkl_set_num_threads(original_mkl_threads)
+    if original_mkl_threads is not None:
+        mkl_set_num_threads(original_mkl_threads)
+    else:
+        mkl_reset_num_threads()
 
     return K
 
