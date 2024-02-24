@@ -26,25 +26,18 @@ test:
 		tests/test_kernels.py \
 		tests/test_representations.py \
 		tests/test_slatm.py \
-		tests/test_solvers.py
-		# tests/test_fchl_acsf.py
-		# tests/test_fchl_acsf_energy.py
+		tests/test_solvers.py \
+		tests/test_fchl_acsf.py \
+		tests/test_fchl_acsf_energy.py \
 		# tests/test_fchl_acsf_forces.py \
 		# tests/test_fchl_electric_field.py \
 		# tests/test_fchl_force.py \
 		# tests/test_fchl_scalar.py
-	# REMOVE tests/test_acsf_linear_angles.py \
-	# REMOVE tests/test_acsf.py \
-	# tests/test_arad.py \
-	# REMOVE tests/test_armp.py \
-	# REMOVE tests/test_compound.py \
 	# integration tests/test_energy_krr_atomic_cmat.py \
 	# integration tests/test_energy_krr_bob.py \
 	# integration tests/test_energy_krr_cmat.py \
 	# tests/test_kernel_derivatives.py \
-	# REMOVE tests/test_mrmp.py \
-	# REMOVE tests/test_neural_network.py \
-	# REMOVE tests/test_symm_funct.py
+	# tests/test_arad.py \
 
 types:
 	${python} -m monkeytype run $(which pytest) ./tests/

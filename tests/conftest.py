@@ -5,12 +5,20 @@ import numpy as np
 ASSETS = Path("./tests/assets")
 
 
+def shuffle_arrays(*args, seed=666):
+
+    np.random.seed(seed)
+    rng_state = np.random.get_state()
+
+    for array in args:
+        np.random.set_state(rng_state)
+        np.random.shuffle(array)
+
+
 def get_asize(list_of_atoms, pad):
     """TODO Anders what is asize"""
 
     asize: dict[int, int] = dict()
-
-    # WHAT
 
     for atoms in list_of_atoms:
 
