@@ -1,6 +1,5 @@
 from pathlib import Path
 
-import pytest
 import numpy as np
 from scipy.special import binom, factorial, jn
 
@@ -24,7 +23,6 @@ from qmllib.utils.xyz_format import read_xyz
 
 from conftest import ASSETS, get_energies
 
-# @pytest.mark.skip(reason="Very slow")
 def test_krr_fchl_local():
 
     # Test that all kernel arguments work
@@ -135,52 +133,65 @@ def test_krr_fchl_global():
             "sigma": [100.0],
         },
     }
-    test_dir = os.path.dirname(os.path.realpath(__file__))
+
+    max_size = 23
+    representation_options = dict(
+        cut_distance=1e6,
+        max_size = max_size
+    )
 
     # Parse file containing PBE0/def2-TZVP heats of formation and xyz filenames
-    data = get_energies(ASSETS / "data/hof_qm7.txt")
+    data = get_energies(ASSETS / "hof_qm7.txt")
 
-    # Generate a list of Compound() objects"
-    mols = []
+    all_representations = []
+    all_properties = []
+    all_atoms = []
 
-    for xyz_file in sorted(data.keys())[:100]:
+    n_points = 100
 
-        # Initialize the Compound() objects
-        mol = Compound(xyz=ASSETS / "qm7/" + xyz_file)
+    for xyz_file in sorted(data.keys())[:n_points]:
+
+        filename = ASSETS / "qm7" / xyz_file
+        coord, atoms = read_xyz(filename)
 
         # Associate a property (heat of formation) with the object
-        mol.properties = data[xyz_file]
+        all_properties.append(data[xyz_file])
 
-        # This is a Molecular Coulomb matrix sorted by row norm
-        mol.representation = generate_representation(
-            mol.coordinates, mol.nuclear_charges, cut_distance=1e6
+        representation = generate_fchl_representation(
+            coord,
+            atoms,
+            **representation_options
         )
-        mols.append(mol)
 
-    # Shuffle molecules
-    np.random.seed(666)
-    np.random.shuffle(mols)
+        assert representation.shape[0] == max_size, "ERROR: Check FCHL descriptor size!"
+
+        all_representations.append(representation)
+        all_atoms.append(atoms)
+
+    # Convert to arrays
+    all_representations = np.array(all_representations)
+    all_properties = np.array(all_properties)
+
+    shuffle_arrays(all_representations, all_atoms, all_properties, seed=666)
 
     # Make training and test sets
-    n_test = len(mols) // 3
-    n_train = len(mols) - n_test
+    n_points = len(all_representations)
+    n_test = n_points // 3
+    n_train = n_points - n_test
+    indicies = list(range(n_points))
+    train_indicies = indicies[:n_train]
+    test_indicies = indicies[-n_test:]
 
-    training = mols[:n_train]
-    test = mols[-n_test:]
-
-    X = np.array([mol.representation for mol in training])
-    Xs = np.array([mol.representation for mol in test])
-
-    # List of properties
-    Y = np.array([mol.properties for mol in training])
-    Ys = np.array([mol.properties for mol in test])
+    train_representations = all_representations[train_indicies]
+    train_properties = all_properties[train_indicies]
+    test_representations = all_representations[test_indicies]
+    test_properties = all_properties[test_indicies]
 
     # Set hyper-parameters
-    # sigma = 100.0
     llambda = 1e-8
 
-    K_symmetric = get_global_symmetric_kernels(X, **kernel_args)[0]
-    K = get_global_kernels(X, X, **kernel_args)[0]
+    K_symmetric = get_global_symmetric_kernels(train_representations, **kernel_args)[0]
+    K = get_global_kernels(train_representations, train_representations, **kernel_args)[0]
 
     assert np.allclose(K, K_symmetric), "Error in FCHL symmetric global kernels"
     assert np.invert(np.all(np.isnan(K_symmetric))), "FCHL global symmetric kernel contains NaN"
@@ -188,16 +199,16 @@ def test_krr_fchl_global():
 
     # Solve alpha
     K[np.diag_indices_from(K)] += llambda
-    alpha = cho_solve(K, Y)
+    alpha = cho_solve(K, train_properties)
 
-    Ks = get_global_kernels(Xs, X, **kernel_args)[0]
+    Ks = get_global_kernels(test_representations, train_representations, **kernel_args)[0]
     assert np.invert(np.all(np.isnan(Ks))), "FCHL global testkernel contains NaN"
 
-    Yss = np.dot(Ks, alpha)
+    predicted_properties = np.dot(Ks, alpha)
 
-    print(Ys, Yss)
+    print(test_properties, predicted_properties)
 
-    mae = np.mean(np.abs(Ys - Yss))
+    mae = np.mean(np.abs(test_properties - predicted_properties))
     assert abs(2 - mae) < 1.0, "Error in FCHL global kernel-ridge regression"
 
 
@@ -210,39 +221,53 @@ def test_krr_fchl_atomic():
         },
     }
 
-    test_dir = os.path.dirname(os.path.realpath(__file__))
+    max_size = 23
+    representation_options = dict(
+        cut_distance=1e6,
+        max_size = max_size
+    )
 
     # Parse file containing PBE0/def2-TZVP heats of formation and xyz filenames
-    data = get_energies(ASSETS / "data/hof_qm7.txt")
+    data = get_energies(ASSETS / "hof_qm7.txt")
 
-    # Generate a list of Compound() objects"
-    mols = []
+    all_representations = []
+    all_properties = []
+    all_atoms = []
 
-    for xyz_file in sorted(data.keys())[:10]:
+    n_points = 10
 
-        # Initialize the Compound() objects
-        mol = Compound(xyz=ASSETS / "qm7/" + xyz_file)
+    for xyz_file in sorted(data.keys())[:n_points]:
+
+        filename = ASSETS / "qm7" / xyz_file
+        coord, atoms = read_xyz(filename)
 
         # Associate a property (heat of formation) with the object
-        mol.properties = data[xyz_file]
+        all_properties.append(data[xyz_file])
 
-        # This is a Molecular Coulomb matrix sorted by row norm
-        mol.representation = generate_representation(
-            mol.coordinates, mol.nuclear_charges, cut_distance=1e6
+        representation = generate_fchl_representation(
+            coord,
+            atoms,
+            **representation_options
         )
-        mols.append(mol)
 
-    X = np.array([mol.representation for mol in mols])
+        assert representation.shape[0] == max_size, "ERROR: Check FCHL descriptor size!"
 
-    K = get_local_symmetric_kernels(X, **kernel_args)[0]
+        all_representations.append(representation)
+        all_atoms.append(atoms)
 
-    K_test = np.zeros((len(mols), len(mols)))
+    # Convert to arrays
+    all_representations = np.array(all_representations)
+    all_properties = np.array(all_properties)
 
-    for i, Xi in enumerate(X):
-        for j, Xj in enumerate(X):
+    # Generate kernel
+    K = get_local_symmetric_kernels(all_representations, **kernel_args)[0]
+    K_test = np.zeros((n_points, n_points))
+
+    for i, Xi in enumerate(all_representations):
+        for j, Xj in enumerate(all_representations):
 
             K_atomic = get_atomic_kernels(
-                Xi[: mols[i].natoms], Xj[: mols[j].natoms], **kernel_args
+                Xi[: len(all_atoms[i])], Xj[: len(all_atoms[j])], **kernel_args
             )[0]
             K_test[i, j] = np.sum(K_atomic)
 
@@ -250,7 +275,7 @@ def test_krr_fchl_atomic():
 
             if i == j:
                 K_atomic_symmetric = get_atomic_symmetric_kernels(
-                    Xi[: mols[i].natoms], **kernel_args
+                    Xi[: len(all_atoms[i])], **kernel_args
                 )[0]
                 assert np.allclose(
                     K_atomic, K_atomic_symmetric
