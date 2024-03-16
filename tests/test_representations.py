@@ -1,7 +1,7 @@
 import numpy as np
 from conftest import ASSETS
 
-from qmllib.constants.periodic_table import ELEMENT_NAME
+from qmllib.representations.bob import get_asize
 from qmllib.representations.representations import (
     generate_atomic_coulomb_matrix,
     generate_bob,
@@ -11,42 +11,7 @@ from qmllib.representations.representations import (
 from qmllib.utils.xyz_format import read_xyz
 
 
-def get_natypes(nuclear_charges: np.ndarray) -> dict[str, int]:
-    """Get number of atom types, from a list of molecules"""
-
-    keys, counts = np.unique(nuclear_charges, return_counts=True)
-
-    # natypes = dict([(key, len(value)) for key,value in self.atomtype_indices.items()])
-
-    # natypes = dict([ (key, count) for key, count in zip(keys, counts)])
-
-    keys_name = [ELEMENT_NAME[key] for key in keys]
-
-    natypes = dict([(key, count) for key, count in zip(keys_name, counts)])
-
-    return natypes
-
-
-def get_asize(list_nuclear_charges, pad) -> dict[str, int]:
-    """
-
-    example:
-        asize = {"O":3, "C":7, "N":3, "H":16, "S":1}
-    """
-
-    asize: dict[str, int] = dict()
-
-    for nuclear_charges in list_nuclear_charges:
-        natypes = get_natypes(nuclear_charges)
-        for key, value in natypes.items():
-            try:
-                asize[key] = max(asize[key], value + pad)
-            except KeyError:
-                asize[key] = value + pad
-    return asize
-
-
-def _get_representations():
+def _get_molecules():
     files = [
         ASSETS / "qm7/0101.xyz",
         ASSETS / "qm7/0102.xyz",
@@ -79,7 +44,7 @@ def _get_representations():
 
 def test_coulomb_matrix_rownorm():
 
-    mols = _get_representations()
+    mols = _get_molecules()
     size = max(atoms.size for _, atoms in mols) + 1
 
     # Generate coulomb matrix representation, sorted by row-norm
@@ -100,7 +65,7 @@ def test_coulomb_matrix_rownorm():
 
 def test_coulomb_matrix_unsorted():
 
-    mols = _get_representations()
+    mols = _get_molecules()
     size = max(atoms.size for _, atoms in mols) + 1
 
     # Generate coulomb matrix representation, unsorted, using the Compound class
@@ -121,7 +86,7 @@ def test_coulomb_matrix_unsorted():
 
 def test_atomic_coulomb_matrix_distance():
 
-    mols = _get_representations()
+    mols = _get_molecules()
     size = max(atoms.size for _, atoms in mols) + 1
 
     # Generate coulomb matrix representation, sorted by distance
@@ -144,7 +109,7 @@ def test_atomic_coulomb_matrix_rownorm():
 
     # Generate coulomb matrix representation, sorted by row-norm
 
-    mols = _get_representations()
+    mols = _get_molecules()
     size = max(atoms.size for _, atoms in mols) + 1
 
     representations = []
@@ -161,7 +126,7 @@ def test_atomic_coulomb_matrix_distance_softcut():
 
     # Generate coulomb matrix representation, sorted by distance, with soft cutoffs
 
-    mols = _get_representations()
+    mols = _get_molecules()
     size = max(atoms.size for _, atoms in mols) + 1
 
     representations = []
@@ -190,7 +155,7 @@ def test_atomic_coulomb_matrix_rownorm_cut():
 
     # Generate coulomb matrix representation, sorted by row-norm, with soft cutoffs
 
-    mols = _get_representations()
+    mols = _get_molecules()
     size = max(atoms.size for _, atoms in mols) + 1
 
     representations = []
@@ -219,7 +184,7 @@ def test_atomic_coulomb_matrix_twoatom_distance():
 
     # Generate only two atoms in the coulomb matrix representation, sorted by distance
 
-    mols = _get_representations()
+    mols = _get_molecules()
     size = max(atoms.size for _, atoms in mols) + 1
 
     for coord, nuclear_charges in mols:
@@ -243,7 +208,7 @@ def test_atomic_coulomb_matrix_twoatom_rownorm():
 
     # Generate only two atoms in the coulomb matrix representation, sorted by row-norm
 
-    mols = _get_representations()
+    mols = _get_molecules()
     size = max(atoms.size for _, atoms in mols) + 1
 
     for coord, nuclear_charges in mols:
@@ -267,7 +232,7 @@ def test_eigenvalue_coulomb_matrix():
 
     # Generate coulomb matrix representation, sorted by row-norm
 
-    mols = _get_representations()
+    mols = _get_molecules()
     size = max(atoms.size for _, atoms in mols) + 1
 
     representations = []
@@ -283,7 +248,7 @@ def test_eigenvalue_coulomb_matrix():
 
 def test_bob():
 
-    mols = _get_representations()
+    mols = _get_molecules()
     size = max(atoms.size for _, atoms in mols) + 1
 
     # example asize={"O": 3, "C": 7, "N": 3, "H": 16, "S": 1},
