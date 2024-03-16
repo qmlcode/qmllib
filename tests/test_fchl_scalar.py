@@ -1,13 +1,10 @@
-from pathlib import Path
-
 import numpy as np
+from conftest import ASSETS, get_energies, shuffle_arrays
 from scipy.special import binom, factorial, jn
 
-from conftest import shuffle_arrays
-
-# from qmllib.representations import generate_fchl_acsf
+from qmllib.representations.fchl import generate_representation
+from qmllib.representations.fchl import generate_representation as generate_fchl_representation
 from qmllib.representations.fchl import (
-    generate_representation,
     get_atomic_kernels,
     get_atomic_symmetric_kernels,
     get_global_kernels,
@@ -15,13 +12,50 @@ from qmllib.representations.fchl import (
     get_local_kernels,
     get_local_symmetric_kernels,
 )
-
-from qmllib.representations.fchl import generate_representation as generate_fchl_representation
-
 from qmllib.solvers import cho_solve
 from qmllib.utils.xyz_format import read_xyz
 
-from conftest import ASSETS, get_energies
+
+def _get_training_data(n_points, representation_options={}):
+
+    _representation_options = {
+        **dict(
+            cut_distance=1e6,
+            max_size=23,
+        ),
+        **representation_options,
+    }
+
+    # Parse file containing PBE0/def2-TZVP heats of formation and xyz filenames
+    data = get_energies(ASSETS / "hof_qm7.txt")
+
+    all_representations = []
+    all_properties = []
+    all_atoms = []
+
+    for xyz_file in sorted(data.keys())[:n_points]:
+
+        filename = ASSETS / "qm7" / xyz_file
+        coord, atoms = read_xyz(filename)
+
+        # Associate a property (heat of formation) with the object
+        all_properties.append(data[xyz_file])
+
+        representation = generate_fchl_representation(coord, atoms, **_representation_options)
+
+        assert (
+            representation.shape[0] == _representation_options["max_size"]
+        ), "ERROR: Check FCHL descriptor size!"
+
+        all_representations.append(representation)
+        all_atoms.append(atoms)
+
+    # Convert to arrays
+    all_representations = np.array(all_representations)
+    all_properties = np.array(all_properties)
+
+    return all_properties, all_representations, all_atoms
+
 
 def test_krr_fchl_local():
 
@@ -46,43 +80,12 @@ def test_krr_fchl_local():
     }
 
     max_size = 23
-    representation_options = dict(
-        cut_distance=1e6,
-        max_size = max_size
-    )
-
-    # Parse file containing PBE0/def2-TZVP heats of formation and xyz filenames
-    data = get_energies(ASSETS / "hof_qm7.txt")
-
-    all_representations = []
-    all_properties = []
-    all_atoms = []
+    representation_options = dict(cut_distance=1e6, max_size=max_size)
 
     n_points = 100
-
-    for xyz_file in sorted(data.keys())[:n_points]:
-
-        filename = ASSETS / "qm7" / xyz_file
-        coord, atoms = read_xyz(filename)
-
-        # Associate a property (heat of formation) with the object
-        all_properties.append(data[xyz_file])
-
-        representation = generate_fchl_representation(
-            coord,
-            atoms,
-            **representation_options
-        )
-
-        assert representation.shape[0] == max_size, "ERROR: Check FCHL descriptor size!"
-
-        all_representations.append(representation)
-        all_atoms.append(atoms)
-
-    # Convert to arrays
-    all_representations = np.array(all_representations)
-    all_properties = np.array(all_properties)
-
+    all_properties, all_representations, all_atoms = _get_training_data(
+        n_points, representation_options=representation_options
+    )
     shuffle_arrays(all_representations, all_atoms, all_properties, seed=666)
 
     # Make training and test sets
@@ -135,42 +138,12 @@ def test_krr_fchl_global():
     }
 
     max_size = 23
-    representation_options = dict(
-        cut_distance=1e6,
-        max_size = max_size
-    )
-
-    # Parse file containing PBE0/def2-TZVP heats of formation and xyz filenames
-    data = get_energies(ASSETS / "hof_qm7.txt")
-
-    all_representations = []
-    all_properties = []
-    all_atoms = []
+    representation_options = dict(cut_distance=1e6, max_size=max_size)
 
     n_points = 100
-
-    for xyz_file in sorted(data.keys())[:n_points]:
-
-        filename = ASSETS / "qm7" / xyz_file
-        coord, atoms = read_xyz(filename)
-
-        # Associate a property (heat of formation) with the object
-        all_properties.append(data[xyz_file])
-
-        representation = generate_fchl_representation(
-            coord,
-            atoms,
-            **representation_options
-        )
-
-        assert representation.shape[0] == max_size, "ERROR: Check FCHL descriptor size!"
-
-        all_representations.append(representation)
-        all_atoms.append(atoms)
-
-    # Convert to arrays
-    all_representations = np.array(all_representations)
-    all_properties = np.array(all_properties)
+    all_properties, all_representations, all_atoms = _get_training_data(
+        n_points, representation_options=representation_options
+    )
 
     shuffle_arrays(all_representations, all_atoms, all_properties, seed=666)
 
@@ -222,42 +195,12 @@ def test_krr_fchl_atomic():
     }
 
     max_size = 23
-    representation_options = dict(
-        cut_distance=1e6,
-        max_size = max_size
-    )
-
-    # Parse file containing PBE0/def2-TZVP heats of formation and xyz filenames
-    data = get_energies(ASSETS / "hof_qm7.txt")
-
-    all_representations = []
-    all_properties = []
-    all_atoms = []
+    representation_options = dict(cut_distance=1e6, max_size=max_size)
 
     n_points = 10
-
-    for xyz_file in sorted(data.keys())[:n_points]:
-
-        filename = ASSETS / "qm7" / xyz_file
-        coord, atoms = read_xyz(filename)
-
-        # Associate a property (heat of formation) with the object
-        all_properties.append(data[xyz_file])
-
-        representation = generate_fchl_representation(
-            coord,
-            atoms,
-            **representation_options
-        )
-
-        assert representation.shape[0] == max_size, "ERROR: Check FCHL descriptor size!"
-
-        all_representations.append(representation)
-        all_atoms.append(atoms)
-
-    # Convert to arrays
-    all_representations = np.array(all_representations)
-    all_properties = np.array(all_properties)
+    all_properties, all_representations, all_atoms = _get_training_data(
+        n_points, representation_options=representation_options
+    )
 
     # Generate kernel
     K = get_local_symmetric_kernels(all_representations, **kernel_args)[0]
@@ -507,7 +450,7 @@ def test_fchl_local_periodic():
         ],
     ]
 
-    n = 5
+    # UNUSED n = 5
 
     X = np.array(
         [
@@ -540,33 +483,19 @@ def test_fchl_local_periodic():
 
 def test_krr_fchl_alchemy():
 
-    test_dir = os.path.dirname(os.path.realpath(__file__))
+    max_size = 23
+    representation_options = dict(cut_distance=1e6, max_size=max_size)
 
-    # Parse file containing PBE0/def2-TZVP heats of formation and xyz filenames
-    data = get_energies(ASSETS / "data/hof_qm7.txt")
+    n_points = 20
+    all_properties, all_representations, all_atoms = _get_training_data(
+        n_points, representation_options=representation_options
+    )
 
-    # Generate a list of Compound() objects"
-    mols = []
-
-    for xyz_file in sorted(data.keys())[:20]:
-
-        # Initialize the Compound() objects
-        mol = Compound(xyz=ASSETS / "qm7/" + xyz_file)
-
-        # Associate a property (heat of formation) with the object
-        mol.properties = data[xyz_file]
-
-        # This is a Molecular Coulomb matrix sorted by row norm
-        mol.generate_fchl_representation(cut_distance=1e6)
-        mols.append(mol)
-
-    # Shuffle molecules
-    np.random.seed(666)
-    np.random.shuffle(mols)
-
-    X = np.array([mol.representation for mol in mols])
+    shuffle_arrays(all_representations, all_atoms, all_properties, seed=666)
 
     np.set_printoptions(edgeitems=16, linewidth=6666)
+
+    # TODO Put it in a numpy txt file
     overlap = np.array(
         [
             [
@@ -1019,7 +948,8 @@ def test_krr_fchl_alchemy():
             "sigma": [2.5],
         },
     }
-    K_alchemy = get_local_symmetric_kernels(X, **kernel_args)[0]
+
+    K_alchemy = get_local_symmetric_kernels(all_representations, **kernel_args)[0]
 
     kernel_args = {
         "alchemy": overlap,
@@ -1029,7 +959,7 @@ def test_krr_fchl_alchemy():
         },
     }
 
-    K_custom = get_local_symmetric_kernels(X, **kernel_args)[0]
+    K_custom = get_local_symmetric_kernels(all_representations, **kernel_args)[0]
 
     assert np.allclose(K_alchemy, K_custom), "Error in alchemy"
 
@@ -1043,7 +973,7 @@ def test_krr_fchl_alchemy():
         },
     }
 
-    K_noalchemy = get_local_symmetric_kernels(X, **kernel_args)[0]
+    K_noalchemy = get_local_symmetric_kernels(all_representations, **kernel_args)[0]
 
     kernel_args = {
         "alchemy": nooverlap,
@@ -1052,37 +982,19 @@ def test_krr_fchl_alchemy():
             "sigma": [2.5],
         },
     }
-    K_custom = get_local_symmetric_kernels(X, **kernel_args)[0]
+    K_custom = get_local_symmetric_kernels(all_representations, **kernel_args)[0]
 
     assert np.allclose(K_noalchemy, K_custom), "Error in no-alchemy"
 
 
 def test_fchl_linear():
 
-    test_dir = os.path.dirname(os.path.realpath(__file__))
+    n_points = 5
+    _, representations, atoms = _get_training_data(n_points)
 
-    # Parse file containing PBE0/def2-TZVP heats of formation and xyz filenames
-    data = get_energies(ASSETS / "data/hof_qm7.txt")
+    K = get_local_symmetric_kernels(representations)[0]
 
-    # Generate a list of qmllib.Compound() objects"
-    mols = []
-
-    for xyz_file in sorted(data.keys())[:5]:
-
-        # Initialize the qmllib.Compound() objects
-        mol = Compound(xyz=ASSETS / "qm7/" + xyz_file)
-
-        # This is a Molecular Coulomb matrix sorted by row norm
-        mol.representation = generate_representation(
-            mol.coordinates, mol.nuclear_charges, cut_distance=1e6
-        )
-        mols.append(mol)
-
-    X = np.array([mol.representation for mol in mols])
-
-    K = get_local_symmetric_kernels(X)[0]
-
-    K_test = np.zeros((len(mols), len(mols)))
+    K_test = np.zeros((n_points, n_points))
 
     kernel_args = {
         "kernel": "linear",
@@ -1091,13 +1003,13 @@ def test_fchl_linear():
         },
     }
 
-    for i, Xi in enumerate(X):
-        Sii = get_atomic_kernels(Xi[: mols[i].natoms], Xi[: mols[i].natoms], **kernel_args)[0]
-        for j, Xj in enumerate(X):
+    for i, Xi in enumerate(representations):
+        Sii = get_atomic_kernels(Xi[: len(atoms[i])], Xi[: len(atoms[i])], **kernel_args)[0]
+        for j, Xj in enumerate(representations):
 
-            Sjj = get_atomic_kernels(Xj[: mols[j].natoms], Xj[: mols[j].natoms], **kernel_args)[0]
+            Sjj = get_atomic_kernels(Xj[: len(atoms[j])], Xj[: len(atoms[j])], **kernel_args)[0]
 
-            Sij = get_atomic_kernels(Xi[: mols[i].natoms], Xj[: mols[j].natoms], **kernel_args)[0]
+            Sij = get_atomic_kernels(Xi[: len(atoms[i])], Xj[: len(atoms[j])], **kernel_args)[0]
 
             for ii in range(Sii.shape[0]):
                 for jj in range(Sjj.shape[0]):
@@ -1110,26 +1022,8 @@ def test_fchl_linear():
 
 def test_fchl_polynomial():
 
-    test_dir = os.path.dirname(os.path.realpath(__file__))
-
-    # Parse file containing PBE0/def2-TZVP heats of formation and xyz filenames
-    data = get_energies(ASSETS / "data/hof_qm7.txt")
-
-    # Generate a list of qmllib.Compound() objects"
-    mols = []
-
-    for xyz_file in sorted(data.keys())[:5]:
-
-        # Initialize the qmllib.Compound() objects
-        mol = Compound(xyz=ASSETS / "qm7/" + xyz_file)
-
-        # This is a Molecular Coulomb matrix sorted by row norm
-        mol.representation = generate_representation(
-            mol.coordinates, mol.nuclear_charges, cut_distance=1e6
-        )
-        mols.append(mol)
-
-    X = np.array([mol.representation for mol in mols])
+    n_points = 5
+    _, representations, atoms = _get_training_data(n_points)
 
     polynomial_kernel_args = {
         "kernel": "polynomial",
@@ -1147,15 +1041,15 @@ def test_fchl_polynomial():
         },
     }
 
-    K = get_local_symmetric_kernels(X, **polynomial_kernel_args)[0]
+    K = get_local_symmetric_kernels(representations, **polynomial_kernel_args)[0]
 
-    K_test = np.zeros((len(mols), len(mols)))
+    K_test = np.zeros((n_points, n_points))
 
-    for i, Xi in enumerate(X):
-        for j, Xj in enumerate(X):
+    for i, Xi in enumerate(representations):
+        for j, Xj in enumerate(representations):
 
             Sij = get_atomic_kernels(
-                Xi[: mols[i].natoms], Xj[: mols[j].natoms], **linear_kernel_args
+                Xi[: len(atoms[i])], Xj[: len(atoms[j])], **linear_kernel_args
             )[0]
 
             for ii in range(Sij.shape[0]):
@@ -1168,26 +1062,8 @@ def test_fchl_polynomial():
 
 def test_fchl_sigmoid():
 
-    test_dir = os.path.dirname(os.path.realpath(__file__))
-
-    # Parse file containing PBE0/def2-TZVP heats of formation and xyz filenames
-    data = get_energies(ASSETS / "data/hof_qm7.txt")
-
-    # Generate a list of qmllib.Compound() objects"
-    mols = []
-
-    for xyz_file in sorted(data.keys())[:5]:
-
-        # Initialize the qmllib.Compound() objects
-        mol = Compound(xyz=ASSETS / "qm7/" + xyz_file)
-
-        # This is a Molecular Coulomb matrix sorted by row norm
-        mol.representation = generate_representation(
-            mol.coordinates, mol.nuclear_charges, cut_distance=1e6
-        )
-        mols.append(mol)
-
-    X = np.array([mol.representation for mol in mols])
+    n_points = 5
+    _, representations, atoms = _get_training_data(n_points)
 
     sigmoid_kernel_args = {
         "kernel": "sigmoid",
@@ -1204,15 +1080,15 @@ def test_fchl_sigmoid():
         },
     }
 
-    K = get_local_symmetric_kernels(X, **sigmoid_kernel_args)[0]
+    K = get_local_symmetric_kernels(representations, **sigmoid_kernel_args)[0]
 
-    K_test = np.zeros((len(mols), len(mols)))
+    K_test = np.zeros((n_points, n_points))
 
-    for i, Xi in enumerate(X):
-        for j, Xj in enumerate(X):
+    for i, Xi in enumerate(representations):
+        for j, Xj in enumerate(representations):
 
             Sij = get_atomic_kernels(
-                Xi[: mols[i].natoms], Xj[: mols[j].natoms], **linear_kernel_args
+                Xi[: len(atoms[i])], Xj[: len(atoms[j])], **linear_kernel_args
             )[0]
 
             for ii in range(Sij.shape[0]):
@@ -1226,26 +1102,8 @@ def test_fchl_sigmoid():
 
 def test_fchl_multiquadratic():
 
-    test_dir = os.path.dirname(os.path.realpath(__file__))
-
-    # Parse file containing PBE0/def2-TZVP heats of formation and xyz filenames
-    data = get_energies(ASSETS / "data/hof_qm7.txt")
-
-    # Generate a list of qmllib.Compound() objects"
-    mols = []
-
-    for xyz_file in sorted(data.keys())[:5]:
-
-        # Initialize the qmllib.Compound() objects
-        mol = Compound(xyz=ASSETS / "qm7/" + xyz_file)
-
-        # This is a Molecular Coulomb matrix sorted by row norm
-        mol.representation = generate_representation(
-            mol.coordinates, mol.nuclear_charges, cut_distance=1e6
-        )
-        mols.append(mol)
-
-    X = np.array([mol.representation for mol in mols])
+    n_points = 5
+    _, representations, atoms = _get_training_data(n_points)
 
     kernel_args = {
         "kernel": "multiquadratic",
@@ -1261,21 +1119,19 @@ def test_fchl_multiquadratic():
         },
     }
 
-    K = get_local_symmetric_kernels(X, **kernel_args)[0]
+    K = get_local_symmetric_kernels(representations, **kernel_args)[0]
 
-    K_test = np.zeros((len(mols), len(mols)))
+    K_test = np.zeros((n_points, n_points))
 
-    for i, Xi in enumerate(X):
-        Sii = get_atomic_kernels(Xi[: mols[i].natoms], Xi[: mols[i].natoms], **linear_kernel_args)[
-            0
-        ]
-        for j, Xj in enumerate(X):
+    for i, Xi in enumerate(representations):
+        Sii = get_atomic_kernels(Xi[: len(atoms[i])], Xi[: len(atoms[i])], **linear_kernel_args)[0]
+        for j, Xj in enumerate(representations):
 
             Sjj = get_atomic_kernels(
-                Xj[: mols[j].natoms], Xj[: mols[j].natoms], **linear_kernel_args
+                Xj[: len(atoms[j])], Xj[: len(atoms[j])], **linear_kernel_args
             )[0]
             Sij = get_atomic_kernels(
-                Xi[: mols[i].natoms], Xj[: mols[j].natoms], **linear_kernel_args
+                Xi[: len(atoms[i])], Xj[: len(atoms[j])], **linear_kernel_args
             )[0]
 
             for ii in range(Sii.shape[0]):
@@ -1289,26 +1145,8 @@ def test_fchl_multiquadratic():
 
 def test_fchl_inverse_multiquadratic():
 
-    test_dir = os.path.dirname(os.path.realpath(__file__))
-
-    # Parse file containing PBE0/def2-TZVP heats of formation and xyz filenames
-    data = get_energies(ASSETS / "data/hof_qm7.txt")
-
-    # Generate a list of qmllib.Compound() objects"
-    mols = []
-
-    for xyz_file in sorted(data.keys())[:5]:
-
-        # Initialize the qmllib.Compound() objects
-        mol = Compound(xyz=ASSETS / "qm7/" + xyz_file)
-
-        # This is a Molecular Coulomb matrix sorted by row norm
-        mol.representation = generate_representation(
-            mol.coordinates, mol.nuclear_charges, cut_distance=1e6
-        )
-        mols.append(mol)
-
-    X = np.array([mol.representation for mol in mols])
+    n_points = 5
+    _, representations, atoms = _get_training_data(n_points)
 
     kernel_args = {
         "kernel": "inverse-multiquadratic",
@@ -1324,21 +1162,19 @@ def test_fchl_inverse_multiquadratic():
         },
     }
 
-    K = get_local_symmetric_kernels(X, **kernel_args)[0]
+    K = get_local_symmetric_kernels(representations, **kernel_args)[0]
 
-    K_test = np.zeros((len(mols), len(mols)))
+    K_test = np.zeros((n_points, n_points))
 
-    for i, Xi in enumerate(X):
-        Sii = get_atomic_kernels(Xi[: mols[i].natoms], Xi[: mols[i].natoms], **linear_kernel_args)[
-            0
-        ]
-        for j, Xj in enumerate(X):
+    for i, Xi in enumerate(representations):
+        Sii = get_atomic_kernels(Xi[: len(atoms[i])], Xi[: len(atoms[i])], **linear_kernel_args)[0]
+        for j, Xj in enumerate(representations):
 
             Sjj = get_atomic_kernels(
-                Xj[: mols[j].natoms], Xj[: mols[j].natoms], **linear_kernel_args
+                Xj[: len(atoms[j])], Xj[: len(atoms[j])], **linear_kernel_args
             )[0]
             Sij = get_atomic_kernels(
-                Xi[: mols[i].natoms], Xj[: mols[j].natoms], **linear_kernel_args
+                Xi[: len(atoms[i])], Xj[: len(atoms[j])], **linear_kernel_args
             )[0]
 
             for ii in range(Sii.shape[0]):
@@ -1351,26 +1187,8 @@ def test_fchl_inverse_multiquadratic():
 
 def test_fchl_bessel():
 
-    test_dir = os.path.dirname(os.path.realpath(__file__))
-
-    # Parse file containing PBE0/def2-TZVP heats of formation and xyz filenames
-    data = get_energies(ASSETS / "data/hof_qm7.txt")
-
-    # Generate a list of qmllib.Compound() objects"
-    mols = []
-
-    for xyz_file in sorted(data.keys())[:5]:
-
-        # Initialize the qmllib.Compound() objects
-        mol = Compound(xyz=ASSETS / "qm7/" + xyz_file)
-
-        # This is a Molecular Coulomb matrix sorted by row norm
-        mol.representation = generate_representation(
-            mol.coordinates, mol.nuclear_charges, cut_distance=1e6
-        )
-        mols.append(mol)
-
-    X = np.array([mol.representation for mol in mols])
+    n_points = 5
+    _, representations, atoms = _get_training_data(n_points)
 
     kernel_args = {
         "kernel": "bessel",
@@ -1388,31 +1206,29 @@ def test_fchl_bessel():
         },
     }
 
-    K = get_local_symmetric_kernels(X, **kernel_args)[0]
+    K = get_local_symmetric_kernels(representations, **kernel_args)[0]
 
-    K_test = np.zeros((len(mols), len(mols)))
+    K_test = np.zeros((n_points, n_points))
 
     sigma = 2.0
     v = 3
     n = 2
 
-    for i, Xi in enumerate(X):
-        Sii = get_atomic_kernels(Xi[: mols[i].natoms], Xi[: mols[i].natoms], **linear_kernel_args)[
-            0
-        ]
-        for j, Xj in enumerate(X):
+    for i, Xi in enumerate(representations):
+        Sii = get_atomic_kernels(Xi[: len(atoms[i])], Xi[: len(atoms[i])], **linear_kernel_args)[0]
+        for j, Xj in enumerate(representations):
 
             Sjj = get_atomic_kernels(
-                Xj[: mols[j].natoms], Xj[: mols[j].natoms], **linear_kernel_args
+                Xj[: len(atoms[j])], Xj[: len(atoms[j])], **linear_kernel_args
             )[0]
             Sij = get_atomic_kernels(
-                Xi[: mols[i].natoms], Xj[: mols[j].natoms], **linear_kernel_args
+                Xi[: len(atoms[i])], Xj[: len(atoms[j])], **linear_kernel_args
             )[0]
 
             for ii in range(Sii.shape[0]):
                 for jj in range(Sjj.shape[0]):
 
-                    l2 = np.sqrt(Sii[ii, ii] + Sjj[jj, jj] - 2 * Sij[ii, jj])
+                    # UNUSED l2 = np.sqrt(Sii[ii, ii] + Sjj[jj, jj] - 2 * Sij[ii, jj])
 
                     K_test[i, j] += jn(v, sigma * Sij[ii, jj]) / Sij[ii, jj] ** (-n * (v + 1))
 
@@ -1421,26 +1237,8 @@ def test_fchl_bessel():
 
 def test_fchl_l2():
 
-    test_dir = os.path.dirname(os.path.realpath(__file__))
-
-    # Parse file containing PBE0/def2-TZVP heats of formation and xyz filenames
-    data = get_energies(ASSETS / "data/hof_qm7.txt")
-
-    # Generate a list of qmllib.Compound() objects"
-    mols = []
-
-    for xyz_file in sorted(data.keys())[:5]:
-
-        # Initialize the qmllib.Compound() objects
-        mol = Compound(xyz=ASSETS / "qm7/" + xyz_file)
-
-        # This is a Molecular Coulomb matrix sorted by row norm
-        mol.representation = generate_representation(
-            mol.coordinates, mol.nuclear_charges, cut_distance=1e6
-        )
-        mols.append(mol)
-
-    X = np.array([mol.representation for mol in mols])
+    n_points = 5
+    _, representations, atoms = _get_training_data(n_points)
 
     l2_kernel_args = {
         "kernel": "l2",
@@ -1450,22 +1248,20 @@ def test_fchl_l2():
         },
     }
 
-    K = get_local_symmetric_kernels(X)[0]
+    K = get_local_symmetric_kernels(representations)[0]
 
-    K_test = np.zeros((len(mols), len(mols)))
+    K_test = np.zeros((n_points, n_points))
 
-    sigma = 2.0
-    v = 3
-    n = 2
+    # UNUSED sigma = 2.0
+    # UNUSED v = 3
+    # UNUSED n = 2
 
     inv_sigma = -1.0 / (2.0 * 2.5**2)
 
-    for i, Xi in enumerate(X):
-        for j, Xj in enumerate(X):
+    for i, Xi in enumerate(representations):
+        for j, Xj in enumerate(representations):
 
-            Sij = get_atomic_kernels(Xi[: mols[i].natoms], Xj[: mols[j].natoms], **l2_kernel_args)[
-                0
-            ]
+            Sij = get_atomic_kernels(Xi[: len(atoms[i])], Xj[: len(atoms[j])], **l2_kernel_args)[0]
 
             for ii in range(Sij.shape[0]):
                 for jj in range(Sij.shape[1]):
@@ -1477,26 +1273,8 @@ def test_fchl_l2():
 
 def test_fchl_matern():
 
-    test_dir = os.path.dirname(os.path.realpath(__file__))
-
-    # Parse file containing PBE0/def2-TZVP heats of formation and xyz filenames
-    data = get_energies(ASSETS / "data/hof_qm7.txt")
-
-    # Generate a list of qmllib.Compound() objects"
-    mols = []
-
-    for xyz_file in sorted(data.keys())[:5]:
-
-        # Initialize the qmllib.Compound() objects
-        mol = Compound(xyz=ASSETS / "qm7/" + xyz_file)
-
-        # This is a Molecular Coulomb matrix sorted by row norm
-        mol.representation = generate_representation(
-            mol.coordinates, mol.nuclear_charges, cut_distance=1e6
-        )
-        mols.append(mol)
-
-    X = np.array([mol.representation for mol in mols])
+    n_points = 5
+    _, representations, atoms = _get_training_data(n_points)
 
     kernel_args = {
         "kernel": "matern",
@@ -1513,25 +1291,23 @@ def test_fchl_matern():
         },
     }
 
-    K = get_local_symmetric_kernels(X, **kernel_args)[0]
+    K = get_local_symmetric_kernels(representations, **kernel_args)[0]
 
-    K_test = np.zeros((len(mols), len(mols)))
+    K_test = np.zeros((n_points, n_points))
 
     sigma = 5.0
     n = 2
     v = n + 0.5
 
-    for i, Xi in enumerate(X):
-        Sii = get_atomic_kernels(Xi[: mols[i].natoms], Xi[: mols[i].natoms], **linear_kernel_args)[
-            0
-        ]
-        for j, Xj in enumerate(X):
+    for i, Xi in enumerate(representations):
+        Sii = get_atomic_kernels(Xi[: len(atoms[i])], Xi[: len(atoms[i])], **linear_kernel_args)[0]
+        for j, Xj in enumerate(representations):
 
             Sjj = get_atomic_kernels(
-                Xj[: mols[j].natoms], Xj[: mols[j].natoms], **linear_kernel_args
+                Xj[: len(atoms[j])], Xj[: len(atoms[j])], **linear_kernel_args
             )[0]
             Sij = get_atomic_kernels(
-                Xi[: mols[i].natoms], Xj[: mols[j].natoms], **linear_kernel_args
+                Xi[: len(atoms[i])], Xj[: len(atoms[j])], **linear_kernel_args
             )[0]
 
             for ii in range(Sii.shape[0]):
@@ -1550,26 +1326,8 @@ def test_fchl_matern():
 
 def test_fchl_cauchy():
 
-    test_dir = os.path.dirname(os.path.realpath(__file__))
-
-    # Parse file containing PBE0/def2-TZVP heats of formation and xyz filenames
-    data = get_energies(ASSETS / "data/hof_qm7.txt")
-
-    # Generate a list of qmllib.Compound() objects"
-    mols = []
-
-    for xyz_file in sorted(data.keys())[:5]:
-
-        # Initialize the qmllib.Compound() objects
-        mol = Compound(xyz=ASSETS / "qm7/" + xyz_file)
-
-        # This is a Molecular Coulomb matrix sorted by row norm
-        mol.representation = generate_representation(
-            mol.coordinates, mol.nuclear_charges, cut_distance=1e6
-        )
-        mols.append(mol)
-
-    X = np.array([mol.representation for mol in mols])
+    n_points = 5
+    _, representations, atoms = _get_training_data(n_points)
 
     kernel_args = {
         "kernel": "cauchy",
@@ -1585,21 +1343,19 @@ def test_fchl_cauchy():
         },
     }
 
-    K = get_local_symmetric_kernels(X, **kernel_args)[0]
+    K = get_local_symmetric_kernels(representations, **kernel_args)[0]
 
-    K_test = np.zeros((len(mols), len(mols)))
+    K_test = np.zeros((n_points, n_points))
 
-    for i, Xi in enumerate(X):
-        Sii = get_atomic_kernels(Xi[: mols[i].natoms], Xi[: mols[i].natoms], **linear_kernel_args)[
-            0
-        ]
-        for j, Xj in enumerate(X):
+    for i, Xi in enumerate(representations):
+        Sii = get_atomic_kernels(Xi[: len(atoms[i])], Xi[: len(atoms[i])], **linear_kernel_args)[0]
+        for j, Xj in enumerate(representations):
 
             Sjj = get_atomic_kernels(
-                Xj[: mols[j].natoms], Xj[: mols[j].natoms], **linear_kernel_args
+                Xj[: len(atoms[j])], Xj[: len(atoms[j])], **linear_kernel_args
             )[0]
             Sij = get_atomic_kernels(
-                Xi[: mols[i].natoms], Xj[: mols[j].natoms], **linear_kernel_args
+                Xi[: len(atoms[i])], Xj[: len(atoms[j])], **linear_kernel_args
             )[0]
 
             for ii in range(Sii.shape[0]):
@@ -1613,26 +1369,8 @@ def test_fchl_cauchy():
 
 def test_fchl_polynomial2():
 
-    test_dir = os.path.dirname(os.path.realpath(__file__))
-
-    # Parse file containing PBE0/def2-TZVP heats of formation and xyz filenames
-    data = get_energies(ASSETS / "data/hof_qm7.txt")
-
-    # Generate a list of qmllib.Compound() objects"
-    mols = []
-
-    for xyz_file in sorted(data.keys())[:5]:
-
-        # Initialize the qmllib.Compound() objects
-        mol = Compound(xyz=ASSETS / "qm7/" + xyz_file)
-
-        # This is a Molecular Coulomb matrix sorted by row norm
-        mol.representation = generate_representation(
-            mol.coordinates, mol.nuclear_charges, cut_distance=1e6
-        )
-        mols.append(mol)
-
-    X = np.array([mol.representation for mol in mols])
+    n_points = 5
+    _, representations, atoms = _get_training_data(n_points)
 
     kernel_args = {
         "kernel": "polynomial2",
@@ -1648,21 +1386,19 @@ def test_fchl_polynomial2():
         },
     }
 
-    K = get_local_symmetric_kernels(X, **kernel_args)[0]
+    K = get_local_symmetric_kernels(representations, **kernel_args)[0]
 
-    K_test = np.zeros((len(mols), len(mols)))
+    K_test = np.zeros((n_points, n_points))
 
-    for i, Xi in enumerate(X):
-        Sii = get_atomic_kernels(Xi[: mols[i].natoms], Xi[: mols[i].natoms], **linear_kernel_args)[
-            0
-        ]
-        for j, Xj in enumerate(X):
+    for i, Xi in enumerate(representations):
+        Sii = get_atomic_kernels(Xi[: len(atoms[i])], Xi[: len(atoms[i])], **linear_kernel_args)[0]
+        for j, Xj in enumerate(representations):
 
             Sjj = get_atomic_kernels(
-                Xj[: mols[j].natoms], Xj[: mols[j].natoms], **linear_kernel_args
+                Xj[: len(atoms[j])], Xj[: len(atoms[j])], **linear_kernel_args
             )[0]
             Sij = get_atomic_kernels(
-                Xi[: mols[i].natoms], Xj[: mols[j].natoms], **linear_kernel_args
+                Xi[: len(atoms[i])], Xj[: len(atoms[j])], **linear_kernel_args
             )[0]
 
             for ii in range(Sii.shape[0]):
@@ -1671,26 +1407,3 @@ def test_fchl_polynomial2():
                     K_test[i, j] += 1.0 + 2.0 * Sij[ii, jj] + 3.0 * Sij[ii, jj] ** 2
 
     assert np.allclose(K, K_test), "Error in FCHL polynomial2 kernels"
-
-
-if __name__ == "__main__":
-
-    test_krr_fchl_local()
-    # test_krr_fchl_global()
-    # test_krr_fchl_atomic()
-    # test_fchl_local_periodic()
-
-    # test_krr_fchl_alchemy()
-
-    # test_fchl_local_periodic()
-    # test_fchl_alchemy()
-    # test_fchl_linear()
-    # test_fchl_polynomial()
-    # test_fchl_sigmoid()
-    # test_fchl_multiquadratic()
-    # test_fchl_inverse_multiquadratic()
-    # test_fchl_bessel()
-    # test_fchl_l2()
-    # test_fchl_matern()
-    # test_fchl_cauchy()
-    # test_fchl_polynomial2()
