@@ -59,8 +59,8 @@ def generate_representation(
 
     for i in range(L):
         cD = -coords[i] + coordsExt[:]
-
         ocExt = np.asarray(ocupationListExt)
+
         D1 = np.sqrt(np.sum(cD**2, axis=1))
         args = np.argsort(D1)
         D1 = D1[args]
@@ -210,18 +210,23 @@ def generate_representation_electric_field(
     :rtype: numpy array
     """
 
-    raise NotImplementedError("Needs to be re-written")
+    partial_charges = None
 
-    # partial_charges = None
+    # If a list is given, assume these are the fictitious charges
 
-    # # If a list is given, assume these are the fictitious charges
-    # if isinstance(fictitious_charges, (list,)) or isinstance(fictitious_charges, (np.ndarray,)):
+    print(fictitious_charges)
+    print(type(fictitious_charges))
+    print(nuclear_charges)
 
-    #     assert len(fictitious_charges) == len(
-    #         nuclear_charges
-    #     ), "Error: incorrect length of fictitious charge list"
+    print(len(fictitious_charges))
+    print(len(nuclear_charges))
 
-    #     partial_charges = fictitious_charges
+    if isinstance(fictitious_charges, list) or isinstance(fictitious_charges, np.ndarray):
+
+        if len(fictitious_charges) != len(nuclear_charges):
+            raise ValueError("Error: incorrect length of fictitious charge list")
+
+        partial_charges = fictitious_charges
 
     # # Otherwise, if a string is given, assume this is the name of a charge model
     # # in Open Babel//Pybel.
@@ -254,49 +259,50 @@ def generate_representation_electric_field(
 
     #     partial_charges = [atom.partialcharge for atom in mol]
 
-    # else:
-    #     print("QML ERROR: Unable to parse argument for fictitious charges", fictitious_charges)
-    #     exit()
+    else:
+        # print("QML ERROR: Unable to parse argument for fictitious charges", fictitious_charges)
+        # exit()
+        raise ValueError("Missing charges")
 
-    # size = max_size
-    # neighbors = size
+    size = max_size
+    neighbors = size
 
-    # L = len(coordinates)
-    # coords = np.asarray(coordinates)
-    # ocupationList = np.asarray(nuclear_charges)
-    # partial_charges = np.asarray(partial_charges)
-    # M = np.zeros((size, 6, neighbors))
+    L = len(coordinates)
+    coords = np.asarray(coordinates)
+    ocupationList = np.asarray(nuclear_charges)
+    partial_charges = np.asarray(partial_charges)
+    M = np.zeros((size, 6, neighbors))
 
-    # coordsExt = copy.copy(coords)
-    # partialExt = copy.copy(partial_charges)
-    # ocupationListExt = copy.copy(ocupationList)
+    coordsExt = copy.copy(coords)
+    partialExt = copy.copy(partial_charges)
+    ocupationListExt = copy.copy(ocupationList)
 
-    # M[:, 0, :] = 1e100
+    M[:, 0, :] = 1e100
 
-    # for i in range(L):
-    #     cD = -coords[i] + coordsExt[:]
+    for i in range(L):
+        cD = -coords[i] + coordsExt[:]
 
-    #     ocExt = np.asarray(ocupationListExt)
-    #     qExt = np.asarray(partialExt)
+        ocExt = np.asarray(ocupationListExt)
+        qExt = np.asarray(partialExt)
 
-    #     D1 = np.sqrt(np.sum(cD**2, axis=1))
-    #     args = np.argsort(D1)
-    #     D1 = D1[args]
+        D1 = np.sqrt(np.sum(cD**2, axis=1))
+        args = np.argsort(D1)
+        D1 = D1[args]
 
-    #     ocExt = np.asarray([ocExt[l] for l in args])
-    #     qExt = np.asarray([qExt[l] for l in args])
+        ocExt = np.asarray([ocExt[l] for l in args])
+        qExt = np.asarray([qExt[l] for l in args])
 
-    #     cD = cD[args]
+        cD = cD[args]
 
-    #     args = np.where(D1 < cut_distance)[0]
-    #     D1 = D1[args]
-    #     ocExt = np.asarray([ocExt[l] for l in args])
-    #     qExt = np.asarray([qExt[l] for l in args])
+        args = np.where(D1 < cut_distance)[0]
+        D1 = D1[args]
+        ocExt = np.asarray([ocExt[l] for l in args])
+        qExt = np.asarray([qExt[l] for l in args])
 
-    #     cD = cD[args]
-    #     M[i, 0, : len(D1)] = D1
-    #     M[i, 1, : len(D1)] = ocExt[:]
-    #     M[i, 2:5, : len(D1)] = cD.T
-    #     M[i, 5, : len(D1)] = qExt[:]
+        cD = cD[args]
+        M[i, 0, : len(D1)] = D1
+        M[i, 1, : len(D1)] = ocExt[:]
+        M[i, 2:5, : len(D1)] = cD.T
+        M[i, 5, : len(D1)] = qExt[:]
 
-    # return M
+    return M
