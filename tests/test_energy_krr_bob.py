@@ -1,96 +1,74 @@
-from __future__ import print_function
-
-import os
-
 import numpy as np
+from conftest import ASSETS, get_energies, shuffle_arrays
 
-import qmllib
 from qmllib.kernels import laplacian_kernel
-from qmllib.math import cho_solve
-
-
-def get_energies(filename):
-    """Returns a dictionary with heats of formation for each xyz-file."""
-
-    f = open(filename, "r")
-    lines = f.readlines()
-    f.close()
-
-    energies = dict()
-
-    for line in lines:
-        tokens = line.split()
-
-        xyz_name = tokens[0]
-        hof = float(tokens[1])
-
-        energies[xyz_name] = hof
-
-    return energies
+from qmllib.representations.bob import get_asize
+from qmllib.representations.representations import generate_bob
+from qmllib.solvers import cho_solve
+from qmllib.utils.xyz_format import read_xyz
 
 
 def test_krr_bob():
 
-    test_dir = os.path.dirname(os.path.realpath(__file__))
-
     # Parse file containing PBE0/def2-TZVP heats of formation and xyz filenames
-    data = get_energies(test_dir + "/data/hof_qm7.txt")
+    n_points = 1000
+    data = get_energies(ASSETS / "hof_qm7.txt")
+    filenames = sorted(data.keys())[:n_points]
 
-    # Generate a list of qmllib.data.Compound() objects
-    mols = []
+    molecules = []
+    representations = []
+    properties = []
 
-    for xyz_file in sorted(data.keys())[:1000]:
+    for filename in filenames:
+        coord, atoms = read_xyz((ASSETS / "qm7" / filename).with_suffix(".xyz"))
+        molecules.append((coord, atoms))
+        properties.append(data[filename])
 
-        # Initialize the qmllib.Compound() objects
-        mol = qmllib.Compound(xyz=test_dir + "/qm7/" + xyz_file)
+    size = max(atoms.size for _, atoms in molecules) + 1
+    # example asize={"O": 3, "C": 7, "N": 3, "H": 16, "S": 1},
+    asize = get_asize([atoms for _, atoms in molecules], 1)
 
-        # Associate a property (heat of formation) with the object
-        mol.properties = data[xyz_file]
+    atomtypes = []
+    for _, atoms in molecules:
+        atomtypes.extend(atoms)
+    atomtypes = np.unique(atomtypes)
 
-        # This is a Molecular Coulomb matrix sorted by row norm
-        mol.generate_bob()
+    for coord, atoms in molecules:
+        # representation = generate_bob(atoms, coord, atomtypes, )
+        rep = generate_bob(atoms, coord, atomtypes, size=size, asize=asize)
+        representations.append(rep)
 
-        mols.append(mol)
-
-    # Shuffle molecules
-    np.random.seed(666)
-    np.random.shuffle(mols)
+    representations = np.array(representations)
+    properties = np.array(properties)
+    shuffle_arrays(properties, representations, seed=666)
 
     # Make training and test sets
     n_test = 300
     n_train = 700
+    train_indices = list(range(n_train))
+    test_indices = list(range(n_train, n_train + n_test))
 
-    training = mols[:n_train]
-    test = mols[-n_test:]
-
-    # List of representations
-    X = np.array([mol.representation for mol in training])
-    Xs = np.array([mol.representation for mol in test])
-
-    # List of properties
-    Y = np.array([mol.properties for mol in training])
-    Ys = np.array([mol.properties for mol in test])
+    # List of representations and properties
+    test_representations = representations[test_indices]
+    train_representations = representations[train_indices]
+    test_properties = properties[test_indices]
+    train_properties = properties[train_indices]
 
     # Set hyper-parameters
     sigma = 26214.40
     llambda = 1e-10
 
     # Generate training Kernel
-    K = laplacian_kernel(X, X, sigma)
+    K = laplacian_kernel(train_representations, train_representations, sigma)
 
     # Solve alpha
     K[np.diag_indices_from(K)] += llambda
-    alpha = cho_solve(K, Y)
+    alpha = cho_solve(K, train_properties)
 
     # Calculate prediction kernel
-    Ks = laplacian_kernel(X, Xs, sigma)
-    Yss = np.dot(Ks.transpose(), alpha)
+    Ks = laplacian_kernel(train_representations, test_representations, sigma)
+    predicted_properties = np.dot(Ks.transpose(), alpha)
 
-    mae = np.mean(np.abs(Ys - Yss))
+    mae = np.mean(np.abs(test_properties - predicted_properties))
     print(mae)
     assert mae < 2.6, "ERROR: Too high MAE!"
-
-
-if __name__ == "__main__":
-
-    test_krr_bob()
