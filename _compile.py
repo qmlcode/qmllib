@@ -41,7 +41,9 @@ def find_flags(fcc: str):
     #                 "-Wno-maybe-uninitialized", "-Wno-unused-function", "-Wno-cpp"]
     # LINKER_FLAGS = ["-lgomp"]
 
-    flags = ["-L/usr/lib/", "-lblas", "-llapack"]
+    extra_flags = ["-lgomp", "-lpthread", "-lm", "-ldl"]
+
+    flags = ["-L/usr/lib/", "-lblas", "-llapack"] + extra_flags
 
     return flags
 
