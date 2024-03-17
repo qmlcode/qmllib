@@ -1,11 +1,13 @@
 from pathlib import Path
+from typing import Tuple
 
 import numpy as np
+from numpy import ndarray
 
 from qmllib.constants.periodic_table import NUCLEAR_CHARGE
 
 
-def read_xyz(filename: str | Path):
+def read_xyz(filename: str | Path) -> Tuple[ndarray, ndarray]:
     """(Re-)initializes the Compound-object with data from an xyz-file.
 
     :param filename: Input xyz-filename or file-like obejct

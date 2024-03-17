@@ -2,6 +2,7 @@ python=./env/bin/python
 mamba=mamba
 pkg=qmllib
 pip=./env/bin/pip
+pytest=pytest
 j=1
 
 .PHONY: build
@@ -24,7 +25,7 @@ test:
 	${python} -m pytest -rs ./tests
 
 types:
-	${python} -m monkeytype run $(which pytest) ./tests/
+	${python} -m monkeytype run $$(which ${pytest}) ./tests
 	${python} -m monkeytype list-modules | grep ${pkg} | parallel -j${j} "${python} -m monkeytype apply {}"
 
 cov:

@@ -1,4 +1,7 @@
+from typing import List, Union
+
 import numpy as np
+from numpy import ndarray
 
 from qmllib.utils.environment_manipulation import (
     mkl_get_num_threads,
@@ -22,7 +25,9 @@ from .fgradient_kernels import (
 )
 
 
-def get_global_kernel(X1, X2, Q1, Q2, SIGMA):
+def get_global_kernel(
+    X1: ndarray, X2: ndarray, Q1: List[List[int]], Q2: List[List[int]], SIGMA: float
+) -> ndarray:
     """Calculates the Gaussian kernel matrix K with the local decomposition where :math:`K_{ij}`:
 
         :math:`K_{ij} = \\sum_{I\\in i} \\sum_{J\\in j}\\exp \\big( -\\frac{\\|X_I - X_J\\|_2^2}{2\\sigma^2} \\big)`
@@ -75,7 +80,9 @@ def get_global_kernel(X1, X2, Q1, Q2, SIGMA):
     return K
 
 
-def get_local_kernels(X1, X2, Q1, Q2, SIGMAS):
+def get_local_kernels(
+    X1: ndarray, X2: ndarray, Q1: List[List[int]], Q2: List[List[int]], SIGMAS: List[float]
+) -> ndarray:
     """Calculates the Gaussian kernel matrix K with the local decomposition where :math:`K_{ij}`:
 
         :math:`K_{ij} = \\sum_{I\\in i} \\sum_{J\\in j}\\exp \\big( -\\frac{\\|X_I - X_J\\|_2^2}{2\\sigma^2} \\big)`
@@ -131,7 +138,13 @@ def get_local_kernels(X1, X2, Q1, Q2, SIGMAS):
     return K
 
 
-def get_local_kernel(X1, X2, Q1, Q2, SIGMA):
+def get_local_kernel(
+    X1: ndarray,
+    X2: ndarray,
+    Q1: List[Union[ndarray, List[int]]],
+    Q2: List[Union[ndarray, List[int]]],
+    SIGMA: float,
+) -> ndarray:
     """Calculates the Gaussian kernel matrix K with the local decomposition where :math:`K_{ij}`:
 
         :math:`K_{ij} = \\sum_{I\\in i} \\sum_{J\\in j}\\exp \\big( -\\frac{\\|X_I - X_J\\|_2^2}{2\\sigma^2} \\big)`
@@ -184,7 +197,7 @@ def get_local_kernel(X1, X2, Q1, Q2, SIGMA):
     return K
 
 
-def get_local_symmetric_kernels(X1, Q1, SIGMAS):
+def get_local_symmetric_kernels(X1: ndarray, Q1: List[List[int]], SIGMAS: List[float]) -> ndarray:
     """Calculates the Gaussian kernel matrix K with the local decomposition where :math:`K_{ij}`:
 
         :math:`K_{ij} = \\sum_{I\\in i} \\sum_{J\\in j}\\exp \\big( -\\frac{\\|X_I - X_J\\|_2^2}{2\\sigma^2} \\big)`
@@ -229,7 +242,9 @@ def get_local_symmetric_kernels(X1, Q1, SIGMAS):
     return K
 
 
-def get_local_symmetric_kernel(X1, Q1, SIGMA):
+def get_local_symmetric_kernel(
+    X1: ndarray, Q1: List[Union[ndarray, List[int]]], SIGMA: float
+) -> ndarray:
     """Calculates the Gaussian kernel matrix K with the local decomposition where :math:`K_{ij}`:
 
         :math:`K_{ij} = \\sum_{I\\in i} \\sum_{J\\in j}\\exp \\big( -\\frac{\\|X_I - X_J\\|_2^2}{2\\sigma^2} \\big)`
@@ -273,7 +288,13 @@ def get_local_symmetric_kernel(X1, Q1, SIGMA):
     return K
 
 
-def get_atomic_local_kernel(X1, X2, Q1, Q2, SIGMA):
+def get_atomic_local_kernel(
+    X1: ndarray,
+    X2: ndarray,
+    Q1: List[Union[ndarray, List[int]]],
+    Q2: List[Union[ndarray, List[int]]],
+    SIGMA: float,
+) -> ndarray:
 
     """Calculates the Gaussian kernel matrix K with the local decomposition where :math:`K_{ij}`:
 
@@ -332,7 +353,14 @@ def get_atomic_local_kernel(X1, X2, Q1, Q2, SIGMA):
     return K
 
 
-def get_atomic_local_gradient_kernel(X1, X2, dX2, Q1, Q2, SIGMA):
+def get_atomic_local_gradient_kernel(
+    X1: ndarray,
+    X2: ndarray,
+    dX2: ndarray,
+    Q1: List[Union[ndarray, List[int]]],
+    Q2: List[Union[ndarray, List[int]]],
+    SIGMA: float,
+) -> ndarray:
 
     """Calculates the Gaussian kernel matrix K with the local decomposition where :math:`K_{ij}`:
 
@@ -412,7 +440,9 @@ def get_atomic_local_gradient_kernel(X1, X2, dX2, Q1, Q2, SIGMA):
     return K
 
 
-def get_local_gradient_kernel(X1, X2, dX2, Q1, Q2, SIGMA):
+def get_local_gradient_kernel(
+    X1: ndarray, X2: ndarray, dX2: ndarray, Q1: List[List[int]], Q2: List[List[int]], SIGMA: float
+) -> ndarray:
 
     """Calculates the Gaussian kernel matrix K with the local decomposition where :math:`K_{ij}`:
 
@@ -478,7 +508,15 @@ def get_local_gradient_kernel(X1, X2, dX2, Q1, Q2, SIGMA):
     return K
 
 
-def get_gdml_kernel(X1, X2, dX1, dX2, Q1, Q2, SIGMA):
+def get_gdml_kernel(
+    X1: ndarray,
+    X2: ndarray,
+    dX1: ndarray,
+    dX2: ndarray,
+    Q1: List[List[int]],
+    Q2: List[List[int]],
+    SIGMA: float,
+) -> ndarray:
 
     """Calculates the Gaussian kernel matrix K with the local decomposition where :math:`K_{ij}`:
 
@@ -560,7 +598,9 @@ def get_gdml_kernel(X1, X2, dX1, dX2, Q1, Q2, SIGMA):
     return K
 
 
-def get_symmetric_gdml_kernel(X1, dX1, Q1, SIGMA):
+def get_symmetric_gdml_kernel(
+    X1: ndarray, dX1: ndarray, Q1: List[List[int]], SIGMA: float
+) -> ndarray:
 
     """Calculates the Gaussian kernel matrix K with the local decomposition where :math:`K_{ij}`:
 
@@ -613,7 +653,15 @@ def get_symmetric_gdml_kernel(X1, dX1, Q1, SIGMA):
     return K
 
 
-def get_gp_kernel(X1, X2, dX1, dX2, Q1, Q2, SIGMA):
+def get_gp_kernel(
+    X1: ndarray,
+    X2: ndarray,
+    dX1: ndarray,
+    dX2: ndarray,
+    Q1: List[Union[ndarray, List[int]]],
+    Q2: List[Union[ndarray, List[int]]],
+    SIGMA: float,
+) -> ndarray:
 
     """Calculates the Gaussian kernel matrix K with the local decomposition where :math:`K_{ij}`:
 
@@ -692,7 +740,9 @@ def get_gp_kernel(X1, X2, dX1, dX2, Q1, Q2, SIGMA):
     return K
 
 
-def get_symmetric_gp_kernel(X1, dX1, Q1, SIGMA):
+def get_symmetric_gp_kernel(
+    X1: ndarray, dX1: ndarray, Q1: List[Union[ndarray, List[int]]], SIGMA: float
+) -> ndarray:
 
     """
     This symmetric kernel corresponds to a Gaussian process regression (GPR) approach.

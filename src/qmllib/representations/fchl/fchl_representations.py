@@ -1,11 +1,18 @@
 import copy
+from typing import List, Optional, Union
 
 import numpy as np
+from numpy import ndarray
 
 
 def generate_representation(
-    coordinates, nuclear_charges, max_size=23, neighbors=23, cut_distance=5.0, cell=None
-):
+    coordinates: Union[ndarray, List[List[float]]],
+    nuclear_charges: ndarray,
+    max_size: int = 23,
+    neighbors: int = 23,
+    cut_distance: float = 5.0,
+    cell: Optional[ndarray] = None,
+) -> ndarray:
     """Generates a representation for the FCHL kernel module.
 
     :param coordinates: Input coordinates.
@@ -180,13 +187,13 @@ def generate_displaced_representations_5point(
 
 
 def generate_representation_electric_field(
-    coordinates,
-    nuclear_charges,
-    fictitious_charges="gasteiger",
-    max_size=23,
-    neighbors=23,
-    cut_distance=5.0,
-):
+    coordinates: ndarray,
+    nuclear_charges: ndarray,
+    fictitious_charges: Union[ndarray, List[float]] = "gasteiger",
+    max_size: int = 23,
+    neighbors: int = 23,
+    cut_distance: float = 5.0,
+) -> ndarray:
     """Generates a representation for the FCHL kernel module, including fictitious partial charges.
         For use with fist-order electric field-dependent properties, such as dipole moments and IR intensity.
 

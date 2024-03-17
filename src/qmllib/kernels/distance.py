@@ -1,9 +1,12 @@
+from typing import Union
+
 import numpy as np
+from numpy import ndarray
 
 from .fdistance import fl2_distance, fmanhattan_distance, fp_distance_double, fp_distance_integer
 
 
-def manhattan_distance(A, B):
+def manhattan_distance(A: ndarray, B: ndarray) -> ndarray:
     """Calculates the Manhattan distances, D,  between two
     Numpy arrays of representations.
 
@@ -37,7 +40,7 @@ def manhattan_distance(A, B):
     return D
 
 
-def l2_distance(A, B):
+def l2_distance(A: ndarray, B: ndarray) -> ndarray:
     """Calculates the L2 distances, D, between two
     Numpy arrays of representations.
 
@@ -71,7 +74,7 @@ def l2_distance(A, B):
     return D
 
 
-def p_distance(A, B, p=2):
+def p_distance(A: ndarray, B: ndarray, p: Union[int, float] = 2) -> ndarray:
     """Calculates the p-norm distances between two
     Numpy arrays of representations.
     The value of the keyword argument ``p =`` sets the norm order.

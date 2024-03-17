@@ -1,4 +1,7 @@
+from typing import List, Union
+
 import numpy as np
+from numpy import float64, ndarray
 
 from .fkernels import (
     fgaussian_kernel,
@@ -15,7 +18,7 @@ from .fkernels import (
 )
 
 
-def wasserstein_kernel(A, B, sigma, p=1, q=1):
+def wasserstein_kernel(A: ndarray, B: ndarray, sigma: float, p: int = 1, q: int = 1) -> ndarray:
     """Calculates the Wasserstein kernel matrix K, where :math:`K_{ij}`:
 
     :math:`K_{ij} = \\exp \\big( -\\frac{(W_p(A_i, B_i))^q}{\\sigma} \\big)`
@@ -45,7 +48,7 @@ def wasserstein_kernel(A, B, sigma, p=1, q=1):
     return K
 
 
-def laplacian_kernel(A, B, sigma):
+def laplacian_kernel(A: ndarray, B: ndarray, sigma: float) -> ndarray:
     """Calculates the Laplacian kernel matrix K, where :math:`K_{ij}`:
 
         :math:`K_{ij} = \\exp \\big( -\\frac{\\|A_i - B_j\\|_1}{\\sigma} \\big)`
@@ -75,7 +78,7 @@ def laplacian_kernel(A, B, sigma):
     return K
 
 
-def laplacian_kernel_symmetric(A, sigma):
+def laplacian_kernel_symmetric(A: ndarray, sigma: float) -> ndarray:
     """Calculates the symmetric Laplacian kernel matrix K, where :math:`K_{ij}`:
 
         :math:`K_{ij} = \\exp \\big( -\\frac{\\|A_i - A_j\\|_1}{\\sigma} \\big)`
@@ -102,7 +105,7 @@ def laplacian_kernel_symmetric(A, sigma):
     return K
 
 
-def gaussian_kernel(A, B, sigma):
+def gaussian_kernel(A: ndarray, B: ndarray, sigma: float) -> ndarray:
     """Calculates the Gaussian kernel matrix K, where :math:`K_{ij}`:
 
         :math:`K_{ij} = \\exp \\big( -\\frac{\\|A_i - B_j\\|_2^2}{2\\sigma^2} \\big)`
@@ -132,7 +135,7 @@ def gaussian_kernel(A, B, sigma):
     return K
 
 
-def gaussian_kernel_symmetric(A, sigma):
+def gaussian_kernel_symmetric(A: ndarray, sigma: float) -> ndarray:
     """Calculates the symmetric Gaussian kernel matrix K, where :math:`K_{ij}`:
 
         :math:`K_{ij} = \\exp \\big( -\\frac{\\|A_i - A_j\\|_2^2}{2\\sigma^2} \\big)`
@@ -159,7 +162,7 @@ def gaussian_kernel_symmetric(A, sigma):
     return K
 
 
-def linear_kernel(A, B):
+def linear_kernel(A: ndarray, B: ndarray) -> ndarray:
     """Calculates the linear kernel matrix K, where :math:`K_{ij}`:
 
         :math:`K_{ij} = A_i \\cdot B_j`
@@ -188,7 +191,12 @@ def linear_kernel(A, B):
     return K
 
 
-def sargan_kernel(A, B, sigma, gammas):
+def sargan_kernel(
+    A: ndarray,
+    B: ndarray,
+    sigma: Union[float, float64],
+    gammas: Union[ndarray, List[Union[int, float]], List[int]],
+) -> ndarray:
     """Calculates the Sargan kernel matrix K, where :math:`K_{ij}`:
 
         :math:`K_{ij} = \\exp \\big( -\\frac{\\| A_i - B_j \\|_1)}{\\sigma} \\big) \\big(1 + \\sum_{k} \\frac{\\gamma_{k} \\| A_i - B_j \\|_1^k}{\\sigma^k} \\big)`
@@ -225,7 +233,9 @@ def sargan_kernel(A, B, sigma, gammas):
     return K
 
 
-def matern_kernel(A, B, sigma, order=0, metric="l1"):
+def matern_kernel(
+    A: ndarray, B: ndarray, sigma: float, order: int = 0, metric: str = "l1"
+) -> ndarray:
     """Calculates the Matern kernel matrix K, where :math:`K_{ij}`:
 
         for order = 0:
@@ -286,7 +296,9 @@ def matern_kernel(A, B, sigma, order=0, metric="l1"):
     return K
 
 
-def get_local_kernels_gaussian(A, B, na, nb, sigmas):
+def get_local_kernels_gaussian(
+    A: ndarray, B: ndarray, na: ndarray, nb: ndarray, sigmas: List[float]
+) -> ndarray:
     """Calculates the Gaussian kernel matrix K, for a local representation where :math:`K_{ij}`:
 
         :math:`K_{ij} = \\sum_{a \\in i} \\sum_{b \\in j} \\exp \\big( -\\frac{\\|A_a - B_b\\|_2^2}{2\\sigma^2} \\big)`
@@ -328,7 +340,9 @@ def get_local_kernels_gaussian(A, B, na, nb, sigmas):
     return fget_local_kernels_gaussian(A.T, B.T, na, nb, sigmas, nma, nmb, nsigmas)
 
 
-def get_local_kernels_laplacian(A, B, na, nb, sigmas):
+def get_local_kernels_laplacian(
+    A: ndarray, B: ndarray, na: ndarray, nb: ndarray, sigmas: List[float]
+) -> ndarray:
     """Calculates the Local Laplacian kernel matrix K, for a local representation where :math:`K_{ij}`:
 
         :math:`K_{ij} = \\sum_{a \\in i} \\sum_{b \\in j} \\exp \\big( -\\frac{\\|A_a - B_b\\|_1}{\\sigma} \\big)`
@@ -370,7 +384,7 @@ def get_local_kernels_laplacian(A, B, na, nb, sigmas):
     return fget_local_kernels_laplacian(A.T, B.T, na, nb, sigmas, nma, nmb, nsigmas)
 
 
-def kpca(K, n=2, centering=True):
+def kpca(K: ndarray, n: int = 2, centering: bool = True) -> ndarray:
     """Calculates `n` first principal components for the kernel :math:`K`.
 
     The PCA is calculated using an OpenMP parallel Fortran routine.
