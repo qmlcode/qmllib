@@ -21,23 +21,7 @@ format:
 	${python} -m pre_commit run --all-files
 
 test:
-	${python} -m pytest -rs \
-		tests/test_distance.py \
-		tests/test_kernels.py \
-		tests/test_representations.py \
-		tests/test_slatm.py \
-		tests/test_solvers.py \
-		tests/test_fchl_acsf.py \
-		tests/test_fchl_acsf_energy.py \
-		tests/test_fchl_acsf_forces.py \
-		# tests/test_fchl_electric_field.py \
-		# tests/test_fchl_force.py \
-		# tests/test_fchl_scalar.py
-	# integration tests/test_energy_krr_atomic_cmat.py \
-	# integration tests/test_energy_krr_bob.py \
-	# integration tests/test_energy_krr_cmat.py \
-	# tests/test_kernel_derivatives.py \
-	# tests/test_arad.py \
+	${python} -m pytest -rs ./tests
 
 types:
 	${python} -m monkeytype run $(which pytest) ./tests/
