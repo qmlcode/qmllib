@@ -3,6 +3,7 @@ import csv
 from copy import deepcopy
 
 import numpy as np
+from conftest import ASSETS
 
 from qmllib.kernels import (
     get_atomic_local_gradient_kernel,
@@ -22,7 +23,7 @@ from qmllib.representations import generate_acsf
 
 np.set_printoptions(linewidth=666, edgeitems=10)
 
-CSV_FILE = "data/amons_small.csv"
+CSV_FILE = ASSETS / "amons_small.csv"
 
 TRAINING = 7
 TEST = 5
@@ -56,7 +57,7 @@ def csv_to_molecular_reps(csv_filename):
 
             coordinates = np.array(ast.literal_eval(row[2]))
             nuclear_charges = ast.literal_eval(row[5])
-            atomtypes = ast.literal_eval(row[1])
+            # UNUSED atomtypes = ast.literal_eval(row[1])
             force = np.array(ast.literal_eval(row[3]))
             energy = float(row[6])
 
@@ -101,43 +102,9 @@ def test_global_kernel():
     K1 = get_global_kernel(X, Xs, Q, Qs, SIGMA)
     K2 = get_global_kernel(X, X, Q, Q, SIGMA)
 
-
-def test_atomic_local_kernel():
-
-    Xall, dXall, Eall, Fall, dispXall, Nall, Qall = csv_to_molecular_reps(CSV_FILE)
-
-    X = Xall[:TRAINING]
-    dX = dXall[:TRAINING]
-    N = Nall[:TRAINING]
-    dispX = dispXall[:, : sum(N) * 3, :, :]
-    Q = Qall[:TRAINING]
-
-    Xs = Xall[-TEST:]
-    dXs = dXall[-TEST:]
-    Ns = Nall[-TEST:]
-    dispXs = dispXall[:, -sum(Ns) * 3 :, :, :]
-    Qs = Qall[-TEST:]
-
-    K = get_atomic_local_kernel(X, Xs, Q, Qs, SIGMA)
-
-    K_numm = np.zeros(K.shape)
-
-    idx = 0
-
-    for i in range(TRAINING):
-        for n1 in range(N[i]):
-
-            for j in range(TEST):
-                for n2 in range(Ns[j]):
-
-                    if Q[i][n1] == Qs[j][n2]:
-                        d = np.linalg.norm(X[i, n1] - Xs[j, n2])
-                        gauss = np.exp(-(d**2) / (2 * SIGMA**2))
-                        K_numm[j, idx] += gauss
-
-            idx += 1
-
-    assert np.allclose(K, K_numm), "Error in get_local_kernel()"
+    # TODO No assertion
+    assert K1 is not None
+    assert K2 is not None
 
 
 def test_local_kernel():
@@ -145,15 +112,15 @@ def test_local_kernel():
     Xall, dXall, Eall, Fall, dispXall, Nall, Qall = csv_to_molecular_reps(CSV_FILE)
 
     X = Xall[:TRAINING]
-    dX = dXall[:TRAINING]
+    # UNUSED dX = dXall[:TRAINING]
     N = Nall[:TRAINING]
-    dispX = dispXall[:, : sum(N) * 3, :, :]
+    # UNUSED dispX = dispXall[:, : sum(N) * 3, :, :]
     Q = Qall[:TRAINING]
 
     Xs = Xall[-TEST:]
-    dXs = dXall[-TEST:]
+    # UNUSED dXs = dXall[-TEST:]
     Ns = Nall[-TEST:]
-    dispXs = dispXall[:, -sum(Ns) * 3 :, :, :]
+    # UNUSED dispXs = dispXall[:, -sum(Ns) * 3 :, :, :]
     Qs = Qall[-TEST:]
 
     K = get_local_kernel(X, X, Q, Q, SIGMA)
@@ -185,15 +152,15 @@ def test_atomic_local_kernel():
     Xall, dXall, Eall, Fall, dispXall, Nall, Qall = csv_to_molecular_reps(CSV_FILE)
 
     X = Xall[:TRAINING]
-    dX = dXall[:TRAINING]
+    # UNUSED dX = dXall[:TRAINING]
     N = Nall[:TRAINING]
-    dispX = dispXall[:, : sum(N) * 3, :, :]
+    # UNUSED dispX = dispXall[:, : sum(N) * 3, :, :]
     Q = Qall[:TRAINING]
 
     Xs = Xall[-TEST:]
-    dXs = dXall[-TEST:]
+    # UNUSED dXs = dXall[-TEST:]
     Ns = Nall[-TEST:]
-    dispXs = dispXall[:, -sum(Ns) * 3 :, :, :]
+    # UNUSED dispXs = dispXall[:, -sum(Ns) * 3 :, :, :]
     Qs = Qall[-TEST:]
 
     K = get_atomic_local_kernel(X, Xs, Q, Qs, SIGMA)
@@ -228,11 +195,11 @@ def test_atomic_local_gradient():
     dispX = dispXall[:, : sum(N) * 3, :, :]
     Q = Qall[:TRAINING]
 
-    Xs = Xall[-TEST:]
-    dXs = dXall[-TEST:]
+    Xs = Xall[-TEST:]  # noqa:F841
+    dXs = dXall[-TEST:]  # noqa:F841
     Ns = Nall[-TEST:]
-    dispXs = dispXall[:, -sum(Ns) * 3 :, :, :]
-    Qs = Qall[-TEST:]
+    dispXs = dispXall[:, -sum(Ns) * 3 :, :, :]  # noqa:F841
+    Qs = Qall[-TEST:]  # noqa:F841
 
     Kt_gradient = get_atomic_local_gradient_kernel(X, X, dX, Q, Q, SIGMA)
 
@@ -272,11 +239,11 @@ def test_local_gradient():
     dispX = dispXall[:, : sum(N) * 3, :, :]
     Q = Qall[:TRAINING]
 
-    Xs = Xall[-TEST:]
-    dXs = dXall[-TEST:]
+    Xs = Xall[-TEST:]  # noqa:F841
+    dXs = dXall[-TEST:]  # noqa:F841
     Ns = Nall[-TEST:]
-    dispXs = dispXall[:, -sum(Ns) * 3 :, :, :]
-    Qs = Qall[-TEST:]
+    dispXs = dispXall[:, -sum(Ns) * 3 :, :, :]  # noqa:F841
+    Qs = Qall[-TEST:]  # noqa:F841
 
     Kt_gradient = get_local_gradient_kernel(X, X, dX, Q, Q, SIGMA)
 
@@ -383,14 +350,14 @@ def test_symmetric_gdml_kernel():
     X = Xall[:TRAINING]
     dX = dXall[:TRAINING]
     N = Nall[:TRAINING]
-    dispX = dispXall[:, : sum(N) * 3, :, :]
+    dispX = dispXall[:, : sum(N) * 3, :, :]  # noqa:F841
     Q = Qall[:TRAINING]
 
-    Xs = Xall[-TEST:]
-    dXs = dXall[-TEST:]
+    Xs = Xall[-TEST:]  # noqa:F841
+    dXs = dXall[-TEST:]  # noqa:F841
     Ns = Nall[-TEST:]
-    dispXs = dispXall[:, -sum(Ns) * 3 :, :, :]
-    Qs = Qall[-TEST:]
+    dispXs = dispXall[:, -sum(Ns) * 3 :, :, :]  # noqa:F841
+    Qs = Qall[-TEST:]  # noqa:F841
 
     K = get_gdml_kernel(X, X, dX, dX, Q, Q, SIGMA)
     K_symm = get_symmetric_gdml_kernel(X, dX, Q, SIGMA)
@@ -405,13 +372,13 @@ def test_gp_kernel():
     X = Xall[:TRAINING]
     dX = dXall[:TRAINING]
     N = Nall[:TRAINING]
-    dispX = dispXall[:, : sum(N) * 3, :, :]
+    dispX = dispXall[:, : sum(N) * 3, :, :]  # noqa:F841
     Q = Qall[:TRAINING]
 
     Xs = Xall[-TEST:]
     dXs = dXall[-TEST:]
     Ns = Nall[-TEST:]
-    dispXs = dispXall[:, -sum(Ns) * 3 :, :, :]
+    dispXs = dispXall[:, -sum(Ns) * 3 :, :, :]  # noqa:F841
     Qs = Qall[-TEST:]
 
     K = get_gp_kernel(X, Xs, dX, dXs, Q, Qs, SIGMA)
@@ -439,15 +406,15 @@ def test_local_kernels():
     Xall, dXall, Eall, Fall, dispXall, Nall, Qall = csv_to_molecular_reps(CSV_FILE)
 
     X = Xall[:TRAINING]
-    dX = dXall[:TRAINING]
+    dX = dXall[:TRAINING]  # noqa:F841
     N = Nall[:TRAINING]
-    dispX = dispXall[:, : sum(N) * 3, :, :]
+    dispX = dispXall[:, : sum(N) * 3, :, :]  # noqa:F841
     Q = Qall[:TRAINING]
 
     Xs = Xall[-TEST:]
-    dXs = dXall[-TEST:]
+    dXs = dXall[-TEST:]  # noqa:F841
     Ns = Nall[-TEST:]
-    dispXs = dispXall[:, -sum(Ns) * 3 :, :, :]
+    dispXs = dispXall[:, -sum(Ns) * 3 :, :, :]  # noqa:F841
     Qs = Qall[-TEST:]
 
     sigma1 = 2.5
@@ -455,10 +422,10 @@ def test_local_kernels():
 
     K1 = get_local_kernel(X, Xs, Q, Qs, sigma1)
     K2 = get_local_kernel(X, Xs, Q, Qs, sigma2)
-    K3 = get_local_kernel(X, Xs, Q, Qs, 10.0)
-    K4 = get_local_kernel(X, Xs, Q, Qs, 2.0)
+    K3 = get_local_kernel(X, Xs, Q, Qs, 10.0)  # noqa:F841
+    K4 = get_local_kernel(X, Xs, Q, Qs, 2.0)  # noqa:F841
 
-    K5 = get_local_kernel(X, Xs, Q, Qs, 3.0)
+    K5 = get_local_kernel(X, Xs, Q, Qs, 3.0)  # noqa:F841
 
     K = get_local_kernels(X, Xs, Q, Qs, [sigma1, sigma2, 10.0, 2.0, 3.0])
 
@@ -472,16 +439,3 @@ def test_local_kernels():
 
     assert np.allclose(K1, K[0]), "Error in get_local_symmetric_kernels() 1"
     assert np.allclose(K2, K[1]), "Error in get_local_symmetric_kernels() 2"
-
-
-if __name__ == "__main__":
-
-    test_local_kernel()
-    test_atomic_local_kernel()
-    test_atomic_local_gradient()
-    test_local_gradient()
-    test_gdml_kernel()
-    test_symmetric_gdml_kernel()
-    test_gp_kernel()
-    test_global_kernel()
-    test_local_kernels()

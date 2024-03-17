@@ -21,11 +21,7 @@ format:
 	${python} -m pre_commit run --all-files
 
 test:
-	${python} -m pytest -rs \
-	./tests/test_kernels.py \
-	./tests/test_solvers.py \
-	./tests/test_distance.py \
-	./tests/test_slatm.py
+	${python} -m pytest -rs ./tests
 
 types:
 	${python} -m monkeytype run $(which pytest) ./tests/

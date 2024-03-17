@@ -1,9 +1,4 @@
-from __future__ import print_function
-
-import itertools as itl
-
 import numpy as np
-import scipy.spatial.distance as ssd
 
 from .fslatm import fget_sbop, fget_sbop_local, fget_sbot, fget_sbot_local
 
@@ -14,91 +9,92 @@ def update_m(obj, ia, rcut=9.0, pbc=None):
     for periodic systems (or very large system)
     """
 
-    zs, coords, c = obj
-    v1, v2, v3 = c
-    vs = ssd.norm(c, axis=0)
+    raise NotImplementedError("Function is in-complete")
 
-    nns = []
-    for i, vi in enumerate(vs):
-        raise NotImplementedError()
-        # n1_doulbe = rcut / li  # TODO Anders, what is li
-        # n1 = int(n1_doulbe)
-        # if n1 - n1_doulbe == 0:
-        #     n1s = (
-        #         range(-n1, n1 + 1)
-        #         if pbc[i]
-        #         else [
-        #             0,
-        #         ]
-        #     )
-        # elif n1 == 0:
-        #     n1s = (
-        #         [-1, 0, 1]
-        #         if pbc[i]
-        #         else [
-        #             0,
-        #         ]
-        #     )
-        # else:
-        #     n1s = (
-        #         range(-n1 - 1, n1 + 2)
-        #         if pbc[i]
-        #         else [
-        #             0,
-        #         ]
-        #     )
+    # zs, coords, c = obj
+    # v1, v2, v3 = c
+    # vs = spatial_distance.norm(c, axis=0)
 
-        # nns.append(n1s)
+    # nns = []
+    # for i, vi in enumerate(vs):
+    #     # n1_doulbe = rcut / li  # what is li
+    #     # n1 = int(n1_doulbe)
+    #     # if n1 - n1_doulbe == 0:
+    #     #     n1s = (
+    #     #         range(-n1, n1 + 1)
+    #     #         if pbc[i]
+    #     #         else [
+    #     #             0,
+    #     #         ]
+    #     #     )
+    #     # elif n1 == 0:
+    #     #     n1s = (
+    #     #         [-1, 0, 1]
+    #     #         if pbc[i]
+    #     #         else [
+    #     #             0,
+    #     #         ]
+    #     #     )
+    #     # else:
+    #     #     n1s = (
+    #     #         range(-n1 - 1, n1 + 2)
+    #     #         if pbc[i]
+    #     #         else [
+    #     #             0,
+    #     #         ]
+    #     #     )
 
-    n1s, n2s, n3s = nns
+    #     # nns.append(n1s)
 
-    n123s_ = np.array(list(itl.product(n1s, n2s, n3s)))
-    n123s = []
-    for n123 in n123s_:
-        n123u = list(n123)
-        if n123u != [0, 0, 0]:
-            n123s.append(n123u)
+    # n1s, n2s, n3s = nns
 
-    nau = len(n123s)
-    n123s = np.array(n123s, np.float)
+    # n123s_ = np.array(list(itertools.product(n1s, n2s, n3s)))
+    # n123s = []
+    # for n123 in n123s_:
+    #     n123u = list(n123)
+    #     if n123u != [0, 0, 0]:
+    #         n123s.append(n123u)
 
-    na = len(zs)
-    cia = coords[ia]
+    # nau = len(n123s)
+    # n123s = np.array(n123s, np.float64)
 
-    if na == 1:
-        ds = np.array([[0.0]])
-    else:
-        ds = ssd.squareform(ssd.pdist(coords))
+    # na = len(zs)
+    # cia = coords[ia]
 
-    zs_u = []
-    coords_u = []
-    zs_u.append(zs[ia])
-    coords_u.append(coords[ia])
-    for i in range(na):
-        di = ds[i, ia]
-        if (di > 0) and (di <= rcut):
-            zs_u.append(zs[i])
-            coords_u.append(coords[ia])
+    # if na == 1:
+    #     ds = np.array([[0.0]])
+    # else:
+    #     ds = spatial_distance.squareform(spatial_distance.pdist(coords))
 
-            # add new coords by translation
-            ts = np.zeros((nau, 3))
-            for iau in range(nau):
-                ts[iau] = np.dot(n123s[iau], c)
+    # zs_u = []
+    # coords_u = []
+    # zs_u.append(zs[ia])
+    # coords_u.append(coords[ia])
+    # for i in range(na):
+    #     di = ds[i, ia]
+    #     if (di > 0) and (di <= rcut):
+    #         zs_u.append(zs[i])
+    #         coords_u.append(coords[ia])
 
-            coords_iu = coords[i] + ts  # np.dot(n123s, c)
-            dsi = ssd.norm(coords_iu - cia, axis=1)
-            filt = np.logical_and(dsi > 0, dsi <= rcut)
-            nx = filt.sum()
-            zs_u += [
-                zs[i],
-            ] * nx
-            coords_u += [
-                list(coords_iu[filt, :]),
-            ]
+    #         # add new coords by translation
+    #         ts = np.zeros((nau, 3))
+    #         for iau in range(nau):
+    #             ts[iau] = np.dot(n123s[iau], c)
 
-    obj_u = [zs_u, coords_u]
+    #         coords_iu = coords[i] + ts  # np.dot(n123s, c)
+    #         dsi = spatial_distance.norm(coords_iu - cia, axis=1)
+    #         filt = np.logical_and(dsi > 0, dsi <= rcut)
+    #         nx = filt.sum()
+    #         zs_u += [
+    #             zs[i],
+    #         ] * nx
+    #         coords_u += [
+    #             list(coords_iu[filt, :]),
+    #         ]
 
-    return obj_u
+    # obj_u = [zs_u, coords_u]
+
+    # return obj_u
 
 
 def get_boa(z1, zs_):
@@ -136,13 +132,14 @@ def get_sbop(
         assert ia is not None, "#ERROR: plz specify `za and `ia "
 
     if pbc != "000":
-        if rcut < 9.0:
-            raise ValueError()
-        assert iloc, "#ERROR: for periodic system, plz use atomic rpst"
-        zs, coords = update_m(obj, ia, rcut=rcut, pbc=pbc)
+        raise NotImplementedError("Periodic boundary conditions not implemented")
+        # if rcut < 9.0:
+        #     raise ValueError()
+        # assert iloc, "#ERROR: for periodic system, plz use atomic rpst"
+        # zs, coords = update_m(obj, ia, rcut=rcut, pbc=pbc)
 
         # after update of `m, the query atom `ia will become the first atom
-        ia = 0
+        # ia = 0
 
     # bop potential distribution
     r0 = 0.1
@@ -176,11 +173,12 @@ def get_sbot(
         assert ia is not None, "#ERROR: plz specify `za and `ia "
 
     if pbc != "000":
-        assert iloc, "#ERROR: for periodic system, plz use atomic rpst"
-        zs, coords = update_m(obj, ia, rcut=rcut, pbc=pbc)
+        raise NotImplementedError("Periodic boundary conditions not implemented")
+        # assert iloc, "#ERROR: for periodic system, plz use atomic rpst"
+        # zs, coords = update_m(obj, ia, rcut=rcut, pbc=pbc)
 
-        # after update of `m, the query atom `ia will become the first atom
-        ia = 0
+        # # after update of `m, the query atom `ia will become the first atom
+        # ia = 0
 
     # for a normalized gaussian distribution, u should multiply this coeff
     coeff = 1 / np.sqrt(2 * sigma**2 * np.pi) if normalize else 1.0

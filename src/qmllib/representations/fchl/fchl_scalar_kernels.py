@@ -37,7 +37,7 @@ def get_local_kernels(
 ):
     """Calculates the Gaussian kernel matrix K, where :math:`K_{ij}`:
 
-        :math:`K_{ij} = \\exp \\big( -\\frac{\\|A_i - B_j\\|_2^2}{2\sigma^2} \\big)`
+        :math:`K_{ij} = \\exp \\big( -\\frac{\\|A_i - B_j\\|_2^2}{2\\sigma^2} \\big)`
 
     Where :math:`A_{i}` and :math:`B_{j}` are FCHL representation vectors.
     K is calculated analytically using an OpenMP parallel Fortran routine.
@@ -166,7 +166,7 @@ def get_local_symmetric_kernels(
 ):
     """Calculates the Gaussian kernel matrix K, where :math:`K_{ij}`:
 
-        :math:`K_{ij} = \\exp \\big( -\\frac{\\|A_i - A_j\\|_2^2}{2\sigma^2} \\big)`
+        :math:`K_{ij} = \\exp \\big( -\\frac{\\|A_i - A_j\\|_2^2}{2\\sigma^2} \\big)`
 
     Where :math:`A_{i}` and :math:`A_{j}` are FCHL representation vectors.
     K is calculated analytically using an OpenMP parallel Fortran routine.
@@ -210,7 +210,7 @@ def get_local_symmetric_kernels(
     """
 
     atoms_max = A.shape[1]
-    neighbors_max = A.shape[3]
+    # UNUSED neighbors_max = A.shape[3]
 
     nm1 = A.shape[0]
     N1 = np.zeros((nm1), dtype=np.int32)
@@ -273,7 +273,7 @@ def get_global_symmetric_kernels(
 ):
     """Calculates the Gaussian kernel matrix K, where :math:`K_{ij}`:
 
-        :math:`K_{ij} = \\exp \\big( -\\frac{\\|A_i - A_j\\|_2^2}{2\sigma^2} \\big)`
+        :math:`K_{ij} = \\exp \\big( -\\frac{\\|A_i - A_j\\|_2^2}{2\\sigma^2} \\big)`
 
     Where :math:`A_{i}` and :math:`A_{j}` are FCHL representation vectors.
     K is calculated analytically using an OpenMP parallel Fortran routine.
@@ -317,7 +317,7 @@ def get_global_symmetric_kernels(
     """
 
     atoms_max = A.shape[1]
-    neighbors_max = A.shape[3]
+    # UNUSED neighbors_max = A.shape[3]
 
     nm1 = A.shape[0]
     N1 = np.zeros((nm1), dtype=np.int32)
@@ -381,7 +381,7 @@ def get_global_kernels(
 ):
     """Calculates the Gaussian kernel matrix K, where :math:`K_{ij}`:
 
-        :math:`K_{ij} = \\exp \\big( -\\frac{\\|A_i - B_j\\|_2^2}{2\sigma^2} \\big)`
+        :math:`K_{ij} = \\exp \\big( -\\frac{\\|A_i - B_j\\|_2^2}{2\\sigma^2} \\big)`
 
     Where :math:`A_{i}` and :math:`B_{j}` are FCHL representation vectors.
     K is calculated analytically using an OpenMP parallel Fortran routine.
@@ -510,7 +510,7 @@ def get_atomic_kernels(
 ):
     """Calculates the Gaussian kernel matrix K, where :math:`K_{ij}`:
 
-        :math:`K_{ij} = \\exp \\big( -\\frac{\\|A_i - B_j\\|_2^2}{2\sigma^2} \\big)`
+        :math:`K_{ij} = \\exp \\big( -\\frac{\\|A_i - B_j\\|_2^2}{2\\sigma^2} \\big)`
 
     Where :math:`A_{i}` and :math:`B_{j}` are FCHL representation vectors.
     K is calculated analytically using an OpenMP parallel Fortran routine.
@@ -625,7 +625,7 @@ def get_atomic_symmetric_kernels(
 ):
     """Calculates the Gaussian kernel matrix K, where :math:`K_{ij}`:
 
-        :math:`K_{ij} = \\exp \\big( -\\frac{\\|A_i - B_j\\|_2^2}{2\sigma^2} \\big)`
+        :math:`K_{ij} = \\exp \\big( -\\frac{\\|A_i - B_j\\|_2^2}{2\\sigma^2} \\big)`
 
     Where :math:`A_{i}` and :math:`B_{j}` are FCHL representation vectors.
     K is calculated analytically using an OpenMP parallel Fortran routine.
@@ -727,7 +727,7 @@ def get_atomic_local_kernels(
 ):
     """Calculates the Gaussian kernel matrix K, where :math:`K_{ij}`:
 
-        :math:`K_{ij} = \\exp \\big( -\\frac{\\|A_i - B_j\\|_2^2}{2\sigma^2} \\big)`
+        :math:`K_{ij} = \\exp \\big( -\\frac{\\|A_i - B_j\\|_2^2}{2\\sigma^2} \\big)`
 
     Where :math:`A_{i}` and :math:`B_{j}` are FCHL representation vectors.
     K is calculated analytically using an OpenMP parallel Fortran routine.

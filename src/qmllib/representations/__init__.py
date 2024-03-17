@@ -1,1 +1,1 @@
-from .representations import *
+from .representations import *  # noqa:F403

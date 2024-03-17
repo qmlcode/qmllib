@@ -1,10 +1,6 @@
-from __future__ import print_function
-
 import copy
 
 import numpy as np
-
-from qmllib.utils import ELEMENT_NAME
 
 
 def generate_representation(
@@ -63,8 +59,8 @@ def generate_representation(
 
     for i in range(L):
         cD = -coords[i] + coordsExt[:]
-
         ocExt = np.asarray(ocupationListExt)
+
         D1 = np.sqrt(np.sum(cD**2, axis=1))
         args = np.argsort(D1)
         D1 = D1[args]
@@ -217,48 +213,56 @@ def generate_representation_electric_field(
     partial_charges = None
 
     # If a list is given, assume these are the fictitious charges
-    if isinstance(fictitious_charges, (list,)) or isinstance(fictitious_charges, (np.ndarray,)):
 
-        assert len(fictitious_charges) == len(
-            nuclear_charges
-        ), "Error: incorrect length of fictitious charge list"
+    print(fictitious_charges)
+    print(type(fictitious_charges))
+    print(nuclear_charges)
+
+    print(len(fictitious_charges))
+    print(len(nuclear_charges))
+
+    if isinstance(fictitious_charges, list) or isinstance(fictitious_charges, np.ndarray):
+
+        if len(fictitious_charges) != len(nuclear_charges):
+            raise ValueError("Error: incorrect length of fictitious charge list")
 
         partial_charges = fictitious_charges
 
-    # Otherwise, if a string is given, assume this is the name of a charge model
-    # in Open Babel//Pybel.
-    elif isinstance(fictitious_charges, (basestring,)):
+    # # Otherwise, if a string is given, assume this is the name of a charge model
+    # # in Open Babel//Pybel.
+    # elif isinstance(fictitious_charges, (basestring,)):
 
-        # Dirty hack for now.
-        try:
-            import openbabel
-            import pybel
-        except ImportError:
-            print(
-                "QML ERROR: Could not generate fictitious charges because OpenBabel/Pybel was not found."
-            )
-            exit()
+    #     # Dirty hack for now.
+    #     try:
+    #         import openbabel
+    #         import pybel
+    #     except ImportError:
+    #         print(
+    #             "QML ERROR: Could not generate fictitious charges because OpenBabel/Pybel was not found."
+    #         )
+    #         exit()
 
-        temp_xyz = "%i\n\n" % len(nuclear_charges)
+    #     temp_xyz = "%i\n\n" % len(nuclear_charges)
 
-        for i, nuc in enumerate(nuclear_charges):
-            temp_xyz += "%s %f %f %f\n" % (
-                ELEMENT_NAME[nuc],
-                coordinates[i][0],
-                coordinates[i][1],
-                coordinates[i][2],
-            )
+    #     for i, nuc in enumerate(nuclear_charges):
+    #         temp_xyz += "%s %f %f %f\n" % (
+    #             ELEMENT_NAME[nuc],
+    #             coordinates[i][0],
+    #             coordinates[i][1],
+    #             coordinates[i][2],
+    #         )
 
-        mol = pybel.readstring("xyz", temp_xyz)
+    #     mol = pybel.readstring("xyz", temp_xyz)
 
-        this_charge_model = openbabel.OBChargeModel.FindType(fictitious_charges)
-        this_charge_model.ComputeCharges(mol.OBMol)
+    #     this_charge_model = openbabel.OBChargeModel.FindType(fictitious_charges)
+    #     this_charge_model.ComputeCharges(mol.OBMol)
 
-        partial_charges = [atom.partialcharge for atom in mol]
+    #     partial_charges = [atom.partialcharge for atom in mol]
 
     else:
-        print("QML ERROR: Unable to parse argument for fictitious charges", fictitious_charges)
-        exit()
+        # print("QML ERROR: Unable to parse argument for fictitious charges", fictitious_charges)
+        # exit()
+        raise ValueError("Missing charges")
 
     size = max_size
     neighbors = size

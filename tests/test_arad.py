@@ -1,11 +1,7 @@
-from __future__ import print_function
-
-import os
-
 import numpy as np
+from conftest import ASSETS, get_energies
 
-import qmllib
-from qmllib.arad import (
+from qmllib.representations.arad import (
     generate_arad_representation,
     get_atomic_kernels_arad,
     get_atomic_symmetric_kernels_arad,
@@ -14,65 +10,60 @@ from qmllib.arad import (
     get_local_kernels_arad,
     get_local_symmetric_kernels_arad,
 )
-
-
-def get_energies(filename):
-    """Returns a dictionary with heats of formation for each xyz-file."""
-
-    f = open(filename, "r")
-    lines = f.readlines()
-    f.close()
-
-    energies = dict()
-
-    for line in lines:
-        tokens = line.split()
-
-        xyz_name = tokens[0]
-        hof = float(tokens[1])
-
-        energies[xyz_name] = hof
-
-    return energies
+from qmllib.utils.xyz_format import read_xyz
 
 
 def test_arad():
-    test_dir = os.path.dirname(os.path.realpath(__file__))
 
     # Parse file containing PBE0/def2-TZVP heats of formation and xyz filenames
-    data = get_energies(test_dir + "/data/hof_qm7.txt")
+    n_points = 10
+    data = get_energies(ASSETS / "hof_qm7.txt")
+    filenames = sorted(data.keys())[:n_points]
 
-    # Generate a list of qmllib.data.Compound() objects
-    mols = []
+    molecules = []
+    representations = []
+    properties = []
 
-    for xyz_file in sorted(data.keys())[:10]:
+    for filename in filenames:
+        coord, atoms = read_xyz((ASSETS / "qm7" / filename).with_suffix(".xyz"))
+        molecules.append((coord, atoms))
+        properties.append(data[filename])
 
-        # Initialize the qmllib.data.Compound() objects
-        mol = qmllib.Compound(xyz=test_dir + "/qm7/" + xyz_file)
+    for coord, atoms in molecules:
+        rep = generate_arad_representation(coord, atoms)
+        representations.append(rep)
 
-        # Associate a property (heat of formation) with the object
-        mol.properties = data[xyz_file]
+    representations = np.array(representations)
+    properties = np.array(properties)
 
-        # This is a Molecular Coulomb matrix sorted by row norm
+    # for xyz_file in sorted(data.keys())[:10]:
 
-        mol.representation = generate_arad_representation(mol.coordinates, mol.nuclear_charges)
+    #     # Initialize the qmllib.data.Compound() objects
+    #     mol = qmllib.Compound(xyz=test_dir + "/qm7/" + xyz_file)
 
-        mols.append(mol)
+    #     # Associate a property (heat of formation) with the object
+    #     mol.properties = data[xyz_file]
+
+    #     # This is a Molecular Coulomb matrix sorted by row norm
+
+    #     representation = generate_arad_representation(mol.coordinates, mol.nuclear_charges)
+
+    #     mols.append(mol)
 
     sigmas = [25.0]
 
-    X1 = np.array([mol.representation for mol in mols])
+    # X1 = np.array([mol.representation for mol in mols])
 
-    K_local_asymm = get_local_kernels_arad(X1, X1, sigmas)
-    K_local_symm = get_local_symmetric_kernels_arad(X1, sigmas)
+    K_local_asymm = get_local_kernels_arad(representations, representations, sigmas)
+    K_local_symm = get_local_symmetric_kernels_arad(representations, sigmas)
 
     assert np.allclose(K_local_symm, K_local_asymm), "Symmetry error in local kernels"
     assert np.invert(
         np.all(np.isnan(K_local_asymm))
     ), "ERROR: ARAD local symmetric kernel contains NaN"
 
-    K_global_asymm = get_global_kernels_arad(X1, X1, sigmas)
-    K_global_symm = get_global_symmetric_kernels_arad(X1, sigmas)
+    K_global_asymm = get_global_kernels_arad(representations, representations, sigmas)
+    K_global_symm = get_global_symmetric_kernels_arad(representations, sigmas)
 
     assert np.allclose(K_global_symm, K_global_asymm), "Symmetry error in global kernels"
     assert np.invert(
@@ -80,10 +71,10 @@ def test_arad():
     ), "ERROR: ARAD global symmetric kernel contains NaN"
 
     molid = 5
-    X1 = generate_arad_representation(
-        mols[molid].coordinates, mols[molid].nuclear_charges, size=mols[molid].natoms
-    )
-    XA = X1[: mols[molid].natoms]
+    coordinates, atoms = molecules[molid]
+    natoms = len(atoms)
+    X1 = generate_arad_representation(coordinates, atoms, size=natoms)
+    XA = X1[:natoms]
 
     K_atomic_asymm = get_atomic_kernels_arad(XA, XA, sigmas)
     K_atomic_symm = get_atomic_symmetric_kernels_arad(XA, sigmas)
@@ -94,8 +85,3 @@ def test_arad():
     ), "ERROR: ARAD atomic symmetric kernel contains NaN"
 
     K_atomic_asymm = get_atomic_kernels_arad(XA, XA, sigmas)
-
-
-if __name__ == "__main__":
-
-    test_arad()

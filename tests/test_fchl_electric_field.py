@@ -1,14 +1,12 @@
-from __future__ import print_function
-
 import ast
 import csv
-import os
 from copy import deepcopy
 
 import numpy as np
+import pytest
 from scipy.linalg import lstsq
 
-from qmllib.fchl import (
+from qmllib.representations.fchl import (
     generate_displaced_representations,
     generate_representation,
     generate_representation_electric_field,
@@ -17,7 +15,23 @@ from qmllib.fchl import (
     get_atomic_local_kernels,
     get_gaussian_process_electric_field_kernels,
 )
-from qmllib.math import cho_solve
+from qmllib.solvers import cho_solve
+
+try:
+    import rdkit
+except ImportError:
+    rdkit = None
+
+try:
+    import pybel
+except ImportError:
+    pybel = None
+
+from conftest import ASSETS
+
+needsrdkit = pytest.mark.skipif(rdkit is None, reason="Test requires RDKit installed")
+needspybel = pytest.mark.skipif(pybel is None, reason="Test requires Pybel installed")
+
 
 DEBYE_TO_EAA = 0.20819434
 DEBYE_TO_AU = 0.393456
@@ -99,7 +113,7 @@ def parse_dipole(filename):
         mu = np.array([float(tokens[-3]), float(tokens[-2]), float(tokens[-1])])
         angle = ang2ang(float(tokens[0]))
 
-        dipole[angle] = mu  #  * DEBYE_TO_EAA
+        dipole[angle] = mu  # * DEBYE_TO_EAA
 
     return dipole
 
@@ -161,16 +175,10 @@ def parse_csv(filename):
     return X, X_gradient, X_dipole, E, G, D
 
 
+@pytest.mark.skip(reason="Missing test file")
 def test_multiple_operators():
 
-    try:
-        pass
-    except ImportError:
-        return
-
-    test_dir = os.path.dirname(os.path.realpath(__file__))
-
-    X, X_gradient, X_dipole, E, G, D = parse_csv(test_dir + "/data/dichloromethane_mp2_test.csv")
+    X, X_gradient, X_dipole, E, G, D = parse_csv(ASSETS / "dichloromethane_mp2_test.csv")
 
     K = get_atomic_local_kernels(X, X, **KERNEL_ARGS)[0]
     K_gradient = get_atomic_local_gradient_kernels(X, X_gradient, dx=DX, **KERNEL_ARGS)[0]
@@ -178,9 +186,7 @@ def test_multiple_operators():
         X, X_dipole, df=DF, ef_scaling=EF_SCALING, **KERNEL_ARGS
     )[0]
 
-    Xs, Xs_gradient, Xs_dipole, Es, Gs, Ds = parse_csv(
-        test_dir + "/data/dichloromethane_mp2_train.csv"
-    )
+    Xs, Xs_gradient, Xs_dipole, Es, Gs, Ds = parse_csv(ASSETS / "dichloromethane_mp2_train.csv")
 
     Ks = get_atomic_local_kernels(X, Xs, **KERNEL_ARGS)[0]
     Ks_gradient = get_atomic_local_gradient_kernels(X, Xs_gradient, dx=DX, **KERNEL_ARGS)[0]
@@ -205,13 +211,13 @@ def test_multiple_operators():
     mae_gradient = np.mean(np.abs(Gt - G.flatten())) / KCAL_MOL_TO_EV * BOHR_TO_ANGS
     mae_dipole = np.mean(np.abs(Dt - D.flatten())) / DEBYE_TO_EAA
 
+    print(mae)
+    print(mae_gradient)
+    print(mae_dipole)
+
     assert mae < 0.8, "Error in multiple operator training energy"
     assert mae_gradient < 0.1, "Error in multiple operator training energy"
     assert mae_dipole < 0.01, "Error in multiple operator training dipole"
-
-    # print(mae)
-    # print(mae_gradient)
-    # print(mae_dipole)
 
     Ess = np.dot(Ks.T, alpha)
     Gss = np.dot(Ks_gradient.T, alpha)
@@ -221,24 +227,22 @@ def test_multiple_operators():
     mae_gradient = np.mean(np.abs(Gss - Gs.flatten())) / KCAL_MOL_TO_EV * BOHR_TO_ANGS
     mae_dipole = np.mean(np.abs(Dss - Ds.flatten())) / DEBYE_TO_EAA
 
+    print(mae)
+    print(mae_gradient)
+    print(mae_dipole)
+
     assert mae < 0.8, "Error in multiple operator test energy"
     assert mae_gradient < 0.1, "Error in multiple operator test force"
     assert mae_dipole < 0.02, "Error in multiple operator test dipole"
 
-    # print(mae)
-    # print(mae_gradient)
-    # print(mae_dipole)
-
 
 def test_generate_representation():
-
-    test_dir = os.path.dirname(os.path.realpath(__file__))
 
     coords = np.array([[1.464, 0.707, 1.056], [0.878, 1.218, 0.498], [2.319, 1.126, 0.952]])
 
     nuclear_charges = np.array([8, 1, 1], dtype=np.int32)
 
-    rep_ref = np.loadtxt(test_dir + "/data/fchl_ef_rep.txt").reshape((3, 6, 3))
+    rep_ref = np.loadtxt(ASSETS / "fchl_ef_rep.txt").reshape((3, 6, 3))
 
     # Test with fictitious charges from a numpy array
     fic_charges1 = np.array([-0.41046649, 0.20523324, 0.20523324])
@@ -258,38 +262,43 @@ def test_generate_representation():
 
     assert np.allclose(rep2, rep_ref), "Error generating representation for electric fields"
 
+
+@needspybel()
+def test_generate_representation_pybel():
+    # TODO Generate Gastiger charges with pybel
+
     # Test with fictitious charges from Open Babel (Gasteiger).
     # Skip test if there is no pybel/openbabel
-    try:
-        pass
-    except ImportError:
-        return
+    # try:
+    #     pass
+    # except ImportError:
+    #     return
 
-    rep3 = generate_representation_electric_field(
-        coords, nuclear_charges, fictitious_charges="Gasteiger", max_size=3
-    )
+    # rep3 = generate_representation_electric_field(
+    #     coords, nuclear_charges, fictitious_charges="Gasteiger", max_size=3
+    # )
 
-    assert np.allclose(
-        rep3, rep_ref
-    ), "Error assigning partial charges: Check Openbabel/Pybel installation"
+    # assert np.allclose(
+    #     rep3, rep_ref
+    # ), "Error assigning partial charges: Check Openbabel/Pybel installation"
+
+    raise NotImplementedError()
 
 
+@needsrdkit()
+def test_generate_representation_rdkit():
+    # TODO Generate Gastiger charges with rdkit
+    raise NotImplementedError()
+
+
+@pytest.mark.skip(reason="Missing test file")
 def test_gaussian_process():
 
-    try:
-        pass
-    except ImportError:
-        return
-
-    test_dir = os.path.dirname(os.path.realpath(__file__))
-
-    X, X_gradient, X_dipole, E, G, D = parse_csv(test_dir + "/data/dichloromethane_mp2_test.csv")
+    X, X_gradient, X_dipole, E, G, D = parse_csv(ASSETS / "dichloromethane_mp2_test.csv")
 
     K = get_gaussian_process_electric_field_kernels(X_dipole, X_dipole, **KERNEL_ARGS)[0]
 
-    Xs, Xs_gradient, Xs_dipole, Es, Gs, Ds = parse_csv(
-        test_dir + "/data/dichloromethane_mp2_train.csv"
-    )
+    Xs, Xs_gradient, Xs_dipole, Es, Gs, Ds = parse_csv(ASSETS / "dichloromethane_mp2_train.csv")
 
     Ks = get_gaussian_process_electric_field_kernels(X_dipole, Xs_dipole, **KERNEL_ARGS)[0]
 
@@ -298,7 +307,7 @@ def test_gaussian_process():
     Es -= offset
 
     Y = np.concatenate((E, D.flatten()))
-    Ys = np.concatenate((Es, Ds.flatten()))
+    # UNUSED Ys = np.concatenate((Es, Ds.flatten()))
 
     C = deepcopy(K)
     C[np.diag_indices_from(C)] += 1e-9
@@ -328,22 +337,16 @@ def test_gaussian_process():
     assert mae_dipole < 0.02, "Error in multiple operator test dipole"
 
 
+@pytest.mark.skip(reason="Missing test files")
 def test_gaussian_process_field_dependent():
 
-    try:
-        pass
-    except ImportError:
-        return
-
-    test_dir = os.path.dirname(os.path.realpath(__file__))
-
-    dipole = parse_dipole(test_dir + "/data/hf_dipole.txt")
-    energy = parse_energy(test_dir + "/data/hf_energy.txt")
+    dipole = parse_dipole(ASSETS / "hf_dipole.txt")
+    energy = parse_energy(ASSETS / "hf_energy.txt")
 
     # Get energies, dipole moments and angles from datafiles
-    e = np.array([energy[key] for key in sorted(energy.keys())])
-    mu = np.array([dipole[key] for key in sorted(dipole.keys())])
-    a = np.array([key for key in sorted(dipole.keys())])
+    # UNUSED e = np.array([energy[key] for key in sorted(energy.keys())])
+    # UNUSED mu = np.array([dipole[key] for key in sorted(dipole.keys())])
+    # UNUSED a = np.array([key for key in sorted(dipole.keys())])
 
     # Generate dummy coordinates
     coordinates = np.array([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0]])

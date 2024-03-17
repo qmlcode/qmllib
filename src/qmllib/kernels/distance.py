@@ -77,7 +77,7 @@ def p_distance(A, B, p=2):
     The value of the keyword argument ``p =`` sets the norm order.
     E.g. ``p = 1.0`` and ``p = 2.0`` with yield the Manhattan and L2 distances, respectively.
 
-        .. math:: D_{ij} = \|A_i - B_j\|_p
+        .. math:: D_{ij} = \\|A_i - B_j\\|_p
 
     Where :math:`A_{i}` and :math:`B_{j}` are representation vectors.
     D is calculated using an OpenMP parallel Fortran routine.
@@ -104,13 +104,13 @@ def p_distance(A, B, p=2):
 
     D = np.empty((na, nb), order="F")
 
-    if type(p) == type(1):
+    if isinstance(p, int):
         if p == 2:
             fl2_distance(A, B, D)
         else:
             fp_distance_integer(A.T, B.T, D, p)
 
-    elif type(p) == type(1.0):
+    elif isinstance(p, float):
         if p.is_integer():
             p = int(p)
             if p == 2:

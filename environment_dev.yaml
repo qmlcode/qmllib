@@ -8,6 +8,7 @@ dependencies:
   - monkeytype
   - numpy
   - pandas
+  - pyarrow
   - pip
   - pre-commit
   - pytest

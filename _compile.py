@@ -8,6 +8,7 @@ f90_modules = {
     "representations/frepresentations": ["frepresentations.f90"],
     "representations/facsf": ["facsf.f90"],
     "representations/fslatm": ["fslatm.f90"],
+    "representations/arad/farad_kernels": ["farad_kernels.f90"],
     "representations/fchl/ffchl_module": [
         "ffchl_module.f90",
         "ffchl_scalar_kernels.f90",
@@ -41,7 +42,9 @@ def find_flags(fcc: str):
     #                 "-Wno-maybe-uninitialized", "-Wno-unused-function", "-Wno-cpp"]
     # LINKER_FLAGS = ["-lgomp"]
 
-    flags = ["-L/usr/lib/", "-lblas", "-llapack"]
+    extra_flags = ["-lgomp", "-lpthread", "-lm", "-ldl"]
+
+    flags = ["-L/usr/lib/", "-lblas", "-llapack"] + extra_flags
 
     return flags
 

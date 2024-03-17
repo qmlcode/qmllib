@@ -355,7 +355,7 @@ def get_local_symmetric_hessian_kernels(
     atoms_max = A.shape[4]
     assert A.shape[3] == atoms_max
 
-    neighbors_max = A.shape[6]
+    # Unused neighbors_max = A.shape[6]
 
     N1 = np.zeros((nm1), dtype=np.int32)
 
@@ -479,7 +479,7 @@ def get_force_alphas(
     kernel_idx, kernel_parameters, nsigmas = get_kernel_parameters(kernel, kernel_args)
 
     na1 = np.sum(N1)
-    naq2 = np.sum(N2) * 3
+    # UNUSED naq2 = np.sum(N2) * 3
 
     E = np.zeros((nm1))
     if energy is not None:
