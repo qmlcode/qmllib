@@ -1,7 +1,5 @@
-from pathlib import Path
-
 import numpy as np
-from conftest import ASSETS, shuffle_arrays
+from conftest import ASSETS, get_energies, shuffle_arrays
 
 from qmllib.kernels import get_local_kernel, get_local_symmetric_kernel
 from qmllib.representations import generate_fchl_acsf
@@ -9,26 +7,6 @@ from qmllib.solvers import cho_solve
 from qmllib.utils.xyz_format import read_xyz
 
 np.set_printoptions(linewidth=666)
-
-
-def get_energies(filename: Path):
-    """Returns a dictionary with heats of formation for each xyz-file."""
-
-    f = open(filename, "r")
-    lines = f.readlines()
-    f.close()
-
-    energies = dict()
-
-    for line in lines:
-        tokens = line.split()
-
-        xyz_name = tokens[0]
-        hof = float(tokens[1])
-
-        energies[xyz_name] = hof
-
-    return energies
 
 
 def test_energy():
