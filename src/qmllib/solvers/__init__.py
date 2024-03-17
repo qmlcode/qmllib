@@ -1,3 +1,5 @@
+from typing import Optional
+
 import numpy as np
 from numpy import ndarray
 
@@ -158,7 +160,7 @@ def bkf_solve(A: ndarray, y: ndarray) -> ndarray:
     return x
 
 
-def svd_solve(A, y, rcond=None):
+def svd_solve(A: ndarray, y: ndarray, rcond: Optional[float] = None) -> ndarray:
     """Solves the equation
 
         :math:`A x = y`

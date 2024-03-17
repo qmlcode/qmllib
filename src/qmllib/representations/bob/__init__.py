@@ -2,7 +2,10 @@
 Bag of bonds utils functions
 """
 
+from typing import List
+
 import numpy as np
+from numpy import ndarray
 
 from qmllib.constants.periodic_table import ELEMENT_NAME
 
@@ -23,7 +26,7 @@ def get_natypes(nuclear_charges: np.ndarray) -> dict[str, int]:
     return natypes
 
 
-def get_asize(list_nuclear_charges, pad) -> dict[str, int]:
+def get_asize(list_nuclear_charges: List[ndarray], pad: int) -> dict[str, int]:
     """
 
     example:

@@ -1,6 +1,8 @@
 import itertools
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
+from numpy import int64, ndarray
 
 from qmllib.constants.periodic_table import NUCLEAR_CHARGE
 
@@ -50,7 +52,9 @@ def vector_to_matrix(v):
     return M
 
 
-def generate_coulomb_matrix(nuclear_charges, coordinates, size=23, sorting="row-norm"):
+def generate_coulomb_matrix(
+    nuclear_charges: ndarray, coordinates: ndarray, size: int = 23, sorting: str = "row-norm"
+) -> ndarray:
     """ Creates a Coulomb Matrix representation of a molecule.
         Sorting of the elements can either be done by ``sorting="row-norm"`` or ``sorting="unsorted"``.
         A matrix :math:`M` is constructed with elements
@@ -102,16 +106,16 @@ def generate_coulomb_matrix(nuclear_charges, coordinates, size=23, sorting="row-
 
 
 def generate_atomic_coulomb_matrix(
-    nuclear_charges,
-    coordinates,
-    size=23,
-    sorting="distance",
-    central_cutoff=1e6,
-    central_decay=-1,
-    interaction_cutoff=1e6,
-    interaction_decay=-1,
-    indices=None,
-):
+    nuclear_charges: ndarray,
+    coordinates: ndarray,
+    size: int = 23,
+    sorting: str = "distance",
+    central_cutoff: float = 1e6,
+    central_decay: Union[float, int] = -1,
+    interaction_cutoff: float = 1e6,
+    interaction_decay: Union[float, int] = -1,
+    indices: Optional[List[int]] = None,
+) -> ndarray:
     """ Creates a Coulomb Matrix representation of the local environment of a central atom.
         For each central atom :math:`k`, a matrix :math:`M` is constructed with elements
 
@@ -240,7 +244,9 @@ def generate_atomic_coulomb_matrix(
         raise SystemExit
 
 
-def generate_eigenvalue_coulomb_matrix(nuclear_charges, coordinates, size=23):
+def generate_eigenvalue_coulomb_matrix(
+    nuclear_charges: ndarray, coordinates: ndarray, size: int = 23
+) -> ndarray:
     """ Creates an eigenvalue Coulomb Matrix representation of a molecule.
         A matrix :math:`M` is constructed with elements
 
@@ -271,12 +277,12 @@ def generate_eigenvalue_coulomb_matrix(nuclear_charges, coordinates, size=23):
 
 
 def generate_bob(
-    nuclear_charges,
-    coordinates,
-    atomtypes,
-    size=23,
-    asize={"O": 3, "C": 7, "N": 3, "H": 16, "S": 1},
-):
+    nuclear_charges: ndarray,
+    coordinates: ndarray,
+    atomtypes: ndarray,
+    size: int = 23,
+    asize: Dict[str, Union[int64, int]] = {"O": 3, "C": 7, "N": 3, "H": 16, "S": 1},
+) -> ndarray:
     """Creates a Bag of Bonds (BOB) representation of a molecule.
     The representation expands on the coulomb matrix representation.
     For each element a bag (vector) is constructed for self interactions
@@ -327,7 +333,7 @@ def generate_bob(
     return fgenerate_bob(nuclear_charges, coordinates, nuclear_charges, ids, nmax, n)
 
 
-def get_slatm_mbtypes(nuclear_charges, pbc="000"):
+def get_slatm_mbtypes(nuclear_charges: List[ndarray], pbc: str = "000") -> List[List[int64]]:
     """
     Get the list of minimal types of many-body terms in a dataset. This resulting list
     is necessary as input in the ``generate_slatm_representation()`` function.
@@ -395,18 +401,18 @@ def get_slatm_mbtypes(nuclear_charges, pbc="000"):
 
 
 def generate_slatm(
-    coordinates,
-    nuclear_charges,
-    mbtypes,
-    unit_cell=None,
-    local=False,
-    sigmas=[0.05, 0.05],
-    dgrids=[0.03, 0.03],
-    rcut=4.8,
-    alchemy=False,
-    pbc="000",
-    rpower=6,
-):
+    coordinates: ndarray,
+    nuclear_charges: ndarray,
+    mbtypes: List[List[int64]],
+    unit_cell: None = None,
+    local: bool = False,
+    sigmas: List[float] = [0.05, 0.05],
+    dgrids: List[float] = [0.03, 0.03],
+    rcut: float = 4.8,
+    alchemy: bool = False,
+    pbc: str = "000",
+    rpower: int = 6,
+) -> Union[ndarray, List[ndarray]]:
     """
     Generate Spectrum of London and Axillrod-Teller-Muto potential (SLATM) representation.
     Both global (``local=False``) and local (``local=True``) SLATM are available.
@@ -613,21 +619,21 @@ def generate_slatm(
 
 
 def generate_acsf(
-    nuclear_charges,
-    coordinates,
-    elements=[1, 6, 7, 8, 16],
-    nRs2=3,
-    nRs3=3,
-    nTs=3,
-    eta2=1,
-    eta3=1,
-    zeta=1,
-    rcut=5,
-    acut=5,
-    bin_min=0.8,
-    gradients=False,
-    pad=None,
-):
+    nuclear_charges: List[int],
+    coordinates: ndarray,
+    elements: List[int] = [1, 6, 7, 8, 16],
+    nRs2: int = 3,
+    nRs3: int = 3,
+    nTs: int = 3,
+    eta2: int = 1,
+    eta3: int = 1,
+    zeta: int = 1,
+    rcut: int = 5,
+    acut: int = 5,
+    bin_min: float = 0.8,
+    gradients: bool = False,
+    pad: Optional[int] = None,
+) -> Union[Tuple[ndarray, ndarray], ndarray]:
     """
     Generate the variant of atom-centered symmetry functions used in https://doi.org/10.1039/C7SC04934J
 
@@ -730,23 +736,23 @@ def generate_acsf(
 
 
 def generate_fchl_acsf(
-    nuclear_charges,
-    coordinates,
-    elements=[1, 6, 7, 8, 16],
-    nRs2=24,
-    nRs3=20,
-    nFourier=1,
-    eta2=0.32,
-    eta3=2.7,
-    zeta=np.pi,
-    rcut=8.0,
-    acut=8.0,
-    two_body_decay=1.8,
-    three_body_decay=0.57,
-    three_body_weight=13.4,
-    pad=False,
-    gradients=False,
-):
+    nuclear_charges: ndarray,
+    coordinates: ndarray,
+    elements: List[int] = [1, 6, 7, 8, 16],
+    nRs2: int = 24,
+    nRs3: int = 20,
+    nFourier: int = 1,
+    eta2: float = 0.32,
+    eta3: float = 2.7,
+    zeta: float = np.pi,
+    rcut: float = 8.0,
+    acut: float = 8.0,
+    two_body_decay: float = 1.8,
+    three_body_decay: float = 0.57,
+    three_body_weight: float = 13.4,
+    pad: Union[int, bool] = False,
+    gradients: bool = False,
+) -> Union[Tuple[ndarray, ndarray], ndarray]:
     """
 
     FCHL-ACSF

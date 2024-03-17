@@ -1,4 +1,7 @@
+from typing import List, Optional
+
 import numpy as np
+from numpy import int64, ndarray
 
 from .fslatm import fget_sbop, fget_sbop_local, fget_sbot, fget_sbot_local
 
@@ -97,7 +100,7 @@ def update_m(obj, ia, rcut=9.0, pbc=None):
     # return obj_u
 
 
-def get_boa(z1, zs_):
+def get_boa(z1: int64, zs_: ndarray) -> ndarray:
     return z1 * np.array(
         [
             (zs_ == z1).sum(),
@@ -107,17 +110,17 @@ def get_boa(z1, zs_):
 
 
 def get_sbop(
-    mbtype,
-    obj,
-    iloc=False,
-    ia=None,
-    normalize=True,
-    sigma=0.05,
-    rcut=4.8,
-    dgrid=0.03,
-    pbc="000",
-    rpower=6,
-):
+    mbtype: List[int64],
+    obj: List[ndarray],
+    iloc: bool = False,
+    ia: Optional[int] = None,
+    normalize: bool = True,
+    sigma: float = 0.05,
+    rcut: float = 4.8,
+    dgrid: float = 0.03,
+    pbc: str = "000",
+    rpower: int = 6,
+) -> ndarray:
     """
     two-body terms
 
@@ -156,8 +159,16 @@ def get_sbop(
 
 
 def get_sbot(
-    mbtype, obj, iloc=False, ia=None, normalize=True, sigma=0.05, rcut=4.8, dgrid=0.0262, pbc="000"
-):
+    mbtype: List[int64],
+    obj: List[ndarray],
+    iloc: bool = False,
+    ia: Optional[int] = None,
+    normalize: bool = True,
+    sigma: float = 0.05,
+    rcut: float = 4.8,
+    dgrid: float = 0.0262,
+    pbc: str = "000",
+) -> ndarray:
 
     """
     sigma -- standard deviation of gaussian distribution centered on a specific angle

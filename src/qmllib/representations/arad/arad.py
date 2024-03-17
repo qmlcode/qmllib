@@ -1,4 +1,7 @@
+from typing import List
+
 import numpy as np
+from numpy import ndarray
 
 from qmllib.utils.alchemy import PTP
 
@@ -12,7 +15,7 @@ from .farad_kernels import (
 )
 
 
-def getAngle(sp, norms):
+def getAngle(sp: ndarray, norms: ndarray) -> ndarray:
     epsilon = 10.0 * np.finfo(float).eps
     angles = np.zeros(sp.shape)
     mask1 = np.logical_and(np.abs(sp - norms) > epsilon, np.abs(norms) > epsilon)
@@ -20,7 +23,9 @@ def getAngle(sp, norms):
     return angles
 
 
-def generate_arad_representation(coordinates, nuclear_charges, size=23, cut_distance=5.0):
+def generate_arad_representation(
+    coordinates: ndarray, nuclear_charges: ndarray, size: int = 23, cut_distance: float = 5.0
+) -> ndarray:
     """Generates a representation for the ARAD kernel module.
 
     :param coordinates: Input coordinates.
@@ -116,7 +121,15 @@ def generate_arad_representation(coordinates, nuclear_charges, size=23, cut_dist
     return M
 
 
-def get_global_kernels_arad(X1, X2, sigmas, width=0.2, cut_distance=5.0, r_width=1.0, c_width=0.5):
+def get_global_kernels_arad(
+    X1: ndarray,
+    X2: ndarray,
+    sigmas: List[float],
+    width: float = 0.2,
+    cut_distance: float = 5.0,
+    r_width: float = 1.0,
+    c_width: float = 0.5,
+) -> ndarray:
     """Calculates the global Gaussian kernel matrix K for atomic ARAD
     descriptors for a list of different sigmas. Each kernel element
     is the sum of all kernel elements between pairs of atoms in two molecules.
@@ -177,8 +190,13 @@ def get_global_kernels_arad(X1, X2, sigmas, width=0.2, cut_distance=5.0, r_width
 
 
 def get_global_symmetric_kernels_arad(
-    X1, sigmas, width=0.2, cut_distance=5.0, r_width=1.0, c_width=0.5
-):
+    X1: ndarray,
+    sigmas: List[float],
+    width: float = 0.2,
+    cut_distance: float = 5.0,
+    r_width: float = 1.0,
+    c_width: float = 0.5,
+) -> ndarray:
     """Calculates the global Gaussian kernel matrix K for atomic ARAD
     descriptors for a list of different sigmas. Each kernel element
     is the sum of all kernel elements between pairs of atoms in two molecules.
@@ -211,7 +229,15 @@ def get_global_symmetric_kernels_arad(
     )
 
 
-def get_local_kernels_arad(X1, X2, sigmas, width=0.2, cut_distance=5.0, r_width=1.0, c_width=0.5):
+def get_local_kernels_arad(
+    X1: ndarray,
+    X2: ndarray,
+    sigmas: List[float],
+    width: float = 0.2,
+    cut_distance: float = 5.0,
+    r_width: float = 1.0,
+    c_width: float = 0.5,
+) -> ndarray:
     """Calculates the Gaussian kernel matrix K for atomic ARAD
     descriptors for a list of different sigmas. Each kernel element
     is the sum of all kernel elements between pairs of atoms in two molecules.
@@ -272,8 +298,13 @@ def get_local_kernels_arad(X1, X2, sigmas, width=0.2, cut_distance=5.0, r_width=
 
 
 def get_local_symmetric_kernels_arad(
-    X1, sigmas, width=0.2, cut_distance=5.0, r_width=1.0, c_width=0.5
-):
+    X1: ndarray,
+    sigmas: List[float],
+    width: float = 0.2,
+    cut_distance: float = 5.0,
+    r_width: float = 1.0,
+    c_width: float = 0.5,
+) -> ndarray:
     """Calculates the Gaussian kernel matrix K for atomic ARAD
     descriptors for a list of different sigmas. Each kernel element
     is the sum of all kernel elements between pairs of atoms in two molecules.
@@ -306,7 +337,15 @@ def get_local_symmetric_kernels_arad(
     )
 
 
-def get_atomic_kernels_arad(X1, X2, sigmas, width=0.2, cut_distance=5.0, r_width=1.0, c_width=0.5):
+def get_atomic_kernels_arad(
+    X1: ndarray,
+    X2: ndarray,
+    sigmas: List[float],
+    width: float = 0.2,
+    cut_distance: float = 5.0,
+    r_width: float = 1.0,
+    c_width: float = 0.5,
+) -> ndarray:
     """Calculates the Gaussian kernel matrix K for atomic ARAD
     descriptors for a list of different sigmas. For atomic properties, e.g.
     partial charges, chemical shifts, etc.
@@ -366,8 +405,13 @@ def get_atomic_kernels_arad(X1, X2, sigmas, width=0.2, cut_distance=5.0, r_width
 
 
 def get_atomic_symmetric_kernels_arad(
-    X1, sigmas, width=0.2, cut_distance=5.0, r_width=1.0, c_width=0.5
-):
+    X1: ndarray,
+    sigmas: List[float],
+    width: float = 0.2,
+    cut_distance: float = 5.0,
+    r_width: float = 1.0,
+    c_width: float = 0.5,
+) -> ndarray:
     """Calculates the Gaussian kernel matrix K for atomic ARAD
     descriptors for a list of different sigmas. For atomic properties, e.g.
     partial charges, chemical shifts, etc.

@@ -1,6 +1,8 @@
 from copy import copy
+from typing import Any, Dict, Tuple, Union
 
 import numpy as np
+from numpy import float64, ndarray
 
 # Periodic table indexes
 PTP = {
@@ -260,16 +262,16 @@ QtNm = {
 
 
 def get_alchemy(
-    alchemy,
-    emax=100,
-    r_width=0.001,
-    c_width=0.001,
-    elemental_vectors={},
-    n_width=0.001,
-    m_width=0.001,
-    l_width=0.001,
-    s_width=0.001,
-):
+    alchemy: Union[ndarray, str],
+    emax: int = 100,
+    r_width: float = 0.001,
+    c_width: float = 0.001,
+    elemental_vectors: Dict[Any, Any] = {},
+    n_width: float = 0.001,
+    m_width: float = 0.001,
+    l_width: float = 0.001,
+    s_width: float = 0.001,
+) -> Tuple[bool, ndarray]:
 
     if isinstance(alchemy, np.ndarray):
 
@@ -353,7 +355,7 @@ def gen_QNum_distances(emax=100, n_width=0.001, m_width=0.001, l_width=0.001, s_
     return pd
 
 
-def periodic_distance(a, b, r_width, c_width):
+def periodic_distance(a: int, b: int, r_width: float, c_width: float) -> float64:
     """Calculate stochiometric distance
 
     a -- nuclear charge of element a
@@ -372,7 +374,7 @@ def periodic_distance(a, b, r_width, c_width):
     return np.exp(-((ra - rb) ** 2) / (4 * r_width**2) - (ca - cb) ** 2 / (4 * c_width**2))
 
 
-def gen_pd(emax=100, r_width=0.001, c_width=0.001):
+def gen_pd(emax: int = 100, r_width: float = 0.001, c_width: float = 0.001) -> ndarray:
     """Generate stochiometric ditance matrix
 
     emax -- Largest element

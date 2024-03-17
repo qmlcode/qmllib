@@ -1,6 +1,9 @@
 from __future__ import absolute_import
 
+from typing import Dict, List, Optional, Union
+
 import numpy as np
+from numpy import float64, ndarray
 
 from qmllib.utils.alchemy import get_alchemy
 
@@ -17,24 +20,24 @@ from .ffchl_module import (
 
 
 def get_local_kernels(
-    A,
-    B,
-    verbose=False,
-    two_body_scaling=np.sqrt(8),
-    three_body_scaling=1.6,
-    two_body_width=0.2,
-    three_body_width=np.pi,
-    two_body_power=4.0,
-    three_body_power=2.0,
-    cut_start=1.0,
-    cut_distance=5.0,
-    fourier_order=1,
-    alchemy="periodic-table",
-    alchemy_period_width=1.6,
-    alchemy_group_width=1.6,
-    kernel="gaussian",
-    kernel_args=None,
-):
+    A: ndarray,
+    B: ndarray,
+    verbose: bool = False,
+    two_body_scaling: float = np.sqrt(8),
+    three_body_scaling: float = 1.6,
+    two_body_width: float = 0.2,
+    three_body_width: float = np.pi,
+    two_body_power: float = 4.0,
+    three_body_power: float = 2.0,
+    cut_start: float = 1.0,
+    cut_distance: float = 5.0,
+    fourier_order: int = 1,
+    alchemy: str = "periodic-table",
+    alchemy_period_width: float = 1.6,
+    alchemy_group_width: float = 1.6,
+    kernel: str = "gaussian",
+    kernel_args: Optional[Dict[str, List[float]]] = None,
+) -> ndarray:
     """Calculates the Gaussian kernel matrix K, where :math:`K_{ij}`:
 
         :math:`K_{ij} = \\exp \\big( -\\frac{\\|A_i - B_j\\|_2^2}{2\\sigma^2} \\big)`
@@ -147,23 +150,23 @@ def get_local_kernels(
 
 
 def get_local_symmetric_kernels(
-    A,
-    verbose=False,
-    two_body_scaling=np.sqrt(8),
-    three_body_scaling=1.6,
-    two_body_width=0.2,
-    three_body_width=np.pi,
-    two_body_power=4.0,
-    three_body_power=2.0,
-    cut_start=1.0,
-    cut_distance=5.0,
-    fourier_order=1,
-    alchemy="periodic-table",
-    alchemy_period_width=1.6,
-    alchemy_group_width=1.6,
-    kernel="gaussian",
-    kernel_args=None,
-):
+    A: ndarray,
+    verbose: bool = False,
+    two_body_scaling: Union[float, float64] = np.sqrt(8),
+    three_body_scaling: float = 1.6,
+    two_body_width: float = 0.2,
+    three_body_width: float = np.pi,
+    two_body_power: float = 4.0,
+    three_body_power: float = 2.0,
+    cut_start: float = 1.0,
+    cut_distance: float = 5.0,
+    fourier_order: int = 1,
+    alchemy: Union[ndarray, str] = "periodic-table",
+    alchemy_period_width: float = 1.6,
+    alchemy_group_width: float = 1.6,
+    kernel: str = "gaussian",
+    kernel_args: Optional[Union[Dict[str, List[List[float]]], Dict[str, List[float]]]] = None,
+) -> ndarray:
     """Calculates the Gaussian kernel matrix K, where :math:`K_{ij}`:
 
         :math:`K_{ij} = \\exp \\big( -\\frac{\\|A_i - A_j\\|_2^2}{2\\sigma^2} \\big)`
@@ -254,23 +257,23 @@ def get_local_symmetric_kernels(
 
 
 def get_global_symmetric_kernels(
-    A,
-    verbose=False,
-    two_body_scaling=np.sqrt(8),
-    three_body_scaling=1.6,
-    two_body_width=0.2,
-    three_body_width=np.pi,
-    two_body_power=4.0,
-    three_body_power=2.0,
-    cut_start=1.0,
-    cut_distance=5.0,
-    fourier_order=1,
-    alchemy="periodic-table",
-    alchemy_period_width=1.6,
-    alchemy_group_width=1.6,
-    kernel="gaussian",
-    kernel_args=None,
-):
+    A: ndarray,
+    verbose: bool = False,
+    two_body_scaling: float64 = np.sqrt(8),
+    three_body_scaling: float = 1.6,
+    two_body_width: float = 0.2,
+    three_body_width: float = np.pi,
+    two_body_power: float = 4.0,
+    three_body_power: float = 2.0,
+    cut_start: float = 1.0,
+    cut_distance: float = 5.0,
+    fourier_order: int = 1,
+    alchemy: str = "periodic-table",
+    alchemy_period_width: float = 1.6,
+    alchemy_group_width: float = 1.6,
+    kernel: str = "gaussian",
+    kernel_args: Optional[Dict[str, List[float]]] = None,
+) -> ndarray:
     """Calculates the Gaussian kernel matrix K, where :math:`K_{ij}`:
 
         :math:`K_{ij} = \\exp \\big( -\\frac{\\|A_i - A_j\\|_2^2}{2\\sigma^2} \\big)`
@@ -361,24 +364,24 @@ def get_global_symmetric_kernels(
 
 
 def get_global_kernels(
-    A,
-    B,
-    verbose=False,
-    two_body_scaling=np.sqrt(8),
-    three_body_scaling=1.6,
-    two_body_width=0.2,
-    three_body_width=np.pi,
-    two_body_power=4.0,
-    three_body_power=2.0,
-    cut_start=1.0,
-    cut_distance=5.0,
-    fourier_order=1,
-    alchemy="periodic-table",
-    alchemy_period_width=1.6,
-    alchemy_group_width=1.6,
-    kernel="gaussian",
-    kernel_args=None,
-):
+    A: ndarray,
+    B: ndarray,
+    verbose: bool = False,
+    two_body_scaling: float64 = np.sqrt(8),
+    three_body_scaling: float = 1.6,
+    two_body_width: float = 0.2,
+    three_body_width: float = np.pi,
+    two_body_power: float = 4.0,
+    three_body_power: float = 2.0,
+    cut_start: float = 1.0,
+    cut_distance: float = 5.0,
+    fourier_order: int = 1,
+    alchemy: str = "periodic-table",
+    alchemy_period_width: float = 1.6,
+    alchemy_group_width: float = 1.6,
+    kernel: str = "gaussian",
+    kernel_args: Optional[Dict[str, List[float]]] = None,
+) -> ndarray:
     """Calculates the Gaussian kernel matrix K, where :math:`K_{ij}`:
 
         :math:`K_{ij} = \\exp \\big( -\\frac{\\|A_i - B_j\\|_2^2}{2\\sigma^2} \\big)`
@@ -490,24 +493,24 @@ def get_global_kernels(
 
 
 def get_atomic_kernels(
-    A,
-    B,
-    verbose=False,
-    two_body_scaling=np.sqrt(8),
-    three_body_scaling=1.6,
-    two_body_width=0.2,
-    three_body_width=np.pi,
-    two_body_power=4.0,
-    three_body_power=2.0,
-    cut_start=1.0,
-    cut_distance=5.0,
-    fourier_order=1,
-    alchemy="periodic-table",
-    alchemy_period_width=1.6,
-    alchemy_group_width=1.6,
-    kernel="gaussian",
-    kernel_args=None,
-):
+    A: ndarray,
+    B: ndarray,
+    verbose: bool = False,
+    two_body_scaling: float64 = np.sqrt(8),
+    three_body_scaling: float = 1.6,
+    two_body_width: float = 0.2,
+    three_body_width: float = np.pi,
+    two_body_power: float = 4.0,
+    three_body_power: float = 2.0,
+    cut_start: float = 1.0,
+    cut_distance: float = 5.0,
+    fourier_order: int = 1,
+    alchemy: str = "periodic-table",
+    alchemy_period_width: float = 1.6,
+    alchemy_group_width: float = 1.6,
+    kernel: str = "gaussian",
+    kernel_args: Optional[Dict[str, List[float]]] = None,
+) -> ndarray:
     """Calculates the Gaussian kernel matrix K, where :math:`K_{ij}`:
 
         :math:`K_{ij} = \\exp \\big( -\\frac{\\|A_i - B_j\\|_2^2}{2\\sigma^2} \\big)`
@@ -606,23 +609,23 @@ def get_atomic_kernels(
 
 
 def get_atomic_symmetric_kernels(
-    A,
-    verbose=False,
-    two_body_scaling=np.sqrt(8),
-    three_body_scaling=1.6,
-    two_body_width=0.2,
-    three_body_width=np.pi,
-    two_body_power=4.0,
-    three_body_power=2.0,
-    cut_start=1.0,
-    cut_distance=5.0,
-    fourier_order=1,
-    alchemy="periodic-table",
-    alchemy_period_width=1.6,
-    alchemy_group_width=1.6,
-    kernel="gaussian",
-    kernel_args=None,
-):
+    A: ndarray,
+    verbose: bool = False,
+    two_body_scaling: float64 = np.sqrt(8),
+    three_body_scaling: float = 1.6,
+    two_body_width: float = 0.2,
+    three_body_width: float = np.pi,
+    two_body_power: float = 4.0,
+    three_body_power: float = 2.0,
+    cut_start: float = 1.0,
+    cut_distance: float = 5.0,
+    fourier_order: int = 1,
+    alchemy: str = "periodic-table",
+    alchemy_period_width: float = 1.6,
+    alchemy_group_width: float = 1.6,
+    kernel: str = "gaussian",
+    kernel_args: Optional[Dict[str, List[float]]] = None,
+) -> ndarray:
     """Calculates the Gaussian kernel matrix K, where :math:`K_{ij}`:
 
         :math:`K_{ij} = \\exp \\big( -\\frac{\\|A_i - B_j\\|_2^2}{2\\sigma^2} \\big)`
