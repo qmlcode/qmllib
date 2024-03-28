@@ -11,7 +11,7 @@ all: env setup
 
 env:
 	${mamba} env create -f ./environment_dev.yaml -p ./env --quiet
-	${pip} install -e .
+	# ${pip} install -e .
 
 setup: ./.git/hooks/pre-commit
 
@@ -35,10 +35,10 @@ compile:
 	${python} _compile.py
 
 build:
-	@#${python} -m build .
-	# ${python} -m pip wheel --no-deps -v .
+	@# ${python} -m build .
+	@# ${python} -m pip wheel --no-deps -v .
 	${python} -m pip wheel -v .
-	ls *.whl
+	@#ls *.whl
 
 clean:
 	find ./src/ -type f \
