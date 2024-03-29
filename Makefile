@@ -11,7 +11,8 @@ all: env setup
 
 env:
 	${mamba} env create -f ./environment_dev.yaml -p ./env --quiet
-	${pip} install -e .
+	${python} -m pre_commit install
+	${python} -m pip install -e .
 
 setup: ./.git/hooks/pre-commit
 
@@ -35,10 +36,10 @@ compile:
 	${python} _compile.py
 
 build:
-	@#${python} -m build .
-	# ${python} -m pip wheel --no-deps -v .
-	${python} -m pip wheel -v .
-	ls *.whl
+	${python} -m build --sdist --skip-dependency-check  .
+	@# ${python} -m pip wheel --no-deps -v .
+	@# ${python} -m pip wheel -v .
+	@#ls *.whl
 
 clean:
 	find ./src/ -type f \
@@ -46,8 +47,10 @@ clean:
 		-name "*.pyc" \
 		-name ".pyo" \
 		-delete
+	rm -rf ./src/*.egg-info/
 	rm -rf *.whl
-	rm -fr ./build/ ./__pycache__/
+	rm -rf ./build/ ./__pycache__/
+	rm -rf ./dist/
 
 clean-env:
 	rm -rf ./env/

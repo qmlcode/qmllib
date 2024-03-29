@@ -6,7 +6,23 @@ build-backend = "setuptools.build_meta"
 name = "qmllib"
 dynamic = ["version"]
 authors = []
-requires-python = ">=3.12"
+requires-python = ">=3.8"
+readme="README.rst"
+description="Python/Fortran toolkit for representation of molecules and solids for machine learning of properties of molecules and solids."
+classifiers = [
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Chemistry",
+]
+keywords = ["qml", "quantum chemistry", "machine learning"]
+dependencies=["numpy", "scipy"]
+
+[project.urls]
+Homepage = "https://qmlcode.org"
 
 [options.packages.find]
 where="src"
@@ -19,7 +35,6 @@ version = {attr = "qmllib.version.__version__"}
 
 [tool.setuptools.package-data]
 "*" = ['*.so']
-
 
 # [tool.black]
 # line-length = 120

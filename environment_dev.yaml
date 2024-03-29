@@ -8,12 +8,14 @@ dependencies:
   - monkeytype
   - numpy
   - pandas
-  - pyarrow
   - pip
   - pre-commit
+  - pyarrow
   - pytest
   - scikit-learn
   - scipy
   # build
+  - build
   - meson
   - ninja
+  - twine
