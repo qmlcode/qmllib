@@ -19,7 +19,7 @@ applications, but without the high-level abstraction, for example SKLearn.
 
 This package is and should stay free-function design oriented.
 
-Breaking changes from `qml`:
+Breaking changes from ``qml``:
 
 * FCHL representations callable interface to be consistent with other representations (e.i. atoms, coordinates)
 
@@ -81,7 +81,7 @@ How to cite
 What TODO
 =========
 
- * Setup ifort flags
- * Setup based on FCC env variable or --global-option flags
- * Find MKL from env (for example conda)
- * Find what numpy has been linked too (lapack or mkl)
+* Setup ifort flags
+* Setup based on FCC env variable or --global-option flags
+* Find MKL from env (for example conda)
+* Find what numpy has been linked too (lapack or mkl)
