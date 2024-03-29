@@ -69,9 +69,9 @@ def main():
     for module_name, module_sources in f90_modules.items():
 
         path = Path(module_name)
-
         parent = path.parent
         stem = path.stem
+
         cwd = Path("src/qmllib") / parent
         cmd = ["python", "-m", "numpy.f2py", "-c"] + flags + module_sources + ["-m", str(stem)]
         print(cwd, " ".join(cmd))

@@ -1,11 +1,11 @@
-import sys
-from pathlib import Path
-
 from setuptools import setup
 
 try:
     import _compile
 except ImportError:
+    import sys
+    from pathlib import Path
+
     sys.path.append(str(Path(__file__).resolve().parent))
     import _compile
 
