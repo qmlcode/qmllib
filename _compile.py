@@ -2,6 +2,7 @@
 
 import os
 import subprocess
+import sys
 from pathlib import Path
 
 f90_modules = {
@@ -73,7 +74,9 @@ def main():
         stem = path.stem
 
         cwd = Path("src/qmllib") / parent
-        cmd = ["python", "-m", "numpy.f2py", "-c"] + flags + module_sources + ["-m", str(stem)]
+        cmd = (
+            [sys.executable, "-m", "numpy.f2py", "-c"] + flags + module_sources + ["-m", str(stem)]
+        )
         print(cwd, " ".join(cmd))
 
         proc = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
