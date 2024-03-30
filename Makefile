@@ -57,10 +57,10 @@ bump-version-dev:
 	test ! -z "${VERSION}"
 	test ! -z "${GIT_COMMIT}"
 	exit 1
+	# Not Implemented
 
 bump-version-patch:
 	test ! -z "${VERSION_PATCH}"
-	# VERSION_PATCH=$(shell awk 'BEGIN{print ${VERSION_PATCH}+1}')
 	echo "__version__ = \"${VERSION_MAJOR}.${VERSION_MINOR}.$(shell awk 'BEGIN{print ${VERSION_PATCH}+1}')\"" > ${version_file}
 
 bump-version-minor:
@@ -69,7 +69,12 @@ bump-version-minor:
 
 bump-version-major:
 	test ! -z "${VERSION_MAJOR}"
-	echo "__version__ = \"$(shell awk 'BEGIN{print ${VERSION_MAJOR}+1}').0.0\"" > {version_file}
+	echo "__version__ = \"$(shell awk 'BEGIN{print ${VERSION_MAJOR}+1}').0.0\"" > ${version_file}
+
+commit-version-tag:
+	git tag --list | grep -qix "${VERSION}"
+	git commit -m "Release ${VERSION}" --no-verify ${version_file}
+	git tag 'v${VERSION}'
 
 ## Clean
 

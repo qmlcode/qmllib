@@ -1,0 +1,24 @@
+name: Release Version
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+
+  release:
+    name: Testing
+    runs-on: "ubuntu-latest"
+    defaults:
+      run:
+        shell: bash -l {0}
+    steps:
+      - name: Bump version
+        run: make something
+      - name: Commit version
+        run: make something
+      - name: Push to main
+        run: git push origin --tags
+      - name: Create release
+        run: no idea
