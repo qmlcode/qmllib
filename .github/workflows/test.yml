@@ -32,4 +32,4 @@ jobs:
           conda info
       - run: pip install . -v
       - run: make test python=python
-      # - run: make format python=python
+      - run: make format python=python
