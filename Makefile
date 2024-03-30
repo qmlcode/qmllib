@@ -7,17 +7,19 @@ j=1
 
 .PHONY: build
 
-all: env setup
+all: env
+
+## Setup
 
 env:
 	${mamba} env create -f ./environment_dev.yaml -p ./env --quiet
 	${python} -m pre_commit install
 	${python} -m pip install -e .
 
-setup: ./.git/hooks/pre-commit
-
 ./.git/hooks/pre-commit:
 	${python} -m pre_commit install
+
+## Development
 
 format:
 	${python} -m pre_commit run --all-files
@@ -37,9 +39,11 @@ compile:
 
 build:
 	${python} -m build --sdist --skip-dependency-check  .
-	@# ${python} -m pip wheel --no-deps -v .
-	@# ${python} -m pip wheel -v .
-	@#ls *.whl
+
+upload:
+	${python} -m twine upload ./dist/*.tar.gz
+
+## Clean
 
 clean:
 	find ./src/ -type f \
