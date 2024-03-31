@@ -752,6 +752,7 @@ def generate_fchl_acsf(
     three_body_weight: float = 13.4,
     pad: Union[int, bool] = False,
     gradients: bool = False,
+    cell: Union[ndarray, None] = None,
 ) -> Union[Tuple[ndarray, ndarray], ndarray]:
     """
 
@@ -787,6 +788,8 @@ def generate_fchl_acsf(
     :type acut: float
     :param gradients: To return gradients or not
     :type gradients: boolean
+    :param cell: parameters of the unit cell if periodic boundary conditions are used.
+    :type cell: numpy array
     :return: Atom-centered symmetry functions representation
     :rtype: numpy array
     """
@@ -803,6 +806,23 @@ def generate_fchl_acsf(
     # Normalization constant for three-body
     three_body_weight = np.sqrt(eta3 / np.pi) * three_body_weight
 
+    # If periodic boundary conditions are used add neighboring cells that can influence the center cell.
+    natoms_tot = natoms
+    if cell is not None:
+        nExtend = (np.floor(max(rcut, acut) / np.linalg.norm(cell, 2, axis=0)) + 1).astype(int)
+        true_coords = coordinates
+        for i in range(-nExtend[0], nExtend[0] + 1):
+            for j in range(-nExtend[1], nExtend[1] + 1):
+                for k in range(-nExtend[2], nExtend[2] + 1):
+                    if not (i == 0 and j == 0 and k == 0):
+                        true_coords = np.append(
+                            true_coords,
+                            coordinates + i * cell[0, :] + j * cell[1, :] + k * cell[2, :],
+                            axis=0,
+                        )
+                        natoms_tot += natoms
+        coordinates = true_coords
+
     if gradients is False:
 
         rep = fgenerate_fchl_acsf(
@@ -818,6 +838,7 @@ def generate_fchl_acsf(
             rcut,
             acut,
             natoms,
+            natoms_tot,
             descr_size,
             two_body_decay,
             three_body_decay,
@@ -853,6 +874,7 @@ def generate_fchl_acsf(
             rcut,
             acut,
             natoms,
+            natoms_tot,
             descr_size,
             two_body_decay,
             three_body_decay,
