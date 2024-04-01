@@ -16,6 +16,7 @@ np.set_printoptions(linewidth=666, edgeitems=10)
 REP_PARAMS = dict()
 REP_PARAMS["elements"] = [1, 6, 7, 8, 16]
 REP_PARAMS["rcut"] = 5.0
+REP_PARAMS["acut"] = 5.0
 random.seed(1)
 cell_added_cutoff = 0.1
 
@@ -38,7 +39,9 @@ def generate_fchl_acsf_brute_pbc(nuclear_charges, coordinates, cell, gradients=F
     num_atoms = len(nuclear_charges)
     all_coords = deepcopy(coordinates)
     all_charges = deepcopy(nuclear_charges)
-    nExtend = (np.floor(REP_PARAMS["rcut"] / np.linalg.norm(cell, 2, axis=0)) + 1).astype(int)
+    nExtend = (
+        np.floor(max(REP_PARAMS["rcut"], REP_PARAMS["acut"]) / np.linalg.norm(cell, 2, axis=0)) + 1
+    ).astype(int)
     print("Checked nExtend:", nExtend, ", gradient calculation:", gradients)
     for i in range(-nExtend[0], nExtend[0] + 1):
         for j in range(-nExtend[1], nExtend[1] + 1):
@@ -72,7 +75,7 @@ def test_fchl_acsf_pbc():
     qm7_dir = os.path.dirname(os.path.realpath(__file__)) + "/assets/qm7"
     os.chdir(qm7_dir)
     all_xyzs = os.listdir()
-    test_xyzs = random.sample(all_xyzs, 3)
+    test_xyzs = random.sample(all_xyzs, 10)
 
     reps_no_grad1 = []
     reps_no_grad2 = []

@@ -652,7 +652,7 @@ subroutine fgenerate_fchl_acsf(coordinates, nuclear_charges, elements, &
     double precision, intent(in) :: zeta
     double precision, intent(in) :: rcut
     double precision, intent(in) :: acut
-    integer, intent(in) :: natoms, natoms_tot
+    integer, intent(in) :: natoms, natoms_tot ! natoms_tot includes "virtual" atoms created to satisfy periodic boundary conditions.
     integer, intent(in) :: rep_size
     double precision, intent(in) :: two_body_decay
     double precision, intent(in) :: three_body_decay
@@ -661,13 +661,14 @@ subroutine fgenerate_fchl_acsf(coordinates, nuclear_charges, elements, &
     double precision, intent(out), dimension(natoms, rep_size) :: rep
 
     integer:: two_body_rep_size
-    integer :: i, j, k, l, n, m, o, p, q, s, z, nelements, nbasis2, nbasis3, nabasis
+    integer :: i, j, k, l, n, m, o, p, q, s, z, nelements, nbasis2, nbasis3, nabasis, j_id, j_id_max
     integer, allocatable, dimension(:) :: element_types
     double precision :: rij, rik, angle, cos_1, cos_2, cos_3, invcut
     ! double precision :: angle_1, angle_2, angle_3
     double precision, allocatable, dimension(:) :: radial, angular, a, b, c
     double precision, allocatable, dimension(:, :) :: distance_matrix, rdecay
-    double precision, allocatable, dimension(:, :) :: rep_2body
+    double precision, allocatable, dimension(:, :) :: saved_radial
+    integer, allocatable, dimension(:):: saved_j
 
     double precision :: mu, sigma, ksi3
 
@@ -688,12 +689,12 @@ subroutine fgenerate_fchl_acsf(coordinates, nuclear_charges, elements, &
     allocate(element_types(natoms_tot))
 
     ! Store element index of every atom
-    !$OMP PARALLEL DO
+    !$OMP PARALLEL DO SCHEDULE(dynamic)
     do i = 1, natoms_tot
         do j = 1, nelements
             if (nuclear_charges(modulo(i-1, natoms)+1) .eq. elements(j)) then
                 element_types(i) = j
-                continue
+                exit
             endif
         enddo
     enddo
@@ -706,7 +707,7 @@ subroutine fgenerate_fchl_acsf(coordinates, nuclear_charges, elements, &
     distance_matrix = 0.0d0
 
 
-    !$OMP PARALLEL DO PRIVATE(rij) COLLAPSE(1)
+    !$OMP PARALLEL DO PRIVATE(rij) SCHEDULE(dynamic)
     do i = 1, natoms_tot
         do j = i+1, natoms_tot
             rij = norm2(coordinates(j,:) - coordinates(i,:))
@@ -727,21 +728,21 @@ subroutine fgenerate_fchl_acsf(coordinates, nuclear_charges, elements, &
 
     ! Allocate temporary
     allocate(radial(nbasis2))
-    two_body_rep_size=nbasis2*nelements
-    allocate(rep_2body(natoms, two_body_rep_size))
+    allocate(saved_radial(nbasis2, natoms_tot), saved_j(natoms_tot))
     rep=0.0d0
-    rep_2body=0.0d0
-    radial = 0.0d0
-    !$OMP PARALLEL DO PRIVATE(n,m,rij,radial,mu,sigma) COLLAPSE(1) REDUCTION(+:rep_2body) SCHEDULE(dynamic)
+    !$OMP PARALLEL DO PRIVATE(n,m,rij,radial,mu,sigma,saved_radial, saved_j, j_id_max) SCHEDULE(dynamic)
     do i = 1, natoms
+        ! index of the element of atom i
+        m = element_types(i)
+        j_id_max=0
         do j = i + 1, natoms_tot
-            ! index of the element of atom i
-            m = element_types(i) ! moved incide j loop to enable COLLAPSE
-            ! index of the element of atom j
-            n = element_types(j)
             ! distance between atoms i and j
             rij = distance_matrix(i,j)
             if (rij > rcut) cycle
+            j_id_max=j_id_max+1
+            saved_j(j_id_max)=j
+            ! index of the element of atom j
+            n = element_types(j)
             ! two body term of the representation
             mu    = log(rij / sqrt(1.0d0 + eta2  / rij**2))
             sigma = sqrt(log(1.0d0 + eta2  / rij**2))
@@ -751,17 +752,21 @@ subroutine fgenerate_fchl_acsf(coordinates, nuclear_charges, elements, &
                 radial(k) = 1.0d0/(sigma* sqrt(2.0d0*pi) * Rs2(k)) * rdecay(i,j) &
                               & * exp( - (log(Rs2(k)) - mu)**2 / (2.0d0 * sigma**2) ) / rij**two_body_decay
             enddo
-
-            rep_2body(i, (n-1)*nbasis2 + 1:n*nbasis2) = rep_2body(i, (n-1)*nbasis2 + 1:n*nbasis2) + radial
-            if (j<=natoms) rep_2body(j, (m-1)*nbasis2 + 1:m*nbasis2) = rep_2body(j, (m-1)*nbasis2 + 1:m*nbasis2) + radial
+            saved_radial(:, j_id_max)=radial(:)
         enddo
+        !$OMP CRITICAL
+        do j_id = 1, j_id_max
+            j=saved_j(j_id)
+            n=element_types(j)
+            rep(i, (n-1)*nbasis2 + 1:n*nbasis2) = rep(i, (n-1)*nbasis2 + 1:n*nbasis2) + saved_radial(:, j_id)
+            if (j<=natoms) rep(j, (m-1)*nbasis2 + 1:m*nbasis2) = rep(j, (m-1)*nbasis2 + 1:m*nbasis2) + saved_radial(:, j_id)
+        enddo
+        !$OMP END CRITICAL
     enddo
     !$OMP END PARALLEL DO
 
-    rep(:, 1:two_body_rep_size)=rep_2body(:, :)
-
     deallocate(radial)
-    deallocate(rep_2body)
+    deallocate(saved_radial, saved_j)
 
     ! number of radial basis functions in the three body term
     nbasis3 = size(Rs3)
@@ -779,21 +784,22 @@ subroutine fgenerate_fchl_acsf(coordinates, nuclear_charges, elements, &
     allocate(c(3))
     allocate(radial(nbasis3))
     allocate(angular(nabasis))
+    two_body_rep_size=nbasis2*nelements
 
     ! This could probably be done more efficiently if it's a bottleneck
     ! Also the order is a bit wobbly compared to the tensorflow implementation
     !$OMP PARALLEL DO PRIVATE(rij, n, rik, m, a, b, c, angle, radial, angular, &
     !$OMP cos_1, cos_2, cos_3, mu, sigma, o, ksi3, &
-    !$OMP p, q, s, z) COLLAPSE(1) SCHEDULE(dynamic)
+    !$OMP p, q, s, z, l) SCHEDULE(dynamic)
     do i = 1, natoms
-        do j = 1, natoms - 1
+        do j = 1, natoms_tot - 1
             if (i .eq. j) cycle
             ! distance between atoms i and j
             rij = distance_matrix(i,j)
             if (rij > acut)  cycle
             ! index of the element of atom j
             n = element_types(j)
-            do k = j + 1, natoms
+            do k = j + 1, natoms_tot
                 if (i .eq. k) cycle
                 if (j .eq. k) cycle
                 ! distance between atoms i and k
@@ -959,7 +965,7 @@ subroutine fgenerate_fchl_acsf_and_gradients(coordinates, nuclear_charges, eleme
     inv_sq_distance_matrix = 0.0d0
 
 
-    !$OMP PARALLEL DO PRIVATE(rij,rij2,invrij,invrij2) COLLAPSE(1)
+    !$OMP PARALLEL DO PRIVATE(rij,rij2,invrij,invrij2) SCHEDULE(dynamic)
     do i = 1, natoms_tot
         do j = i+1, natoms_tot
             rij = norm2(coordinates(j,:) - coordinates(i,:))
@@ -1004,53 +1010,52 @@ subroutine fgenerate_fchl_acsf_and_gradients(coordinates, nuclear_charges, eleme
     log_Rs2(:) = log(Rs2(:))
 
     !$OMP PARALLEL DO PRIVATE(m, n, rij, invrij, mu, sigma, exp_s2, exp_ln,&
-    !$OMP scaling, radial_base, radial, dx, part, dscal, ddecay) COLLAPSE(1) SCHEDULE(dynamic)
+    !$OMP scaling, radial_base, radial, dx, part, dscal, ddecay) SCHEDULE(dynamic)
     do i = 1, natoms
+        ! The element index of atom i
+        m = element_types(i) ! moved inside loop to enable COLLAPSE
         do j = i + 1, natoms_tot
-            ! The element index of atom i
-            m = element_types(i) ! moved inside j loop to allow COLLAPSE
+            rij = distance_matrix(i,j)
+            if (rij > rcut) continue
             ! The element index of atom j
             n = element_types(j)
             ! Distance between atoms i and j
-            rij = distance_matrix(i,j)
-            if (rij <= rcut) then
-                invrij = inv_distance_matrix(i,j)
-                mu    = log(rij / sqrt(1.0d0 + eta2  * inv_sq_distance_matrix(i, j)))
-                sigma = sqrt(log(1.0d0 + eta2  * inv_sq_distance_matrix(i, j)))
-                exp_s2 = exp(sigma**2)
-                exp_ln = exp(-(log_Rs2(:) - mu)**2 / sigma**2 * 0.5d0) * sqrt(2.0d0)
+            invrij = inv_distance_matrix(i,j)
+            mu    = log(rij / sqrt(1.0d0 + eta2  * inv_sq_distance_matrix(i, j)))
+            sigma = sqrt(log(1.0d0 + eta2  * inv_sq_distance_matrix(i, j)))
+            exp_s2 = exp(sigma**2)
+            exp_ln = exp(-(log_Rs2(:) - mu)**2 / sigma**2 * 0.5d0) * sqrt(2.0d0)
 
-                scaling = 1.0d0 / rij**two_body_decay
+            scaling = 1.0d0 / rij**two_body_decay
 
 
-                radial_base(:) = 1.0d0/(sigma* sqrt(2.0d0*pi) * Rs2(:)) * exp(-(log_Rs2(:) - mu)**2 / (2.0d0 * sigma**2))
+            radial_base(:) = 1.0d0/(sigma* sqrt(2.0d0*pi) * Rs2(:)) * exp(-(log_Rs2(:) - mu)**2 / (2.0d0 * sigma**2))
 
-                radial(:) = radial_base(:) * scaling * rdecay(i,j)
+            radial(:) = radial_base(:) * scaling * rdecay(i,j)
 
-                rep(i, (n-1)*nbasis2 + 1:n*nbasis2) = rep(i, (n-1)*nbasis2 + 1:n*nbasis2) + radial
-                if (j<=natoms) add_rep(:, i, j)=radial
-                do k = 1, 3
-                    dx = -(coordinates(i,k) - coordinates(j,k))
-                    part(:) = ((log_Rs2(:) - mu) * (-dx *(rij**2 * exp_s2 + eta2) / (rij * sqrt(exp_s2))**3) &
-                                &* sqrt(exp_s2) / (sigma**2 * rij) + (log_Rs2(:) - mu) ** 2 * eta2 * dx / &
-                                &(sigma**4 * rij**4 * exp_s2)) * exp_ln / (Rs2(:) * sigma  * sqrt(pi) * 2) &
-                                &- exp_ln  * eta2 * dx / (Rs2(:) * sigma**3 *sqrt(pi) * rij**4 * exp_s2 * 2.0d0)
+            rep(i, (n-1)*nbasis2 + 1:n*nbasis2) = rep(i, (n-1)*nbasis2 + 1:n*nbasis2) + radial
+            if (j<=natoms) add_rep(:, i, j)=radial
+            do k = 1, 3
+                dx = -(coordinates(i,k) - coordinates(j,k))
+                part(:) = ((log_Rs2(:) - mu) * (-dx *(rij**2 * exp_s2 + eta2) / (rij * sqrt(exp_s2))**3) &
+                            &* sqrt(exp_s2) / (sigma**2 * rij) + (log_Rs2(:) - mu) ** 2 * eta2 * dx / &
+                            &(sigma**4 * rij**4 * exp_s2)) * exp_ln / (Rs2(:) * sigma  * sqrt(pi) * 2) &
+                            &- exp_ln  * eta2 * dx / (Rs2(:) * sigma**3 *sqrt(pi) * rij**4 * exp_s2 * 2.0d0)
 
-                    dscal = two_body_decay * dx / rij**(two_body_decay+2.0d0)
-                    ddecay = dx * 0.5d0 * pi * sin(pi*rij * invcut) * invcut * invrij
+                dscal = two_body_decay * dx / rij**(two_body_decay+2.0d0)
+                ddecay = dx * 0.5d0 * pi * sin(pi*rij * invcut) * invcut * invrij
 
-                    part(:) = part(:) * scaling * rdecay(i,j) + radial_base(:) * dscal * rdecay(i,j) &
-                                    & + radial_base(:) * scaling * ddecay
+                part(:) = part(:) * scaling * rdecay(i,j) + radial_base(:) * dscal * rdecay(i,j) &
+                                & + radial_base(:) * scaling * ddecay
 
-                    ! The gradients wrt coordinates
-                    grad(i, (n-1)*nbasis2 + 1:n*nbasis2, i, k) = grad(i, (n-1)*nbasis2 + 1:n*nbasis2, i, k) + part
-                    if (j<=natoms) then
-                        grad(i, (n-1)*nbasis2 + 1:n*nbasis2, j, k) = grad(i, (n-1)*nbasis2 + 1:n*nbasis2, j, k) - part
-                        grad(j, (m-1)*nbasis2 + 1:m*nbasis2, i, k) = grad(j, (m-1)*nbasis2 + 1:m*nbasis2, i, k) + part
-                        add_grad(:, k, i, j)=part
-                    endif
-                enddo
-            endif
+                ! The gradients wrt coordinates
+                grad(i, (n-1)*nbasis2 + 1:n*nbasis2, i, k) = grad(i, (n-1)*nbasis2 + 1:n*nbasis2, i, k) + part
+                if (j<=natoms) then
+                    grad(i, (n-1)*nbasis2 + 1:n*nbasis2, j, k) = grad(i, (n-1)*nbasis2 + 1:n*nbasis2, j, k) - part
+                    grad(j, (m-1)*nbasis2 + 1:m*nbasis2, i, k) = grad(j, (m-1)*nbasis2 + 1:m*nbasis2, i, k) + part
+                    add_grad(:, k, i, j)=part
+                endif
+            enddo
         enddo
     enddo
     !$OMP END PARALLEL DO
@@ -1058,8 +1063,8 @@ subroutine fgenerate_fchl_acsf_and_gradients(coordinates, nuclear_charges, eleme
     !$OMP PARALLEL DO PRIVATE(m) SCHEDULE(dynamic)
     do j = 2, natoms
         do i = 1, j-1
+            if (distance_matrix(i,j)>rcut) cycle
             m = element_types(i)
-            if (distance_matrix(i,j)>rcut) continue
             rep(j, (m-1)*nbasis2 + 1:m*nbasis2) = rep(j, (m-1)*nbasis2 + 1:m*nbasis2) + add_rep(:, i, j)
             do k=1, 3
                 grad(j, (m-1)*nbasis2 + 1:m*nbasis2, j, k) = grad(j, (m-1)*nbasis2 + 1:m*nbasis2, j, k) - add_grad(:, k, i, j)

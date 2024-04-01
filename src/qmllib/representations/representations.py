@@ -814,13 +814,14 @@ def generate_fchl_acsf(
         for i in range(-nExtend[0], nExtend[0] + 1):
             for j in range(-nExtend[1], nExtend[1] + 1):
                 for k in range(-nExtend[2], nExtend[2] + 1):
-                    if not (i == 0 and j == 0 and k == 0):
-                        true_coords = np.append(
-                            true_coords,
-                            coordinates + i * cell[0, :] + j * cell[1, :] + k * cell[2, :],
-                            axis=0,
-                        )
-                        natoms_tot += natoms
+                    if i == 0 and j == 0 and k == 0:
+                        continue
+                    true_coords = np.append(
+                        true_coords,
+                        coordinates + i * cell[0, :] + j * cell[1, :] + k * cell[2, :],
+                        axis=0,
+                    )
+                    natoms_tot += natoms
         coordinates = true_coords
 
     if gradients is False:
