@@ -1,5 +1,4 @@
-
-name: Test Python package
+name: Test
 
 on:
   push:
@@ -9,6 +8,7 @@ on:
     branches: [ main ]
 
 jobs:
+
   test:
     name: Testing
     runs-on: "ubuntu-latest"
@@ -25,11 +25,6 @@ jobs:
           activate-environment: dev
           environment-file: ./environment_dev.yaml
           python-version: ${{ matrix.python-version }}
-      - run: |
-          ls
-          pwd
-          which python
-          conda info
       - run: pip install . -v
       - run: make test python=python
-      # - run: make format python=python
+      - run: make format python=python

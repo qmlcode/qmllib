@@ -1,3 +1,5 @@
+# flake8: noqa
+
 import ast
 import csv
 from copy import deepcopy

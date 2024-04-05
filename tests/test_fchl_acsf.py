@@ -5,10 +5,10 @@ This file contains tests for the atom centred symmetry function module.
 from copy import deepcopy
 
 import numpy as np
+from conftest import ASSETS
 
 from qmllib.representations import generate_fchl_acsf
 from qmllib.utils.xyz_format import read_xyz
-from tests.conftest import ASSETS
 
 np.set_printoptions(linewidth=666, edgeitems=10)
 REP_PARAMS = dict()
