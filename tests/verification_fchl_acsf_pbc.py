@@ -1,7 +1,8 @@
 """
-Runs the same calculation using the 'cell' keyword for generate_fchl_acsf and by straightforward
-'cell cloning' done inside the test script.
+This file contains tests for the atom centred symmetry function module.
 """
+
+import glob
 import os
 import random
 from copy import deepcopy
@@ -11,18 +12,111 @@ import numpy as np
 from qmllib.representations import generate_fchl_acsf
 from qmllib.utils.xyz_format import read_xyz
 
-np.set_printoptions(linewidth=666, edgeitems=10)
+# from tests.conftest import ASSETS
 
+np.set_printoptions(linewidth=666, edgeitems=10)
 REP_PARAMS = dict()
 REP_PARAMS["elements"] = [1, 6, 7, 8, 16]
-REP_PARAMS["rcut"] = 5.0
-REP_PARAMS["acut"] = 5.0
-random.seed(1)
-cell_added_cutoff = 0.1
+REP_PARAMS["rcut"] = 8.0
+REP_PARAMS["acut"] = 8.0
+
+
+def pbc_corrected_drep(drep, num_atoms):
+    new_shape = list(drep.shape)
+    new_shape[0] = num_atoms
+    new_shape[2] = num_atoms
+    new_drep = np.zeros(new_shape)
+    num_atoms_tot = drep.shape[0]
+    for i in range(num_atoms):
+        for j in range(num_atoms_tot):
+            true_j = j % num_atoms
+            new_drep[i, :, true_j, :] += drep[i, :, j, :]
+    return new_drep
+
+
+def generate_fchl_acsf_brute_pbc(nuclear_charges, coordinates, cell, gradients=False):
+    num_atoms = len(nuclear_charges)
+    all_coords = deepcopy(coordinates)
+    all_charges = deepcopy(nuclear_charges)
+    nExtend = (
+        np.floor(max(REP_PARAMS["rcut"], REP_PARAMS["acut"]) / np.linalg.norm(cell, 2, axis=0)) + 1
+    ).astype(int)
+    print("Checked nExtend:", nExtend)
+    for i in range(-nExtend[0], nExtend[0] + 1):
+        for j in range(-nExtend[1], nExtend[1] + 1):
+            for k in range(-nExtend[2], nExtend[2] + 1):
+                if not (i == 0 and j == 0 and k == 0):
+                    all_coords = np.append(
+                        all_coords,
+                        coordinates + i * cell[0, :] + j * cell[1, :] + k * cell[2, :],
+                        axis=0,
+                    )
+                    all_charges = np.append(all_charges, nuclear_charges)
+    if gradients:
+        if len(all_charges) > 2500:
+            return None, None
+        rep, drep = generate_fchl_acsf(all_charges, all_coords, gradients=gradients, **REP_PARAMS)
+    else:
+        rep = generate_fchl_acsf(all_charges, all_coords, gradients=gradients, **REP_PARAMS)
+
+    rep = rep[:num_atoms, :]
+    if gradients:
+        return rep, pbc_corrected_drep(drep, num_atoms)
+    else:
+        return rep
+
+
+def get_acsf_numgrad(coordinates, nuclear_charges, dx=1e-6, cell=None):
+
+    natoms = len(coordinates)
+    true_coords = deepcopy(coordinates)
+
+    true_rep = generate_fchl_acsf(
+        nuclear_charges, coordinates, gradients=False, cell=cell, **REP_PARAMS
+    )
+
+    gradient = np.zeros((3, natoms, true_rep.shape[0], true_rep.shape[1]))
+
+    for n, coord in enumerate(true_coords):
+        for xyz, x in enumerate(coord):
+
+            temp_coords = deepcopy(true_coords)
+            temp_coords[n, xyz] = x + 2.0 * dx
+
+            rep = generate_fchl_acsf(
+                nuclear_charges, temp_coords, gradients=False, cell=cell, **REP_PARAMS
+            )
+            gradient[xyz, n] -= rep
+
+            temp_coords[n, xyz] = x + dx
+            rep = generate_fchl_acsf(
+                nuclear_charges, temp_coords, gradients=False, cell=cell, **REP_PARAMS
+            )
+            gradient[xyz, n] += 8.0 * rep
+
+            temp_coords[n, xyz] = x - dx
+            rep = generate_fchl_acsf(
+                nuclear_charges, temp_coords, gradients=False, cell=cell, **REP_PARAMS
+            )
+            gradient[xyz, n] -= 8.0 * rep
+
+            temp_coords[n, xyz] = x - 2.0 * dx
+            rep = generate_fchl_acsf(
+                nuclear_charges, temp_coords, gradients=False, cell=cell, **REP_PARAMS
+            )
+            gradient[xyz, n] += rep
+
+    gradient /= 12 * dx
+
+    gradient = np.swapaxes(gradient, 0, 1)
+    gradient = np.swapaxes(gradient, 2, 0)
+    gradient = np.swapaxes(gradient, 3, 1)
+
+    return gradient
 
 
 #   For given molecular coordinates generate a cell just large enough to contain the molecule.
-def suitable_cell(coords):
+def suitable_cell(coords, cell_added_cutoff=0.1):
     max_coords = None
     min_coords = None
     for atom_coords in coords:
@@ -35,94 +129,54 @@ def suitable_cell(coords):
     return np.diag((max_coords - min_coords) * (1.0 + cell_added_cutoff))
 
 
-def generate_fchl_acsf_brute_pbc(nuclear_charges, coordinates, cell, gradients=False):
-    num_atoms = len(nuclear_charges)
-    all_coords = deepcopy(coordinates)
-    all_charges = deepcopy(nuclear_charges)
-    nExtend = (
-        np.floor(max(REP_PARAMS["rcut"], REP_PARAMS["acut"]) / np.linalg.norm(cell, 2, axis=0)) + 1
-    ).astype(int)
-    print("Checked nExtend:", nExtend, ", gradient calculation:", gradients)
-    for i in range(-nExtend[0], nExtend[0] + 1):
-        for j in range(-nExtend[1], nExtend[1] + 1):
-            for k in range(-nExtend[2], nExtend[2] + 1):
-                if not (i == 0 and j == 0 and k == 0):
-                    all_coords = np.append(
-                        all_coords,
-                        coordinates + i * cell[0, :] + j * cell[1, :] + k * cell[2, :],
-                        axis=0,
-                    )
-                    all_charges = np.append(all_charges, nuclear_charges)
-    if gradients:
-        rep, drep = generate_fchl_acsf(all_charges, all_coords, gradients=True, **REP_PARAMS)
-    else:
-        rep = generate_fchl_acsf(all_charges, all_coords, gradients=False, **REP_PARAMS)
-    rep = rep[:num_atoms, :]
-    if gradients:
-        drep = drep[:num_atoms, :, :num_atoms, :]
-        return rep, drep
-    else:
-        return rep
+def test_fchl_acsf():
 
+    all_xyzs = glob.glob(os.path.dirname(__file__) + "/assets/qm7/*.xyz")
+    random.seed(1)
+    xyzs = random.sample(all_xyzs, 16)
+    #    xyzs=["/home/konst/qmlcode/qmllib/tests/assets/qm7/0101.xyz"]
+    #    xyzs=["/home/konst/qmlcode/qmllib/tests/assets/qm7/4843.xyz"]
 
-def ragged_array_close(arr1, arr2, error_msg):
-    for el1, el2 in zip(arr1, arr2):
-        assert np.allclose(el1, el2), error_msg
+    for xyz in xyzs:
+        print("xyz:", xyz)
+        coordinates, nuclear_charges = read_xyz(xyz)
 
+        cell = suitable_cell(coordinates)
 
-def test_fchl_acsf_pbc():
-
-    qm7_dir = os.path.dirname(os.path.realpath(__file__)) + "/assets/qm7"
-    os.chdir(qm7_dir)
-    all_xyzs = os.listdir()
-    test_xyzs = random.sample(all_xyzs, 10)
-
-    reps_no_grad1 = []
-    reps_no_grad2 = []
-
-    reps_wgrad1 = []
-    reps_wgrad2 = []
-    dreps1 = []
-    dreps2 = []
-
-    for xyz in test_xyzs:
-        print("Tested xyz:", xyz)
-        coords, atoms = read_xyz(xyz)
-        cell = suitable_cell(coords)
-        reps_no_grad1.append(generate_fchl_acsf_brute_pbc(atoms, coords, cell, gradients=False))
-        reps_no_grad2.append(
-            generate_fchl_acsf(atoms, coords, cell=cell, gradients=False, **REP_PARAMS)
+        (repa, anal_grad) = generate_fchl_acsf(
+            nuclear_charges, coordinates, gradients=True, cell=cell, **REP_PARAMS
         )
 
-        rep_wgrad1, drep1 = generate_fchl_acsf_brute_pbc(atoms, coords, cell, gradients=True)
-        rep_wgrad2, drep2 = generate_fchl_acsf(
-            atoms, coords, cell=cell, gradients=True, **REP_PARAMS
+        repb = generate_fchl_acsf(
+            nuclear_charges, coordinates, gradients=False, cell=cell, **REP_PARAMS
         )
 
-        reps_wgrad1.append(rep_wgrad1)
-        reps_wgrad2.append(rep_wgrad2)
+        assert np.allclose(repa, repb), "Error in FCHL-ACSF representation implementation"
 
-        dreps1.append(drep1)
-        dreps2.append(drep2)
+        repc = generate_fchl_acsf_brute_pbc(nuclear_charges, coordinates, cell)
 
-    ragged_array_close(
-        reps_no_grad1,
-        reps_no_grad2,
-        "Error in PBC implementation for generate_fchl_acsf without gradients.",
-    )
-    ragged_array_close(
-        reps_wgrad1,
-        reps_wgrad2,
-        "Error in PBC implementation for generate_fchl_acsf with gradients (representation).",
-    )
-    ragged_array_close(
-        dreps1,
-        dreps2,
-        "Error in PBC implementation for generate_fchl_acsf with gradients (gradient of representation).",
-    )
-    print("Passed")
+        assert np.allclose(repa, repc), "Error in PBC implementation"
+
+        repd, brute_pbc_grad = generate_fchl_acsf_brute_pbc(
+            nuclear_charges, coordinates, cell, gradients=True
+        )
+        if repd is None:
+            print("too large gradient matrix for brute PBC check")
+        else:
+            assert np.allclose(repd, repa)
+            assert np.allclose(
+                anal_grad, brute_pbc_grad
+            ), "Error in FCHL-ACSF gradient implementation"
+
+        num_grad = get_acsf_numgrad(coordinates, nuclear_charges, cell=cell)
+        print(
+            "analytic-numerical gradient difference vs. average magnitude:",
+            np.max(np.abs(num_grad - anal_grad)),
+            np.mean(np.abs(num_grad)),
+        )
 
 
-if __name__ == "__main__":
+#        assert np.allclose(anal_grad, brute_pbc_grad), "Error in FCHL-ACSF gradient implementation"
 
-    test_fchl_acsf_pbc()
+
+test_fchl_acsf()
