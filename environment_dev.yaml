@@ -6,7 +6,7 @@ dependencies:
   - python==3.12
   - jupytext
   - monkeytype
-  - numpy
+  - numpy<2.0.0
   - pandas
   - pip
   - pre-commit
