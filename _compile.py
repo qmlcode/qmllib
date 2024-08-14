@@ -40,13 +40,9 @@ def find_mkl():
 def find_env() -> dict[str, str]:
     """Find compiler flags"""
 
+    # TODO Find ifort flags, choose from FCC
     # TODO Find math lib
     # TODO Find os
-
-    # ifort -qopenmp
-
-    # -lgomp", "-lpthread", "-lm", "-ldl
-    # ["-L${MKLROOT}/lib/intel64", "-lmkl_rt"]
 
     COMPILER_FLAGS = [
         "-O3",
@@ -54,11 +50,10 @@ def find_env() -> dict[str, str]:
         "-m64",
         "-march=native",
         "-fPIC",
-        # "-Wno-maybe-uninitialized",
-        # "-Wno-unused-function",
-        # "-Wno-cpp",
+        "-Wno-maybe-uninitialized",
+        "-Wno-unused-function",
+        "-Wno-cpp",
     ]
-    # LINKER_FLAGS = ["-lgomp"]
 
     extra_flags = ["-lgomp", "-lpthread", "-lm", "-ldl"]
     math_flags = ["-L/usr/lib/", "-lblas", "-llapack"]
@@ -66,11 +61,6 @@ def find_env() -> dict[str, str]:
     fflags = [] + COMPILER_FLAGS
     ldflags = [] + extra_flags + math_flags
     fcc = "gfortran"
-
-    # return [f"--f90flags='{' '.join(COMPILER_FLAGS)}'", "-lgomp"]
-    # return ["-fopenmp"]
-
-    # return flags
 
     env = {"FFLAGS": " ".join(fflags), "LDFLAGS": " ".join(ldflags), "FCC": fcc}
 
@@ -82,8 +72,7 @@ def main():
 
     print(f"Using numpy {np.__version__}")
 
-    # Find and set Fortran compiler, compiler flags and linker
-    # flags
+    # Find and set Fortran compiler, compiler flags and linker flags
     env = find_env()
     for key, value in env.items():
         print(f"export {key}='{value}'")
