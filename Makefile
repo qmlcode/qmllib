@@ -30,7 +30,7 @@ test:
 	${python} -m pytest -rs ./tests
 
 types:
-	# ${python} -m monkeytype run $$(which ${pytest}) ./tests
+	${python} -m monkeytype run $$(which ${pytest}) ./tests
 	${python} -m monkeytype list-modules | grep ${pkg} | parallel -j${j} "${python} -m monkeytype apply {} > /dev/null && echo {}"
 
 cov:
