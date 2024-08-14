@@ -3,8 +3,9 @@ subroutine fget_ef_gaussian_process_kernels_fchl(x1, x2, verbose, f1, f2, n1, n2
         & distance_scale, angular_scale, alchemy, two_body_power, three_body_power, ef_scale,&
         & df, kernel_idx, parameters, kernels)
 
-   use ffchl_module, only: scalar, get_angular_norm2, get_pmax, get_ksi_ef_field, init_cosp_sinp_ef_field, &
-       & get_selfscalar, get_ksi_ef, init_cosp_sinp_ef
+   use ffchl_module, only: scalar, get_angular_norm2, get_pmax, get_selfscalar
+
+   use ffchl_module_ef, only: get_ksi_ef_field, init_cosp_sinp_ef_field, get_ksi_ef, init_cosp_sinp_ef
 
    use ffchl_kernels, only: kernel
 
@@ -119,6 +120,13 @@ subroutine fget_ef_gaussian_process_kernels_fchl(x1, x2, verbose, f1, f2, n1, n2
    integer :: maxneigh1
    integer :: maxneigh2
 
+   ! Work for kernel
+   integer :: n
+   double precision, allocatable, dimension(:) :: ktmp
+
+   n = size(parameters, dim=1)
+   allocate (ktmp(n))
+
    kernels(:, :, :) = 0.0d0
 
    ! Get max number of neighbors
@@ -133,14 +141,25 @@ subroutine fget_ef_gaussian_process_kernels_fchl(x1, x2, verbose, f1, f2, n1, n2
    pmax2 = get_pmax(x2, n2)
 
    ! Get two-body weight function
-   ksi1 = get_ksi_ef_field(x1, n1, nneigh1, two_body_power, cut_start, cut_distance, &
-               & f1, ef_scale, verbose)
-   ksi1_ef = get_ksi_ef(x1, n1, nneigh1, two_body_power, cut_start, cut_distance, ef_scale, df, verbose)
+   allocate (ksi1(size(x1, dim=1), maxval(n1), maxval(nneigh1)))
+   call get_ksi_ef_field(x1, n1, nneigh1, two_body_power, cut_start, cut_distance, &
+               & f1, ef_scale, verbose, ksi1)
+   !ksi1 = get_ksi_ef_field(x1, n1, nneigh1, two_body_power, cut_start, cut_distance, &
+   !            & f1, ef_scale, verbose)
+
+   allocate (ksi1_ef(size(x1, dim=1), 3, 2, maxval(n1), maxval(nneigh1)))
+   call get_ksi_ef(x1, n1, nneigh1, two_body_power, cut_start, cut_distance, ef_scale, df, verbose, ksi1_ef)
+   !ksi1_ef = get_ksi_ef(x1, n1, nneigh1, two_body_power, cut_start, cut_distance, ef_scale, df, verbose)
 
    ! Get two-body weight function
-   ksi2 = get_ksi_ef_field(x2, n2, nneigh2, two_body_power, cut_start, cut_distance, &
-               & f2, ef_scale, verbose)
-   ksi2_ef = get_ksi_ef(x2, n2, nneigh2, two_body_power, cut_start, cut_distance, ef_scale, df, verbose)
+   allocate (ksi2(size(x2, dim=1), maxval(n2), maxval(nneigh2)))
+   allocate (ksi2_ef(size(x2, dim=1), 3, 2, maxval(n2), maxval(nneigh2)))
+   call get_ksi_ef_field(x2, n2, nneigh2, two_body_power, cut_start, cut_distance, &
+               & f2, ef_scale, verbose, ksi2)
+   call get_ksi_ef(x2, n2, nneigh2, two_body_power, cut_start, cut_distance, ef_scale, df, verbose, ksi2_ef)
+   !ksi2 = get_ksi_ef_field(x2, n2, nneigh2, two_body_power, cut_start, cut_distance, &
+   !            & f2, ef_scale, verbose)
+   !ksi2_ef = get_ksi_ef(x2, n2, nneigh2, two_body_power, cut_start, cut_distance, ef_scale, df, verbose)
 
    ! Allocate three-body Fourier terms
    allocate (cosp1(nm1, maxval(n1), pmax1, order, maxneigh1))
@@ -174,13 +193,20 @@ subroutine fget_ef_gaussian_process_kernels_fchl(x1, x2, verbose, f1, f2, n1, n2
    call init_cosp_sinp_ef(x2, n2, nneigh2, three_body_power, order, cut_start, cut_distance, &
        & cosp2_ef, sinp2_ef, ef_scale, df, verbose)
 
-   ! Pre-calculate self-scalar terms
-   self_scalar1 = get_selfscalar(x1, nm1, n1, nneigh1, ksi1, sinp1, cosp1, t_width, d_width, &
-        & cut_distance, order, pd, ang_norm2, distance_scale, angular_scale, alchemy, verbose)
+   allocate (self_scalar1(nm1, maxval(n1)))
+   allocate (self_scalar2(nm2, maxval(n2)))
 
    ! Pre-calculate self-scalar terms
-   self_scalar2 = get_selfscalar(x2, nm2, n2, nneigh2, ksi2, sinp2, cosp2, t_width, d_width, &
-        & cut_distance, order, pd, ang_norm2, distance_scale, angular_scale, alchemy, verbose)
+   call get_selfscalar(x1, nm1, n1, nneigh1, ksi1, sinp1, cosp1, t_width, d_width, &
+        & cut_distance, order, pd, ang_norm2, distance_scale, angular_scale, alchemy, verbose, self_scalar1)
+   !self_scalar1 = get_selfscalar(x1, nm1, n1, nneigh1, ksi1, sinp1, cosp1, t_width, d_width, &
+   !     & cut_distance, order, pd, ang_norm2, distance_scale, angular_scale, alchemy, verbose)
+
+   ! Pre-calculate self-scalar terms
+   call get_selfscalar(x2, nm2, n2, nneigh2, ksi2, sinp2, cosp2, t_width, d_width, &
+        & cut_distance, order, pd, ang_norm2, distance_scale, angular_scale, alchemy, verbose, self_scalar2)
+   !self_scalar2 = get_selfscalar(x2, nm2, n2, nneigh2, ksi2, sinp2, cosp2, t_width, d_width, &
+   !     & cut_distance, order, pd, ang_norm2, distance_scale, angular_scale, alchemy, verbose)
 
    ! Self-scalar derivatives
    allocate (self_scalar1_ef(nm1, 3, 2, maxval(n1)))
@@ -238,9 +264,12 @@ subroutine fget_ef_gaussian_process_kernels_fchl(x1, x2, verbose, f1, f2, n1, n2
                    & t_width, d_width, cut_distance, order, &
                    & pd, ang_norm2, distance_scale, angular_scale, alchemy)
 
-               kernels(:, a, b) = kernels(:, a, b) &
-                   & + kernel(self_scalar1(a, i), self_scalar2(b, j), s12, &
-                   & kernel_idx, parameters)
+               call kernel(self_scalar1(a, i), self_scalar2(b, j), s12, kernel_idx, parameters, ktmp)
+               kernels(:, a, b) = kernels(:, a, b) + ktmp
+
+               !kernels(:, a, b) = kernels(:, a, b) &
+               !    & + kernel(self_scalar1(a, i), self_scalar2(b, j), s12, &
+               !    & kernel_idx, parameters)
 
             end do
          end do
@@ -248,7 +277,7 @@ subroutine fget_ef_gaussian_process_kernels_fchl(x1, x2, verbose, f1, f2, n1, n2
    end do
    !$OMP END PARALLEL DO
 
-   !$OMP PARALLEL DO schedule(dynamic) PRIVATE(s12,ni,nj,idx_a,idx_b)
+   !$OMP PARALLEL DO schedule(dynamic) PRIVATE(s12,ni,nj,idx_a,idx_b,ktmp)
    do a = 1, nm1
       ni = n1(a)
       do i = 1, ni
@@ -271,17 +300,23 @@ subroutine fget_ef_gaussian_process_kernels_fchl(x1, x2, verbose, f1, f2, n1, n2
                       & t_width, d_width, cut_distance, order, &
                       & pd, ang_norm2, distance_scale, angular_scale, alchemy)
 
+                  call kernel(self_scalar1(a, i), self_scalar2_ef(b, xyz, pm, j), s12, kernel_idx, parameters, ktmp)
+
                   if (pm == 1) then
 
-                     kernels(:, idx_a, idx_b) = kernels(:, idx_a, idx_b) &
-                         & + kernel(self_scalar1(a, i), self_scalar2_ef(b, xyz, pm, j), s12, &
-                         & kernel_idx, parameters)/(2*df)
+                     !kernels(:, idx_a, idx_b) = kernels(:, idx_a, idx_b) &
+                     !    & + kernel(self_scalar1(a, i), self_scalar2_ef(b, xyz, pm, j), s12, &
+                     !    & kernel_idx, parameters)/(2*df)
+
+                     kernels(:, idx_a, idx_b) = kernels(:, idx_a, idx_b) + ktmp/(2*df)
 
                   else
 
-                     kernels(:, idx_a, idx_b) = kernels(:, idx_a, idx_b) &
-                         & - kernel(self_scalar1(a, i), self_scalar2_ef(b, xyz, pm, j), s12, &
-                         & kernel_idx, parameters)/(2*df)
+                     !kernels(:, idx_a, idx_b) = kernels(:, idx_a, idx_b) &
+                     !    & - kernel(self_scalar1(a, i), self_scalar2_ef(b, xyz, pm, j), s12, &
+                     !    & kernel_idx, parameters)/(2*df)
+
+                     kernels(:, idx_a, idx_b) = kernels(:, idx_a, idx_b) - ktmp/(2*df)
 
                   end if
 
@@ -293,7 +328,7 @@ subroutine fget_ef_gaussian_process_kernels_fchl(x1, x2, verbose, f1, f2, n1, n2
    end do
    !$OMP END PARALLEL DO
 
-   !$OMP PARALLEL DO schedule(dynamic) PRIVATE(s12,ni,nj,idx_a,idx_b)
+   !$OMP PARALLEL DO schedule(dynamic) PRIVATE(s12,ni,nj,idx_a,idx_b,ktmp)
 
    do a = 1, nm2
       ni = n2(a)
@@ -317,19 +352,26 @@ subroutine fget_ef_gaussian_process_kernels_fchl(x1, x2, verbose, f1, f2, n1, n2
                       & t_width, d_width, cut_distance, order, &
                       & pd, ang_norm2, distance_scale, angular_scale, alchemy)
 
+                  call kernel(self_scalar2(a, i), self_scalar1_ef(b, xyz, pm, j), s12, &
+                         & kernel_idx, parameters, ktmp)
+
                   if (pm == 1) then
 
                      ! kernels(:, idx_a, idx_b) = kernels(:, idx_a, idx_b) &
-                     kernels(:, idx_b, idx_a) = kernels(:, idx_b, idx_a) &
-                         & + kernel(self_scalar2(a, i), self_scalar1_ef(b, xyz, pm, j), s12, &
-                         & kernel_idx, parameters)/(2*df)
+                     kernels(:, idx_b, idx_a) = kernels(:, idx_b, idx_a) + ktmp/(2*df)
+
+                     !kernels(:, idx_b, idx_a) = kernels(:, idx_b, idx_a) &
+                     !    & + kernel(self_scalar2(a, i), self_scalar1_ef(b, xyz, pm, j), s12, &
+                     !    & kernel_idx, parameters)/(2*df)
 
                   else
 
                      ! kernels(:, idx_a, idx_b) = kernels(:, idx_a, idx_b) &
-                     kernels(:, idx_b, idx_a) = kernels(:, idx_b, idx_a) &
-                         & - kernel(self_scalar2(a, i), self_scalar1_ef(b, xyz, pm, j), s12, &
-                         & kernel_idx, parameters)/(2*df)
+                     kernels(:, idx_b, idx_a) = kernels(:, idx_b, idx_a) - ktmp/(2*df)
+
+                     !kernels(:, idx_b, idx_a) = kernels(:, idx_b, idx_a) &
+                     !    & - kernel(self_scalar2(a, i), self_scalar1_ef(b, xyz, pm, j), s12, &
+                     !    & kernel_idx, parameters)/(2*df)
 
                   end if
 
@@ -363,19 +405,29 @@ subroutine fget_ef_gaussian_process_kernels_fchl(x1, x2, verbose, f1, f2, n1, n2
                      s12 = scalar(x1(a, i, :, :), x2(b, j, :, :), &
                          & nneigh1(a, i), nneigh2(b, j), &
                          & ksi1_ef(a, xyz1, pm1, i, :), ksi2_ef(b, xyz2, pm2, j, :), &
-                         & sinp1_ef(a, xyz1, pm1, i, :, :, :), sinp2_ef(b, xyz2, pm2, j, :, :, :), &
-                         & cosp1_ef(a, xyz1, pm1, i, :, :, :), cosp2_ef(b, xyz2, pm2, j, :, :, :), &
+                     & sinp1_ef(a, xyz1, pm1, i, :, :, :), sinp2_ef(b, xyz2, pm2, j, :, :, :), &
+                     & cosp1_ef(a, xyz1, pm1, i, :, :, :), cosp2_ef(b, xyz2, pm2, j, :, :, :), &
                          & t_width, d_width, cut_distance, order, &
                          & pd, ang_norm2, distance_scale, angular_scale, alchemy)
+
+                     call kernel(self_scalar1_ef(a, xyz1, pm1, i), self_scalar2_ef(b, xyz2, pm2, j), s12, &
+                            & kernel_idx, parameters, ktmp)
+
                      if (pm1 == pm2) then
 
-                        kernels(:, idx_a, idx_b) = kernels(:, idx_a, idx_b) &
-                & + kernel(self_scalar1_ef(a, xyz1, pm1, i), self_scalar2_ef(b, xyz2, pm2, j), s12, &
-                            & kernel_idx, parameters)/(4*df**2)
+                        kernels(:, idx_a, idx_b) = kernels(:, idx_a, idx_b) + ktmp/(4*df**2)
+
+                        !        kernels(:, idx_a, idx_b) = kernels(:, idx_a, idx_b) &
+                        !& + kernel(self_scalar1_ef(a, xyz1, pm1, i), self_scalar2_ef(b, xyz2, pm2, j), s12, &
+                        !            & kernel_idx, parameters)/(4*df**2)
+
                      else
-                        kernels(:, idx_a, idx_b) = kernels(:, idx_a, idx_b) &
-                & - kernel(self_scalar1_ef(a, xyz1, pm1, i), self_scalar2_ef(b, xyz2, pm2, j), s12, &
-                            & kernel_idx, parameters)/(4*df**2)
+
+                        kernels(:, idx_a, idx_b) = kernels(:, idx_a, idx_b) - ktmp/(4*df**2)
+
+                        !        kernels(:, idx_a, idx_b) = kernels(:, idx_a, idx_b) &
+                        !& - kernel(self_scalar1_ef(a, xyz1, pm1, i), self_scalar2_ef(b, xyz2, pm2, j), s12, &
+                        !            & kernel_idx, parameters)/(4*df**2)
 
                      end if
 
@@ -405,8 +457,10 @@ subroutine fget_ef_atomic_local_kernels_fchl(x1, x2, verbose, f2, n1, n2, nneigh
        & distance_scale, angular_scale, alchemy, two_body_power, three_body_power, ef_scale,&
        & kernel_idx, parameters, kernels)
 
-   use ffchl_module, only: scalar, get_angular_norm2, get_pmax, get_ksi_ef_field, init_cosp_sinp_ef_field, &
+   use ffchl_module, only: scalar, get_angular_norm2, get_pmax, &
        & get_selfscalar, get_ksi, init_cosp_sinp
+
+   use ffchl_module_ef, only: get_ksi_ef_field, init_cosp_sinp_ef_field
 
    use ffchl_kernels, only: kernel
 
@@ -509,6 +563,13 @@ subroutine fget_ef_atomic_local_kernels_fchl(x1, x2, verbose, f2, n1, n2, nneigh
    integer :: maxneigh1
    integer :: maxneigh2
 
+   ! Work for kernel
+   integer :: n
+   double precision, allocatable, dimension(:) :: ktmp
+
+   n = size(parameters, dim=1)
+   allocate (ktmp(n))
+
    kernels(:, :, :) = 0.0d0
 
    ! Get max number of neighbors
@@ -522,12 +583,18 @@ subroutine fget_ef_atomic_local_kernels_fchl(x1, x2, verbose, f2, n1, n2, nneigh
    pmax1 = get_pmax(x1, n1)
    pmax2 = get_pmax(x2, n2)
 
-   ! Get two-body weight function
-   ksi1 = get_ksi(x1, n1, nneigh1, two_body_power, cut_start, cut_distance, verbose)
+   allocate (ksi1(size(x1, dim=1), maxval(n1), maxval(nneigh1)))
+   allocate (ksi2(size(x2, dim=1), maxval(n2), maxval(nneigh2)))
 
    ! Get two-body weight function
-   ksi2 = get_ksi_ef_field(x2, n2, nneigh2, two_body_power, cut_start, cut_distance, &
-               & f2, ef_scale, verbose)
+   ! ksi1 = get_ksi(x1, n1, nneigh1, two_body_power, cut_start, cut_distance, verbose)
+   call get_ksi(x1, n1, nneigh1, two_body_power, cut_start, cut_distance, verbose, ksi1)
+
+   ! Get two-body weight function
+   call get_ksi_ef_field(x2, n2, nneigh2, two_body_power, cut_start, cut_distance, &
+               & f2, ef_scale, verbose, ksi2)
+   !ksi2 = get_ksi_ef_field(x2, n2, nneigh2, two_body_power, cut_start, cut_distance, &
+   !            & f2, ef_scale, verbose)
 
    ! Allocate three-body Fourier terms
    allocate (cosp1(nm1, maxval(n1), pmax1, order, maxneigh1))
@@ -546,16 +613,23 @@ subroutine fget_ef_atomic_local_kernels_fchl(x1, x2, verbose, f2, n1, n2, nneigh
        & cosp2, sinp2, f2, ef_scale, verbose)
 
    ! Pre-calculate self-scalar terms
-   self_scalar1 = get_selfscalar(x1, nm1, n1, nneigh1, ksi1, sinp1, cosp1, t_width, d_width, &
-        & cut_distance, order, pd, ang_norm2, distance_scale, angular_scale, alchemy, verbose)
+   allocate (self_scalar1(nm1, maxval(n1)))
+   allocate (self_scalar2(nm2, maxval(n2)))
+   call get_selfscalar(x1, nm1, n1, nneigh1, ksi1, sinp1, cosp1, t_width, d_width, &
+        & cut_distance, order, pd, ang_norm2, distance_scale, angular_scale, alchemy, verbose, self_scalar2)
+   call get_selfscalar(x2, nm2, n2, nneigh2, ksi2, sinp2, cosp2, t_width, d_width, &
+        & cut_distance, order, pd, ang_norm2, distance_scale, angular_scale, alchemy, verbose, self_scalar2)
+
+   !self_scalar1 = get_selfscalar(x1, nm1, n1, nneigh1, ksi1, sinp1, cosp1, t_width, d_width, &
+   !     & cut_distance, order, pd, ang_norm2, distance_scale, angular_scale, alchemy, verbose)
 
    ! Pre-calculate self-scalar terms
-   self_scalar2 = get_selfscalar(x2, nm2, n2, nneigh2, ksi2, sinp2, cosp2, t_width, d_width, &
-        & cut_distance, order, pd, ang_norm2, distance_scale, angular_scale, alchemy, verbose)
+   !self_scalar2 = get_selfscalar(x2, nm2, n2, nneigh2, ksi2, sinp2, cosp2, t_width, d_width, &
+   !     & cut_distance, order, pd, ang_norm2, distance_scale, angular_scale, alchemy, verbose)
 
    kernels(:, :, :) = 0.0d0
 
-   !$OMP PARALLEL DO schedule(dynamic) PRIVATE(ni,nj,idx1,s12)
+   !$OMP PARALLEL DO schedule(dynamic) PRIVATE(ni,nj,idx1,s12,ktmp)
    do a = 1, nm1
       ni = n1(a)
       do i = 1, ni
@@ -573,9 +647,15 @@ subroutine fget_ef_atomic_local_kernels_fchl(x1, x2, verbose, f2, n1, n2, nneigh
                    & t_width, d_width, cut_distance, order, &
                     & pd, ang_norm2, distance_scale, angular_scale, alchemy)
 
-               kernels(:, idx1, b) = kernels(:, idx1, b) &
-                   & + kernel(self_scalar1(a, i), self_scalar2(b, j), s12, &
-                    & kernel_idx, parameters)
+               ktmp = 0.0d0
+               call kernel(self_scalar1(a, i), self_scalar2(b, j), s12, &
+                   & kernel_idx, parameters, ktmp)
+
+               kernels(:, idx1, b) = kernels(:, idx1, b) + ktmp
+
+               !kernels(:, idx1, b) = kernels(:, idx1, b) &
+               !    & + kernel(self_scalar1(a, i), self_scalar2(b, j), s12, &
+               !     & kernel_idx, parameters)
 
             end do
          end do
@@ -599,8 +679,9 @@ subroutine fget_ef_atomic_local_gradient_kernels_fchl(x1, x2, verbose, n1, n2, n
        & distance_scale, angular_scale, alchemy, two_body_power, three_body_power, ef_scale,&
        & df, kernel_idx, parameters, kernels)
 
-   use ffchl_module, only: scalar, get_angular_norm2, get_pmax, get_ksi, init_cosp_sinp, &
-       & get_selfscalar, get_ksi_ef, init_cosp_sinp_ef
+   use ffchl_module, only: scalar, get_angular_norm2, get_pmax, get_ksi, init_cosp_sinp, get_selfscalar
+
+   use ffchl_module_ef, only: get_ksi_ef, init_cosp_sinp_ef
 
    use ffchl_kernels, only: kernel
 
@@ -704,6 +785,13 @@ subroutine fget_ef_atomic_local_gradient_kernels_fchl(x1, x2, verbose, n1, n2, n
    integer :: maxneigh1
    integer :: maxneigh2
 
+   ! Work for kernel
+   integer :: n
+   double precision, allocatable, dimension(:) :: ktmp
+
+   n = size(parameters, dim=1)
+   allocate (ktmp(n))
+
    kernels(:, :, :) = 0.0d0
 
    ! Get max number of neighbors
@@ -718,8 +806,12 @@ subroutine fget_ef_atomic_local_gradient_kernels_fchl(x1, x2, verbose, n1, n2, n
    pmax2 = get_pmax(x2, n2)
 
    ! Get two-body weight function
-   ksi1 = get_ksi(x1, n1, nneigh1, two_body_power, cut_start, cut_distance, verbose)
-   ksi2_ef = get_ksi_ef(x2, n2, nneigh2, two_body_power, cut_start, cut_distance, ef_scale, df, verbose)
+   allocate (ksi1(size(x1, dim=1), maxval(n1), maxval(nneigh1)))
+   allocate (ksi2_ef(size(x2, dim=1), 3, 2, maxval(n2), maxval(nneigh2)))
+   call get_ksi(x1, n1, nneigh1, two_body_power, cut_start, cut_distance, verbose, ksi1)
+   call get_ksi_ef(x2, n2, nneigh2, two_body_power, cut_start, cut_distance, ef_scale, df, verbose, ksi2_ef)
+   !ksi1 = get_ksi(x1, n1, nneigh1, two_body_power, cut_start, cut_distance, verbose)
+   !ksi2_ef = get_ksi_ef(x2, n2, nneigh2, two_body_power, cut_start, cut_distance, ef_scale, df, verbose)
 
    ! Allocate three-body Fourier terms
    allocate (cosp1(nm1, maxval(n1), pmax1, order, maxneigh1))
@@ -738,8 +830,11 @@ subroutine fget_ef_atomic_local_gradient_kernels_fchl(x1, x2, verbose, n1, n2, n
        & cosp2_ef, sinp2_ef, ef_scale, df, verbose)
 
    ! Pre-calculate self-scalar terms
-   self_scalar1 = get_selfscalar(x1, nm1, n1, nneigh1, ksi1, sinp1, cosp1, t_width, d_width, &
-        & cut_distance, order, pd, ang_norm2, distance_scale, angular_scale, alchemy, verbose)
+   allocate (self_scalar1(nm1, maxval(n1)))
+   call get_selfscalar(x1, nm1, n1, nneigh1, ksi1, sinp1, cosp1, t_width, d_width, &
+        & cut_distance, order, pd, ang_norm2, distance_scale, angular_scale, alchemy, verbose, self_scalar1)
+   !self_scalar1 = get_selfscalar(x1, nm1, n1, nneigh1, ksi1, sinp1, cosp1, t_width, d_width, &
+   !     & cut_distance, order, pd, ang_norm2, distance_scale, angular_scale, alchemy, verbose)
 
    allocate (self_scalar2_ef(nm2, 3, 2, maxval(n2)))
    do a = 1, nm2
@@ -760,7 +855,7 @@ subroutine fget_ef_atomic_local_gradient_kernels_fchl(x1, x2, verbose, n1, n2, n
       end do
    end do
 
-   !$OMP PARALLEL DO schedule(dynamic) PRIVATE(s12,ni,nj,idx_a,idx_b)
+   !$OMP PARALLEL DO schedule(dynamic) PRIVATE(s12,ni,nj,idx_a,idx_b,ktmp)
 
    do a = 1, nm1
       ni = n1(a)
@@ -784,17 +879,25 @@ subroutine fget_ef_atomic_local_gradient_kernels_fchl(x1, x2, verbose, n1, n2, n
                       & t_width, d_width, cut_distance, order, &
                       & pd, ang_norm2, distance_scale, angular_scale, alchemy)
 
+                  ktmp = 0.0d0
+                  call kernel(self_scalar1(a, i), self_scalar2_ef(b, xyz, pm, j), s12, &
+                        & kernel_idx, parameters, ktmp)
+
                   if (pm == 1) then
 
-                     kernels(:, idx_a, idx_b) = kernels(:, idx_a, idx_b) &
-                         & + kernel(self_scalar1(a, i), self_scalar2_ef(b, xyz, pm, j), s12, &
-                         & kernel_idx, parameters)
+                     kernels(:, idx_a, idx_b) = kernels(:, idx_a, idx_b) + ktmp
+
+                     !kernels(:, idx_a, idx_b) = kernels(:, idx_a, idx_b) &
+                     !    & + kernel(self_scalar1(a, i), self_scalar2_ef(b, xyz, pm, j), s12, &
+                     !    & kernel_idx, parameters)
 
                   else
 
-                     kernels(:, idx_a, idx_b) = kernels(:, idx_a, idx_b) &
-                         & - kernel(self_scalar1(a, i), self_scalar2_ef(b, xyz, pm, j), s12, &
-                         & kernel_idx, parameters)
+                     kernels(:, idx_a, idx_b) = kernels(:, idx_a, idx_b) - ktmp
+
+                     !kernels(:, idx_a, idx_b) = kernels(:, idx_a, idx_b) &
+                     !    & - kernel(self_scalar1(a, i), self_scalar2_ef(b, xyz, pm, j), s12, &
+                     !    & kernel_idx, parameters)
 
                   end if
 

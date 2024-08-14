@@ -5,67 +5,96 @@ import subprocess
 import sys
 from pathlib import Path
 
+import numpy as np
+
 f90_modules = {
     "representations/frepresentations": ["frepresentations.f90"],
     "representations/facsf": ["facsf.f90"],
     "representations/fslatm": ["fslatm.f90"],
     "representations/arad/farad_kernels": ["farad_kernels.f90"],
     "representations/fchl/ffchl_module": [
-        "ffchl_module.f90",
-        "ffchl_scalar_kernels.f90",
         "ffchl_kernel_types.f90",
+        "ffchl_module.f90",
+        "ffchl_module_ef.f90",
         "ffchl_kernels.f90",
-        "ffchl_electric_field_kernels.f90",
+        "ffchl_scalar_kernels.f90",
+        "ffchl_kernels_ef.f90",
         "ffchl_force_kernels.f90",
     ],
     "solvers/fsolvers": ["fsolvers.f90"],
     "kernels/fdistance": ["fdistance.f90"],
-    "kernels/fkernels": ["fkernels.f90", "fkpca.f90"],
+    "kernels/fkernels": [
+        "fkernels.f90",
+        "fkpca.f90",
+        "fkwasserstein.f90",
+    ],
     "kernels/fgradient_kernels": ["fgradient_kernels.f90"],
+    "utils/fsettings": ["fsettings.f90"],
 }
 
 
 def find_mkl():
+    raise NotImplementedError()
 
-    return
 
-
-def find_flags(fcc: str):
+def find_env() -> dict[str, str]:
     """Find compiler flags"""
 
     # TODO Find math lib
     # TODO Find os
 
+    # ifort -qopenmp
+
     # -lgomp", "-lpthread", "-lm", "-ldl
     # ["-L${MKLROOT}/lib/intel64", "-lmkl_rt"]
 
-    # COMPILER_FLAGS = ["-O3", "-fopenmp", "-m64", "-march=native", "-fPIC",
-    #                 "-Wno-maybe-uninitialized", "-Wno-unused-function", "-Wno-cpp"]
+    COMPILER_FLAGS = [
+        "-O3",
+        "-fopenmp",
+        "-m64",
+        "-march=native",
+        "-fPIC",
+        # "-Wno-maybe-uninitialized",
+        # "-Wno-unused-function",
+        # "-Wno-cpp",
+    ]
     # LINKER_FLAGS = ["-lgomp"]
 
     extra_flags = ["-lgomp", "-lpthread", "-lm", "-ldl"]
+    math_flags = ["-L/usr/lib/", "-lblas", "-llapack"]
 
-    flags = ["-L/usr/lib/", "-lblas", "-llapack"] + extra_flags
-
-    return flags
-
-
-def find_fcc():
-    """Find the fortran compiler. Either gnu or intel"""
-
-    # fcc = "ifort"
+    fflags = [] + COMPILER_FLAGS
+    ldflags = [] + extra_flags + math_flags
     fcc = "gfortran"
 
-    return fcc
+    # return [f"--f90flags='{' '.join(COMPILER_FLAGS)}'", "-lgomp"]
+    # return ["-fopenmp"]
+
+    # return flags
+
+    env = {"FFLAGS": " ".join(fflags), "LDFLAGS": " ".join(ldflags), "FCC": fcc}
+
+    return env
 
 
 def main():
     """Compile f90 in src/qmllib"""
 
-    fcc = find_fcc()
-    flags = find_flags(fcc)
+    print(f"Using numpy {np.__version__}")
 
-    os.environ["FCC"] = fcc
+    # Find and set Fortran compiler, compiler flags and linker
+    # flags
+    env = find_env()
+    for key, value in env.items():
+        print(f"export {key}='{value}'")
+        os.environ[key] = value
+
+    f2py = [sys.executable, "-m", "numpy.f2py"]
+
+    meson_flags = [
+        "--backend",
+        "meson",
+    ]
 
     for module_name, module_sources in f90_modules.items():
 
@@ -74,9 +103,7 @@ def main():
         stem = path.stem
 
         cwd = Path("src/qmllib") / parent
-        cmd = (
-            [sys.executable, "-m", "numpy.f2py", "-c"] + flags + module_sources + ["-m", str(stem)]
-        )
+        cmd = f2py + ["-c"] + module_sources + ["-m", str(stem)] + meson_flags
         print(cwd, " ".join(cmd))
 
         proc = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
@@ -85,9 +112,9 @@ def main():
         exitcode = proc.returncode
 
         if exitcode > 0:
-            print(stdout)
-            print()
             print(stderr)
+            print()
+            print(stdout)
             exit(exitcode)
 
 
