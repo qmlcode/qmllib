@@ -169,7 +169,6 @@ def get_sbot(
     dgrid: float = 0.0262,
     pbc: str = "000",
 ) -> ndarray:
-
     """
     sigma -- standard deviation of gaussian distribution centered on a specific angle
             defaults to 0.05 (rad), approximately 3 degree
