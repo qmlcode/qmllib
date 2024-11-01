@@ -4,19 +4,21 @@ channels:
   - defaults
 dependencies:
   - python==3.12
-  - jupytext
-  - monkeytype
-  - numpy
-  - pandas
   - pip
-  - pre-commit
-  - pyarrow
-  - pytest
-  - scikit-learn
-  - scipy
-  # build
-  - build
-  - meson
-  - ninja
-  # publish
-  - twine
+  - pip:
+    - jupytext
+    - monkeytype
+    - numpy
+    - pandas
+    - pip
+    - pre-commit
+    - pyarrow
+    - pytest
+    - scikit-learn
+    - scipy
+    # build
+    - build
+    - meson
+    - ninja
+    # publish
+    - twine
