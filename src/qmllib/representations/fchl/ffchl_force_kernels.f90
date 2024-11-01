@@ -175,7 +175,7 @@ subroutine fget_gaussian_process_kernels_fchl(x1, x2, verbose, n1, n2, nneigh1, 
    ! self_scalar2 = get_selfscalar_displaced(x2, nm2, n2, nneigh2, ksi2, sinp2, cosp2, t_width, &
    ! & d_width, cut_distance, order, pd, ang_norm2, distance_scale, angular_scale, alchemy, verbose)
 
-   !$OMP PARALLEL DO schedule(dynamic) PRIVATE(na,nb,s12)
+   !$OMP PARALLEL DO schedule(dynamic) PRIVATE(na,nb,s12,ktmp)
    do a = 1, nm1
       na = n1(a)
       do j1 = 1, na
@@ -192,6 +192,7 @@ subroutine fget_gaussian_process_kernels_fchl(x1, x2, verbose, n1, n2, nneigh1, 
                    & t_width, d_width, cut_distance, order, &
                    & pd, ang_norm2, distance_scale, angular_scale, alchemy)
 
+               ktmp = 0.0d0
                call kernel(self_scalar1(a, j1), self_scalar1(b, j2), s12, &
                & kernel_idx, parameters, ktmp)
 
@@ -206,7 +207,7 @@ subroutine fget_gaussian_process_kernels_fchl(x1, x2, verbose, n1, n2, nneigh1, 
    end do
    !$OMP END PARALLEL do
 
-   !$OMP PARALLEL DO schedule(dynamic) PRIVATE(na,nb,xyz_pm2,s12),&
+   !$OMP PARALLEL DO schedule(dynamic) PRIVATE(na,nb,xyz_pm2,s12,ktmp),&
    !$OMP& PRIVATE(idx1,idx2)
    do a = 1, nm1
       na = n1(a)
@@ -230,6 +231,7 @@ subroutine fget_gaussian_process_kernels_fchl(x1, x2, verbose, n1, n2, nneigh1, 
                          & t_width, d_width, cut_distance, order, &
                          & pd, ang_norm2, distance_scale, angular_scale, alchemy)
 
+                     ktmp = 0.0d0
                      call kernel(self_scalar1(a, j1), self_scalar2(b, xyz2, pm2, i2, j2), s12, &
                              & kernel_idx, parameters, ktmp)
 
@@ -265,7 +267,7 @@ subroutine fget_gaussian_process_kernels_fchl(x1, x2, verbose, n1, n2, nneigh1, 
    kernels(:, :nm1, nm1 + 1:) = kernels(:, :nm1, nm1 + 1:)/(2*dx)
    kernels(:, nm1 + 1:, :nm1) = kernels(:, nm1 + 1:, :nm1)/(2*dx)
 
-   !$OMP PARALLEL DO schedule(dynamic) PRIVATE(na,nb,xyz_pm1,xyz_pm2,s12),&
+   !$OMP PARALLEL DO schedule(dynamic) PRIVATE(na,nb,xyz_pm1,xyz_pm2,s12,ktmp),&
    !$OMP& PRIVATE(idx1,idx2)
    do a = 1, nm1
       na = n1(a)
@@ -293,6 +295,7 @@ subroutine fget_gaussian_process_kernels_fchl(x1, x2, verbose, n1, n2, nneigh1, 
                                & t_width, d_width, cut_distance, order, &
                                & pd, ang_norm2, distance_scale, angular_scale, alchemy)
 
+                           ktmp = 0.0d0
                            call kernel(self_scalar2(a, xyz1, pm1, i1, j1), self_scalar2(b, xyz2, pm2, i2, j2), s12,&
                                  & kernel_idx, parameters, ktmp)
 
@@ -342,6 +345,16 @@ subroutine fget_gaussian_process_kernels_fchl(x1, x2, verbose, n1, n2, nneigh1, 
    !$OMP END PARALLEL do
 
    kernels(:, nm1 + 1:, nm1 + 1:) = kernels(:, nm1 + 1:, nm1 + 1:)/(4*dx**2)
+
+   deallocate (ktmp)
+   deallocate (ksi1)
+   deallocate (ksi2)
+   deallocate (cosp1)
+   deallocate (sinp1)
+   deallocate (cosp2)
+   deallocate (sinp2)
+   deallocate (self_scalar1)
+   deallocate (self_scalar2)
 
 end subroutine fget_gaussian_process_kernels_fchl
 
@@ -543,6 +556,7 @@ subroutine fget_local_gradient_kernels_fchl(x1, x2, verbose, n1, n2, nneigh1, nn
                          & t_width, d_width, cut_distance, order, &
                          & pd, ang_norm2, distance_scale, angular_scale, alchemy)
 
+                     ktmp = 0.0d0
                      call kernel(self_scalar1(a, j1), self_scalar2(b, xyz2, pm2, i2, j2), s12, &
                      & kernel_idx, parameters, ktmp)
 
@@ -571,6 +585,16 @@ subroutine fget_local_gradient_kernels_fchl(x1, x2, verbose, n1, n2, nneigh1, nn
    !$OMP END PARALLEL do
 
    kernels = kernels/(2*dx)
+
+   deallocate (ktmp)
+   deallocate (ksi1)
+   deallocate (ksi2)
+   deallocate (cosp1)
+   deallocate (sinp1)
+   deallocate (cosp2)
+   deallocate (sinp2)
+   deallocate (self_scalar1)
+   deallocate (self_scalar2)
 
 end subroutine fget_local_gradient_kernels_fchl
 
@@ -775,6 +799,7 @@ subroutine fget_local_hessian_kernels_fchl(x1, x2, verbose, n1, n2, nneigh1, nne
                                & t_width, d_width, cut_distance, order, &
                                & pd, ang_norm2, distance_scale, angular_scale, alchemy)
 
+                           ktmp = 0.0d0
                            call kernel(self_scalar1(a, xyz1, pm1, i1, j1), self_scalar2(b, xyz2, pm2, i2, j2), s12,&
                            & kernel_idx, parameters, ktmp)
 
@@ -808,6 +833,16 @@ subroutine fget_local_hessian_kernels_fchl(x1, x2, verbose, n1, n2, nneigh1, nne
    !$OMP END PARALLEL do
 
    kernels = kernels/(4*dx**2)
+
+   deallocate (ktmp)
+   deallocate (ksi1)
+   deallocate (ksi2)
+   deallocate (cosp1)
+   deallocate (sinp1)
+   deallocate (cosp2)
+   deallocate (sinp2)
+   deallocate (self_scalar1)
+   deallocate (self_scalar2)
 
 end subroutine fget_local_hessian_kernels_fchl
 
@@ -979,6 +1014,7 @@ subroutine fget_local_symmetric_hessian_kernels_fchl(x1, verbose, n1, nneigh1, &
                                & t_width, d_width, cut_distance, order, &
                                & pd, ang_norm2, distance_scale, angular_scale, alchemy)
 
+                           ktmp = 0.0d0
                            call kernel(self_scalar1(a, xyz1, pm1, i1, j1), self_scalar1(b, xyz2, pm2, i2, j2), s12,&
                                  & kernel_idx, parameters, ktmp)
 
@@ -1027,6 +1063,12 @@ subroutine fget_local_symmetric_hessian_kernels_fchl(x1, verbose, n1, nneigh1, &
    !$OMP END PARALLEL do
 
    kernels = kernels/(4*dx**2)
+
+   deallocate (ktmp)
+   deallocate (ksi1)
+   deallocate (cosp1)
+   deallocate (sinp1)
+   deallocate (self_scalar1)
 
 end subroutine fget_local_symmetric_hessian_kernels_fchl
 
@@ -1264,6 +1306,7 @@ subroutine fget_force_alphas_fchl(x1, x2, verbose, forces, energies, n1, n2, &
                             & t_width, d_width, cut_distance, order, &
                             & pd, ang_norm2, distance_scale, angular_scale, alchemy)
 
+                        ktmp = 0.0d0
                         call kernel(self_scalar1(a, j1), self_scalar2(b, xyz2, pm2, i2, j2), s12, &
                                     kernel_idx, parameters, ktmp)
 
@@ -1338,6 +1381,7 @@ subroutine fget_force_alphas_fchl(x1, x2, verbose, forces, energies, n1, n2, &
                    & t_width, d_width, cut_distance, order, &
                    & pd, ang_norm2, distance_scale, angular_scale, alchemy)
 
+               ktmp = 0.0d0
                call kernel(self_scalar1(a, i), self_scalar1(b, j), s12, &
                            kernel_idx, parameters, ktmp)
 
@@ -1408,6 +1452,16 @@ subroutine fget_force_alphas_fchl(x1, x2, verbose, forces, energies, n1, n2, &
 
    deallocate (y)
    deallocate (kernel_scratch)
+
+   deallocate (ktmp)
+   deallocate (ksi1)
+   deallocate (ksi2)
+   deallocate (cosp1)
+   deallocate (sinp1)
+   deallocate (cosp2)
+   deallocate (sinp2)
+   deallocate (self_scalar1)
+   deallocate (self_scalar2)
 
 end subroutine fget_force_alphas_fchl
 
@@ -1619,6 +1673,7 @@ subroutine fget_atomic_local_gradient_kernels_fchl(x1, x2, verbose, n1, n2, nnei
                          & t_width, d_width, cut_distance, order, &
                          & pd, ang_norm2, distance_scale, angular_scale, alchemy)
 
+                     ktmp = 0.0d0
                      call kernel(self_scalar1(a, j1), self_scalar2(b, xyz2, pm2, i2, j2), s12,&
                            & kernel_idx, parameters, ktmp)
 
@@ -1648,6 +1703,16 @@ subroutine fget_atomic_local_gradient_kernels_fchl(x1, x2, verbose, n1, n2, nnei
    !$OMP END PARALLEL do
 
    kernels = kernels/(2*dx)
+
+   deallocate (ktmp)
+   deallocate (ksi1)
+   deallocate (ksi2)
+   deallocate (cosp1)
+   deallocate (sinp1)
+   deallocate (cosp2)
+   deallocate (sinp2)
+   deallocate (self_scalar1)
+   deallocate (self_scalar2)
 
 end subroutine fget_atomic_local_gradient_kernels_fchl
 
@@ -1871,6 +1936,7 @@ subroutine fget_atomic_local_gradient_5point_kernels_fchl(x1, x2, verbose, n1, n
                             & t_width, d_width, cut_distance, order, &
                             & pd, ang_norm2, distance_scale, angular_scale, alchemy)
 
+                        ktmp = 0.0d0
                         call kernel(self_scalar1(a, j1), self_scalar2(b, xyz2, pm2, i2, j2), s12,&
                         & kernel_idx, parameters, ktmp)
 
@@ -1893,5 +1959,15 @@ subroutine fget_atomic_local_gradient_5point_kernels_fchl(x1, x2, verbose, n1, n
    !$OMP END PARALLEL do
 
    kernels = kernels/(12*dx)
+
+   deallocate (ktmp)
+   deallocate (ksi1)
+   deallocate (ksi2)
+   deallocate (cosp1)
+   deallocate (sinp1)
+   deallocate (cosp2)
+   deallocate (sinp2)
+   deallocate (self_scalar1)
+   deallocate (self_scalar2)
 
 end subroutine fget_atomic_local_gradient_5point_kernels_fchl

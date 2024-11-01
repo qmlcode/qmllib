@@ -264,6 +264,7 @@ subroutine fget_ef_gaussian_process_kernels_fchl(x1, x2, verbose, f1, f2, n1, n2
                    & t_width, d_width, cut_distance, order, &
                    & pd, ang_norm2, distance_scale, angular_scale, alchemy)
 
+               ktmp = 0.0d0
                call kernel(self_scalar1(a, i), self_scalar2(b, j), s12, kernel_idx, parameters, ktmp)
                kernels(:, a, b) = kernels(:, a, b) + ktmp
 
@@ -300,6 +301,7 @@ subroutine fget_ef_gaussian_process_kernels_fchl(x1, x2, verbose, f1, f2, n1, n2
                       & t_width, d_width, cut_distance, order, &
                       & pd, ang_norm2, distance_scale, angular_scale, alchemy)
 
+                  ktmp = 0.0d0
                   call kernel(self_scalar1(a, i), self_scalar2_ef(b, xyz, pm, j), s12, kernel_idx, parameters, ktmp)
 
                   if (pm == 1) then
@@ -352,6 +354,7 @@ subroutine fget_ef_gaussian_process_kernels_fchl(x1, x2, verbose, f1, f2, n1, n2
                       & t_width, d_width, cut_distance, order, &
                       & pd, ang_norm2, distance_scale, angular_scale, alchemy)
 
+                  ktmp = 0.0d0
                   call kernel(self_scalar2(a, i), self_scalar1_ef(b, xyz, pm, j), s12, &
                          & kernel_idx, parameters, ktmp)
 
@@ -410,6 +413,7 @@ subroutine fget_ef_gaussian_process_kernels_fchl(x1, x2, verbose, f1, f2, n1, n2
                          & t_width, d_width, cut_distance, order, &
                          & pd, ang_norm2, distance_scale, angular_scale, alchemy)
 
+                     ktmp = 0.0d0
                      call kernel(self_scalar1_ef(a, xyz1, pm1, i), self_scalar2_ef(b, xyz2, pm2, j), s12, &
                             & kernel_idx, parameters, ktmp)
 
@@ -441,6 +445,7 @@ subroutine fget_ef_gaussian_process_kernels_fchl(x1, x2, verbose, f1, f2, n1, n2
    end do
    !$OMP END PARALLEL DO
 
+   deallocate (ktmp)
    deallocate (self_scalar1)
    deallocate (self_scalar1_ef)
    deallocate (ksi1)
@@ -664,6 +669,7 @@ subroutine fget_ef_atomic_local_kernels_fchl(x1, x2, verbose, f2, n1, n2, nneigh
    end do
    !$OMP END PARALLEL DO
 
+   deallocate (ktmp)
    deallocate (self_scalar1)
    deallocate (self_scalar2)
    deallocate (ksi1)
@@ -672,6 +678,7 @@ subroutine fget_ef_atomic_local_kernels_fchl(x1, x2, verbose, f2, n1, n2, nneigh
    deallocate (cosp2)
    deallocate (sinp1)
    deallocate (sinp2)
+
 end subroutine fget_ef_atomic_local_kernels_fchl
 
 subroutine fget_ef_atomic_local_gradient_kernels_fchl(x1, x2, verbose, n1, n2, nneigh1, nneigh2, nm1, nm2, na1, nsigmas, &
@@ -911,6 +918,7 @@ subroutine fget_ef_atomic_local_gradient_kernels_fchl(x1, x2, verbose, n1, n2, n
 
    kernels = kernels/(2*df)
 
+   deallocate (ktmp)
    deallocate (self_scalar1)
    deallocate (self_scalar2_ef)
    deallocate (ksi1)

@@ -1251,6 +1251,8 @@ def test_fchl_l2():
 
     K_test = np.zeros((n_points, n_points))
 
+    print(K)
+
     # UNUSED sigma = 2.0
     # UNUSED v = 3
     # UNUSED n = 2
@@ -1266,6 +1268,9 @@ def test_fchl_l2():
                 for jj in range(Sij.shape[1]):
 
                     K_test[i, j] += np.exp(Sij[ii, jj] * inv_sigma)
+
+    print(K_test)
+    print(np.max(K - K_test))
 
     assert np.allclose(K, K_test), "Error in FCHL l2 kernels"
 

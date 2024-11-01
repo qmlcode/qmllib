@@ -195,6 +195,7 @@ subroutine fget_kernels_fchl(x1, x2, verbose, n1, n2, nneigh1, nneigh2, nm1, nm2
    end do
    !$OMP END PARALLEL DO
 
+   deallocate (ktmp)
    deallocate (self_scalar1)
    deallocate (self_scalar2)
    deallocate (ksi1)
@@ -281,7 +282,6 @@ subroutine fget_symmetric_kernels_fchl(x1, verbose, n1, nneigh1, nm1, nsigmas, &
 
    ! Work kernel
    double precision, allocatable, dimension(:) :: ktmp
-   allocate (ktmp(size(parameters, dim=1)))
 
    kernels(:, :, :) = 0.0d0
 
@@ -306,7 +306,9 @@ subroutine fget_symmetric_kernels_fchl(x1, verbose, n1, nneigh1, nm1, nsigmas, &
    !self_scalar1 = get_selfscalar(x1, nm1, n1, nneigh1, ksi1, sinp1, cosp1, t_width, d_width, &
    !     & cut_distance, order, pd, ang_norm2, distance_scale, angular_scale, alchemy, verbose)
 
-   !$OMP PARALLEL DO schedule(dynamic) PRIVATE(s12,ni,nj)
+   allocate (ktmp(size(parameters, dim=1)))
+
+   !$OMP PARALLEL DO schedule(dynamic) PRIVATE(s12,ni,nj,ktmp)
    do b = 1, nm1
       nj = n1(b)
       do a = b, nm1
@@ -322,7 +324,7 @@ subroutine fget_symmetric_kernels_fchl(x1, verbose, n1, nneigh1, nm1, nsigmas, &
                    & t_width, d_width, cut_distance, order, &
                    & pd, ang_norm2, distance_scale, angular_scale, alchemy)
 
-               ktmp = 0.0d0
+               ktmp(:) = 0.0d0
                call kernel(self_scalar1(a, i), self_scalar1(b, j), s12, &
                    & kernel_idx, parameters, ktmp)
 
@@ -340,6 +342,7 @@ subroutine fget_symmetric_kernels_fchl(x1, verbose, n1, nneigh1, nm1, nsigmas, &
    end do
    !$OMP END PARALLEL DO
 
+   deallocate (ktmp)
    deallocate (self_scalar1)
    deallocate (ksi1)
    deallocate (cosp1)
@@ -486,6 +489,7 @@ subroutine fget_global_symmetric_kernels_fchl(x1, verbose, n1, nneigh1, nm1, nsi
             end do
          end do
 
+         ktmp = 0.0d0
          call kernel(self_scalar1(a), self_scalar1(b), mol_dist, &
              & kernel_idx, parameters, ktmp)
          kernels(:, a, b) = ktmp
@@ -498,6 +502,7 @@ subroutine fget_global_symmetric_kernels_fchl(x1, verbose, n1, nneigh1, nm1, nsi
    end do
    !$OMP END PARALLEL DO
 
+   deallocate (ktmp)
    deallocate (self_scalar1)
    deallocate (ksi1)
    deallocate (cosp1)
@@ -687,6 +692,7 @@ subroutine fget_global_kernels_fchl(x1, x2, verbose, n1, n2, nneigh1, nneigh2, &
             end do
          end do
 
+         ktmp = 0.0d0
          call kernel(self_scalar1(a), self_scalar2(b), mol_dist, &
              & kernel_idx, parameters, ktmp)
          kernels(:, a, b) = ktmp
@@ -697,6 +703,7 @@ subroutine fget_global_kernels_fchl(x1, x2, verbose, n1, n2, nneigh1, nneigh2, &
    end do
    !$OMP END PARALLEL DO
 
+   deallocate (ktmp)
    deallocate (self_scalar1)
    deallocate (self_scalar2)
    deallocate (ksi1)
@@ -847,7 +854,7 @@ subroutine fget_atomic_kernels_fchl(x1, x2, verbose, nneigh1, nneigh2, &
 
    kernels(:, :, :) = 0.0d0
 
-   !$OMP PARALLEL DO schedule(dynamic) PRIVATE(s12)
+   !$OMP PARALLEL DO schedule(dynamic) PRIVATE(s12, ktmp)
    do i = 1, na1
       do j = 1, na2
 
@@ -858,6 +865,7 @@ subroutine fget_atomic_kernels_fchl(x1, x2, verbose, nneigh1, nneigh2, &
              & t_width, d_width, cut_distance, order, &
              & pd, ang_norm2, distance_scale, angular_scale, alchemy)
 
+         ktmp = 0.0d0
          call kernel(self_scalar1(i), self_scalar2(j), s12, &
                  & kernel_idx, parameters, ktmp)
          kernels(:, i, j) = ktmp
@@ -868,6 +876,7 @@ subroutine fget_atomic_kernels_fchl(x1, x2, verbose, nneigh1, nneigh2, &
    end do
    !$OMP END PARALLEL DO
 
+   deallocate (ktmp)
    deallocate (self_scalar1)
    deallocate (self_scalar2)
    deallocate (ksi1)
@@ -997,16 +1006,18 @@ subroutine fget_atomic_symmetric_kernels_fchl(x1, verbose, nneigh1, na1, nsigmas
          !kernels(:, i, j) = kernel(self_scalar1(i), self_scalar1(j), s12, &
          !        & kernel_idx, parameters)
 
+         ktmp = 0.0d0
          call kernel(self_scalar1(i), self_scalar1(j), s12, &
                  & kernel_idx, parameters, ktmp)
 
          kernels(:, i, j) = ktmp
-
          kernels(:, j, i) = kernels(:, i, j)
+
       end do
    end do
    !$OMP END PARALLEL DO
 
+   deallocate (ktmp)
    deallocate (self_scalar1)
    deallocate (ksi1)
    deallocate (cosp1)
@@ -1174,6 +1185,7 @@ subroutine fget_atomic_local_kernels_fchl(x1, x2, verbose, n1, n2, nneigh1, nnei
                    & t_width, d_width, cut_distance, order, &
                    & pd, ang_norm2, distance_scale, angular_scale, alchemy)
 
+               ktmp = 0.0d0
                call kernel(self_scalar1(a, i), self_scalar2(b, j), s12, &
                    & kernel_idx, parameters, ktmp)
                kernels(:, idx1, b) = kernels(:, idx1, b) + ktmp
@@ -1189,6 +1201,7 @@ subroutine fget_atomic_local_kernels_fchl(x1, x2, verbose, n1, n2, nneigh1, nnei
    end do
    !$OMP END PARALLEL DO
 
+   deallocate (ktmp)
    deallocate (self_scalar1)
    deallocate (self_scalar2)
    deallocate (ksi1)
