@@ -9,6 +9,8 @@ dependencies:
     - jupytext
     - monkeytype
     - numpy
+    - numpy<2.0.0
+    - pandas
     - pandas
     - pip
     - pre-commit

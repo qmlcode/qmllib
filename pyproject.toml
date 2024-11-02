@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools", "numpy>2.0", "meson", "ninja"]
+requires = ["setuptools", "numpy<2.0.0", "meson", "ninja"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -19,7 +19,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Chemistry",
 ]
 keywords = ["qml", "quantum chemistry", "machine learning"]
-dependencies=["numpy>2.0", "scipy"]
+dependencies=["numpy<2.0.0", "scipy"]
 
 [project.urls]
 Homepage = "https://qmlcode.org"
