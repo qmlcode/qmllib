@@ -669,7 +669,7 @@ subroutine fget_global_kernels_fchl(x1, x2, verbose, n1, n2, nneigh1, nneigh2, &
 
    kernels(:, :, :) = 0.0d0
 
-   !$OMP PARALLEL DO schedule(dynamic) PRIVATE(s12,ni,nj,mol_dist)
+   !$OMP PARALLEL DO schedule(dynamic) PRIVATE(s12,ni,nj,mol_dist,ktmp)
    do b = 1, nm2
       nj = n2(b)
       do a = 1, nm1
