@@ -12,7 +12,7 @@ on:
 jobs:
 
   release:
-    name: Testing
+    name: Creating release
     runs-on: "ubuntu-latest"
     permissions:
       contents: write
@@ -32,12 +32,12 @@ jobs:
         run: commit-version-tag
       - name: Push to main
         run: git push origin --tags
-      - name: Create release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ GITHUB_REF_NAME }}
-        run: |
-          gh release create "$tag" \
-              --repo="$GITHUB_REPOSITORY" \
-              --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
-              --generate-notes
+      # - name: Create release
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     tag: ${{ GITHUB_REF_NAME }}
+      #   run: |
+      #     gh release create "$tag" \
+      #         --repo="$GITHUB_REPOSITORY" \
+      #         --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
+      #         --generate-notes
