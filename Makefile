@@ -78,6 +78,12 @@ commit-version-tag:
 	git commit -m "Release ${VERSION}" --no-verify ${version_file}
 	git tag 'v${VERSION}'
 
+gh-release:
+	gh release create "v${VERSION}" \
+	--repo="$${GITHUB_REPOSITORY}" \
+	--title="$${GITHUB_REPOSITORY#*/} ${VERSION}" \
+	--generate-notes
+
 ## Clean
 
 clean:
