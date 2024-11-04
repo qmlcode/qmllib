@@ -24,6 +24,9 @@ jobs:
         uses: actions/checkout@v4
         with fetch-depth: 2
 
+      - name:
+        run: echo $(git log -5 --oneline)
+
       - name: Bump version
         run: |
           if test $(git diff HEAD^ HEAD tests | grep -q "+def")
