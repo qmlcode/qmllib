@@ -20,8 +20,10 @@ jobs:
       run:
         shell: bash -l {0}
     steps:
-      - uses: actions/checkout@v4
-        with fetch-depth: 0
+      - name: Checkout
+        uses: actions/checkout@v4
+        with fetch-depth: 2
+
       - name: Bump version
         run: |
           if test $(git diff HEAD^ HEAD tests | grep -q "+def")
@@ -30,10 +32,13 @@ jobs:
           else
               make bump-version-patch
           fi
+
       - name: Commit version
         run: make commit-version-tag
+
       - name: Push to main
         run: git push origin --tags
+
       # - name: Create release
       #   env:
       #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
