@@ -53,6 +53,9 @@ VERSION_MINOR=$(shell echo ${VERSION} | cut -d'.' -f2)
 VERSION_MAJOR=$(shell echo ${VERSION} | cut -d'.' -f1)
 GIT_COMMIT=$(shell git rev-parse --short HEAD)
 
+version:
+	echo ${VERSION}
+
 bump-version-dev:
 	test ! -z "${VERSION}"
 	test ! -z "${GIT_COMMIT}"
