@@ -54,7 +54,7 @@ jobs:
         run: |
           export tag="$( make version )"
           echo "$tag"
-          echo 'gh release create "v$tag"'
+          echo 'gh release create "v${tag}"'
           gh release create "v1.0.6" \
               --repo="$GITHUB_REPOSITORY" \
               --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
