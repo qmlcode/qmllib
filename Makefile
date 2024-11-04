@@ -56,8 +56,7 @@ GIT_COMMIT=$(shell git rev-parse --short HEAD)
 bump-version-dev:
 	test ! -z "${VERSION}"
 	test ! -z "${GIT_COMMIT}"
-	exit 1
-	# Not Implemented
+	exit 1 # Not Implemented
 
 bump-version-patch:
 	test ! -z "${VERSION_PATCH}"
@@ -72,7 +71,7 @@ bump-version-major:
 	echo "__version__ = \"$(shell awk 'BEGIN{print ${VERSION_MAJOR}+1}').0.0\"" > ${version_file}
 
 commit-version-tag:
-	git tag --list | grep -qix "${VERSION}"
+	# git tag --list | grep -qix "${VERSION}"
 	git commit -m "Release ${VERSION}" --no-verify ${version_file}
 	git tag 'v${VERSION}'
 

@@ -1,5 +1,9 @@
 name: Release Version
 
+# When merged into main
+# Check if new test functions are added?
+# if no new tests, then it is a patch
+
 on:
   push:
     branches:
@@ -10,15 +14,30 @@ jobs:
   release:
     name: Testing
     runs-on: "ubuntu-latest"
+    permissions:
+      contents: write
     defaults:
       run:
         shell: bash -l {0}
     steps:
       - name: Bump version
-        run: make something
+        run: |
+          if test $(git diff HEAD^ HEAD tests | grep -q "+def")
+          then
+              make bump-version-minor
+          else
+              make bump-version-patch
+          fi
       - name: Commit version
-        run: make something
+        run: commit-version-tag
       - name: Push to main
         run: git push origin --tags
       - name: Create release
-        run: no idea
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ GITHUB_REF_NAME }}
+        run: |
+          gh release create "$tag" \
+              --repo="$GITHUB_REPOSITORY" \
+              --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
+              --generate-notes
