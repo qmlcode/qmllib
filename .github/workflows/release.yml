@@ -20,6 +20,8 @@ jobs:
       run:
         shell: bash -l {0}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: Bump version
         run: |
           if test $(git diff HEAD^ HEAD tests | grep -q "+def")
