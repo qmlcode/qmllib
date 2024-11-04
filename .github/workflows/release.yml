@@ -46,7 +46,7 @@ jobs:
         run: make commit-version-tag
 
       - name: Push to main
-        run: git push origin --tags
+        run: git push origin $(git rev-parse --abbrev-ref HEAD) --tags
 
       - name: Create release
         env:
