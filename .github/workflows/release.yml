@@ -25,6 +25,11 @@ jobs:
         with:
           fetch-depth: 2
 
+      - name: Setup
+        run: |
+          git config --global user.name 'Github Actions'
+          git config --global user.email 'none@none.none'
+
       - name:
         run: echo $(git log -5 --oneline)
 
