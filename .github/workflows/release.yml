@@ -20,8 +20,8 @@ jobs:
       run:
         shell: bash -l {0}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with fetch-depth: 0
       - name: Bump version
         run: |
           if test $(git diff HEAD^ HEAD tests | grep -q "+def")
@@ -31,7 +31,7 @@ jobs:
               make bump-version-patch
           fi
       - name: Commit version
-        run: commit-version-tag
+        run: make commit-version-tag
       - name: Push to main
         run: git push origin --tags
       # - name: Create release
