@@ -23,10 +23,17 @@ Breaking changes from ``qml``:
 
 * FCHL representations callable interface to be consistent with other representations (e.i. atoms, coordinates)
 
-
 ==============
 How to install
 ==============
+
+You need a fortran compiler and math library. Default is `gfortran` and `openblas`.
+
+
+.. code-block:: bash
+
+    sudo apt install libopenblas-dev gcc
+
 
 A proper pip-package is on the way, for now
 
