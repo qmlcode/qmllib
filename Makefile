@@ -88,7 +88,7 @@ gh-release:
 	--generate-notes
 
 gh-has-src-changed:
-	git diff HEAD src | grep -q "+"
+	git diff HEAD^ HEAD src | grep -q "+"
 
 gh-cancel:
 	gh run cancel $${GH_RUN_ID}
