@@ -16,7 +16,7 @@ all: env
 env:
 	${mamba} env create -f ./environment_dev.yaml -p ./env --quiet
 	${python} -m pre_commit install
-	${python} -m pip install -e .
+	# ${python} -m pip install -e .
 
 ./.git/hooks/pre-commit:
 	${python} -m pre_commit install
