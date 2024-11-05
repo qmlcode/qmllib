@@ -8,10 +8,9 @@ dependencies:
   - pip:
     - jupytext
     - monkeytype
-    - numpy<2.0.0
+    - numpy
     - pandas
     - pandas
-    - pip
     - pre-commit
     - pyarrow
     - pytest

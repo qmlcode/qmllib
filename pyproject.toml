@@ -1,12 +1,12 @@
 [build-system]
-requires = ["setuptools", "numpy<2.0.0", "meson", "ninja"]
+requires = ["setuptools", "numpy", "meson", "ninja"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "qmllib"
 dynamic = ["version"]
 authors = []
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 readme="README.rst"
 description="Python/Fortran toolkit for representation of molecules and solids for machine learning of properties of molecules and solids."
 classifiers = [
@@ -19,7 +19,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Chemistry",
 ]
 keywords = ["qml", "quantum chemistry", "machine learning"]
-dependencies=["numpy<2.0.0", "scipy"]
+dependencies=["numpy", "scipy"]
 
 [project.urls]
 Homepage = "https://qmlcode.org"

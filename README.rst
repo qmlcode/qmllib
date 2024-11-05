@@ -34,8 +34,13 @@ You need a fortran compiler and math library. Default is `gfortran` and `openbla
 
     sudo apt install libopenblas-dev gcc
 
+You can install it via PyPi
 
-A proper pip-package is on the way, for now
+.. code-block:: bash
+
+   pip install qmllib
+
+or directly from github
 
 .. code-block:: bash
 
@@ -51,11 +56,11 @@ or if you want a specific feature branch
 How to contribute
 =================
 
-Know a issue and want to get started developing?
+Know a issue and want to get started developing? Fork it, clone it, make it , test it.
 
 .. code-block:: bash
 
-    git clone repo.url qmllib.git
+    git clone your_repo qmllib.git
     cd qmllib.git
     make # setup env
     make compile # compile

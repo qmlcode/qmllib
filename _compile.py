@@ -40,6 +40,9 @@ def find_mkl():
 def find_env() -> dict[str, str]:
     """Find compiler flags"""
 
+    # TODO Check if FCC is there, not not raise Error
+    # TODO Check if lapack / blas is there, if not raise Error
+
     # TODO Find ifort flags, choose from FCC
     # TODO Find math lib
     # TODO Find os
