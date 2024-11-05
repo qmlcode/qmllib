@@ -53,11 +53,13 @@ VERSION_MINOR=$(shell echo ${VERSION} | cut -d'.' -f2)
 VERSION_MAJOR=$(shell echo ${VERSION} | cut -d'.' -f1)
 GIT_COMMIT=$(shell git rev-parse --short HEAD)
 
+version:
+	echo ${VERSION}
+
 bump-version-dev:
 	test ! -z "${VERSION}"
 	test ! -z "${GIT_COMMIT}"
-	exit 1
-	# Not Implemented
+	exit 1 # Not Implemented
 
 bump-version-patch:
 	test ! -z "${VERSION_PATCH}"
@@ -72,9 +74,15 @@ bump-version-major:
 	echo "__version__ = \"$(shell awk 'BEGIN{print ${VERSION_MAJOR}+1}').0.0\"" > ${version_file}
 
 commit-version-tag:
-	git tag --list | grep -qix "${VERSION}"
+	# git tag --list | grep -qix "${VERSION}"
 	git commit -m "Release ${VERSION}" --no-verify ${version_file}
 	git tag 'v${VERSION}'
+
+gh-release:
+	gh release create "v${VERSION}" \
+	--repo="$${GITHUB_REPOSITORY}" \
+	--title="$${GITHUB_REPOSITORY#*/} ${VERSION}" \
+	--generate-notes
 
 ## Clean
 

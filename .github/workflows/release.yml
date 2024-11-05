@@ -1,5 +1,9 @@
 name: Release Version
 
+# When merged into main
+# Check if new test functions are added?
+# if no new tests, then it is a patch
+
 on:
   push:
     branches:
@@ -8,17 +12,46 @@ on:
 jobs:
 
   release:
-    name: Testing
+    name: Creating release
     runs-on: "ubuntu-latest"
+    permissions:
+      contents: write
     defaults:
       run:
         shell: bash -l {0}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Setup
+        run: |
+          git config --global user.name 'Github Actions'
+          git config --global user.email 'none@none.none'
+
+      - name:
+        run: echo $(git log -5 --oneline)
+
       - name: Bump version
-        run: make something
+        run: |
+          if test $(git diff HEAD^ HEAD tests | grep -q "+def")
+          then
+              make bump-version-minor
+          else
+              make bump-version-patch
+          fi
+
       - name: Commit version
-        run: make something
+        run: make commit-version-tag
+
       - name: Push to main
-        run: git push origin --tags
+        run: git push origin $(git rev-parse --abbrev-ref HEAD) --tags
+
       - name: Create release
-        run: no idea
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          export tag="$( make version )"
+          echo "$tag"
+          make gh-release
