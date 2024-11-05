@@ -8,7 +8,7 @@ name: Release Version
 on:
   push:
     branches:
-      - main
+      - charnley/publish
 
 jobs:
   release:
