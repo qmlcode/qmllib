@@ -14,8 +14,7 @@ jobs:
   release:
     name: Creating release
     runs-on: "ubuntu-latest"
-    permissions:
-      contents: write
+    permissions: write-all
     defaults:
       run:
         shell: bash -l {0}
