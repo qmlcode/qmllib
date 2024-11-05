@@ -1,8 +1,9 @@
 name: Release Version
 
 # When merged into main
-# Check if new test functions are added?
-# if no new tests, then it is a patch
+# - Only when src is changed
+# - minor version bump - if new test functions are added?
+# - patch version bump - if no new tests
 
 on:
   push:
@@ -10,12 +11,10 @@ on:
       - main
 
 jobs:
-
   release:
     name: Creating release
     runs-on: "ubuntu-latest"
-    permissions:
-      contents: write
+    permissions: write-all
     defaults:
       run:
         shell: bash -l {0}
@@ -24,6 +23,12 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 2
+
+      - name: Early exit
+        env:
+          GH_RUN_ID: ${{ github.run_id }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: make gh-has-src-changed || make gh-cancel
 
       - name: Setup
         run: |
@@ -34,13 +39,7 @@ jobs:
         run: echo $(git log -5 --oneline)
 
       - name: Bump version
-        run: |
-          if test $(git diff HEAD^ HEAD tests | grep -q "+def")
-          then
-              make bump-version-minor
-          else
-              make bump-version-patch
-          fi
+        run: make bump-version-auto
 
       - name: Commit version
         run: make commit-version-tag

@@ -56,6 +56,9 @@ GIT_COMMIT=$(shell git rev-parse --short HEAD)
 version:
 	echo ${VERSION}
 
+bump-version-auto:
+	test $(git diff HEAD^ HEAD tests | grep -q "+def") && make bump-version-minor || make bump-version-patch
+
 bump-version-dev:
 	test ! -z "${VERSION}"
 	test ! -z "${GIT_COMMIT}"
@@ -83,6 +86,13 @@ gh-release:
 	--repo="$${GITHUB_REPOSITORY}" \
 	--title="$${GITHUB_REPOSITORY#*/} ${VERSION}" \
 	--generate-notes
+
+gh-has-src-changed:
+	git diff HEAD src | grep -q "+"
+
+gh-cancel:
+	gh run cancel $${GH_RUN_ID}
+	gh run watch $${GH_RUN_ID}
 
 ## Clean
 
