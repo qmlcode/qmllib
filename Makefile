@@ -101,6 +101,7 @@ clean:
 		-name "*.so" \
 		-name "*.pyc" \
 		-name ".pyo" \
+		-name ".mod" \
 		-delete
 	rm -rf ./src/*.egg-info/
 	rm -rf *.whl
