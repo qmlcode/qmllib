@@ -40,7 +40,7 @@ def _get_training_data(n_points, representation_options={}):
         # Associate a property (heat of formation) with the object
         all_properties.append(data[xyz_file])
 
-        representation = generate_representation(coord, atoms, **_representation_options)
+        representation = generate_representation(atoms, coord, **_representation_options)
 
         assert (
             representation.shape[0] == _representation_options["max_size"]
@@ -454,8 +454,8 @@ def test_fchl_local_periodic():
     X = np.array(
         [
             generate_representation(
-                fractional_coordinates[i],
                 nuclear_charges[i],
+                fractional_coordinates[i],
                 cell=cells[i],
                 max_size=36,
                 neighbors=200,

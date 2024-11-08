@@ -6,8 +6,8 @@ from numpy import ndarray
 
 
 def generate_representation(
-    coordinates: Union[ndarray, List[List[float]]],
     nuclear_charges: ndarray,
+    coordinates: Union[ndarray, List[List[float]]],
     max_size: int = 23,
     neighbors: int = 23,
     cut_distance: float = 5.0,
@@ -15,10 +15,10 @@ def generate_representation(
 ) -> ndarray:
     """Generates a representation for the FCHL kernel module.
 
-    :param coordinates: Input coordinates.
-    :type coordinates: numpy array
     :param nuclear_charges: List of nuclear charges.
     :type nuclear_charges: numpy array
+    :param coordinates: Input coordinates.
+    :type coordinates: numpy array
     :param max_size: Max number of atoms in representation.
     :type max_size: integer
     :param neighbors: Max number of atoms within the cut-off around an atom. (For periodic systems)
@@ -85,14 +85,14 @@ def generate_representation(
 
 
 def generate_displaced_representations(
-    coordinates, nuclear_charges, max_size=23, neighbors=23, cut_distance=5.0, cell=None, dx=0.005
+    nuclear_charges, coordinates, max_size=23, neighbors=23, cut_distance=5.0, cell=None, dx=0.005
 ):
     """Generates displaced representations for the FCHL kernel module.
 
-    :param coordinates: Input coordinates.
-    :type coordinates: numpy array
     :param nuclear_charges: List of nuclear charges.
     :type nuclear_charges: numpy array
+    :param coordinates: Input coordinates.
+    :type coordinates: numpy array
     :param max_size: Max number of atoms in representation.
     :type max_size: integer
     :param neighbors: Max number of atoms within the cut-off around an atom. (For periodic systems)
@@ -122,8 +122,8 @@ def generate_displaced_representations(
                 displaced_coordinates[i, xyz] += disp
 
                 rep = generate_representation(
-                    displaced_coordinates,
                     nuclear_charges,
+                    displaced_coordinates,
                     max_size=size,
                     neighbors=neighbors,
                     cut_distance=cut_distance,
@@ -136,14 +136,14 @@ def generate_displaced_representations(
 
 
 def generate_displaced_representations_5point(
-    coordinates, nuclear_charges, max_size=23, neighbors=23, cut_distance=5.0, cell=None, dx=0.005
+    nuclear_charges, coordinates, max_size=23, neighbors=23, cut_distance=5.0, cell=None, dx=0.005
 ):
     """Generates displaced representations for the FCHL kernel module, using a 5-point stencil.
 
-    :param coordinates: Input coordinates.
-    :type coordinates: numpy array
     :param nuclear_charges: List of nuclear charges.
     :type nuclear_charges: numpy array
+    :param coordinates: Input coordinates.
+    :type coordinates: numpy array
     :param max_size: Max number of atoms in representation.
     :type max_size: integer
     :param neighbors: Max number of atoms within the cut-off around an atom. (For periodic systems)
@@ -173,8 +173,8 @@ def generate_displaced_representations_5point(
                 displaced_coordinates[i, xyz] += disp
 
                 rep = generate_representation(
-                    displaced_coordinates,
                     nuclear_charges,
+                    displaced_coordinates,
                     max_size=size,
                     neighbors=neighbors,
                     cut_distance=cut_distance,
@@ -187,8 +187,8 @@ def generate_displaced_representations_5point(
 
 
 def generate_representation_electric_field(
-    coordinates: ndarray,
     nuclear_charges: ndarray,
+    coordinates: ndarray,
     fictitious_charges: Union[ndarray, List[float]] = "gasteiger",
     max_size: int = 23,
     neighbors: int = 23,
