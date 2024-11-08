@@ -565,7 +565,6 @@ def generate_slatm(
         n3 = 0
         mbs = np.zeros(0)
         for mbtype in mbtypes:
-            print(mbtype)
             if len(mbtype) == 1:
                 mbsi = get_boa(mbtype[0], zs)
                 if alchemy:
