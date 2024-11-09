@@ -34,7 +34,7 @@ types:
 	${python} -m monkeytype list-modules | grep ${pkg} | parallel -j${j} "${python} -m monkeytype apply {} > /dev/null && echo {}"
 
 cov:
-	${python} -m pytest -vrs --cov=${pkg} --cov-report html tests
+	${python} -m pytest --cov=${pkg} --cov-config .coveragerc --cov-report html tests
 
 compile:
 	${python} _compile.py
