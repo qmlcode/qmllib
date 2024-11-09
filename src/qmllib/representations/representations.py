@@ -401,8 +401,8 @@ def get_slatm_mbtypes(nuclear_charges: List[ndarray], pbc: str = "000") -> List[
 
 
 def generate_slatm(
-    coordinates: ndarray,
     nuclear_charges: ndarray,
+    coordinates: ndarray,
     mbtypes: List[List[int64]],
     unit_cell: None = None,
     local: bool = False,
@@ -421,10 +421,10 @@ def generate_slatm(
 
     NOTE: You will need to run the ``get_slatm_mbtypes()`` function to get the ``mbtypes`` input (or generate it manually).
 
-    :param coordinates: Input coordinates
-    :type coordinates: numpy array
     :param nuclear_charges: List of nuclear charges.
     :type nuclear_charges: numpy array
+    :param coordinates: Input coordinates
+    :type coordinates: numpy array
     :param mbtypes: Many-body types for the whole dataset, including 1-, 2- and 3-body types. Could be obtained by calling ``get_slatm_mbtypes()``.
     :type mbtypes: list
     :param local: Generate a local representation. Defaulted to False (i.e., global representation); otherwise, atomic version.
