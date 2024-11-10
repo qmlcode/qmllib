@@ -1,25 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 subroutine fglobal_kernel(x1, x2, q1, q2, n1, n2, nm1, nm2, sigma, kernel)
 
     implicit none

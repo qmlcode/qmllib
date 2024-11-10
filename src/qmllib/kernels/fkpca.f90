@@ -1,4 +1,3 @@
-
 subroutine fkpca(k, n, centering, kpca)
 
    implicit none

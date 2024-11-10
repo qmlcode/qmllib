@@ -1,4 +1,3 @@
-
 subroutine fget_local_kernels_gaussian(q1, q2, n1, n2, sigmas, &
         & nm1, nm2, nsigmas, kernels)
 

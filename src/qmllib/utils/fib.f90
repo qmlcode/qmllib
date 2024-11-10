@@ -1,25 +1,3 @@
-! fib.f90
-subroutine fib(a, n)
-   USE OMP_LIB
-   use iso_c_binding
-   integer(c_int), intent(in) :: n
-   integer(c_int), intent(out) :: a(n)
-
-   !$OMP PARALLEL
-   PRINT *, "Hello from process: ", OMP_GET_THREAD_NUM()
-!$OMP END PARALLEL
-
-   do i = 1, n
-      if (i .eq. 1) then
-         a(i) = 0.0d0
-      elseif (i .eq. 2) then
-         a(i) = 1.0d0
-      else
-         a(i) = a(i - 1) + a(i - 2)
-      end if
-   end do
-end
-
 function searchsorted(all_values, sorted) result(cdf_idx)
 
    implicit none
