@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-
 from typing import Dict, List, Optional, Union
 
 import numpy as np
