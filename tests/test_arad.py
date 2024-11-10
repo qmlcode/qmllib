@@ -2,7 +2,7 @@ import numpy as np
 from conftest import ASSETS, get_energies
 
 from qmllib.representations.arad import (
-    generate_arad_representation,
+    generate_arad,
     get_atomic_kernels_arad,
     get_atomic_symmetric_kernels_arad,
     get_global_kernels_arad,
@@ -30,7 +30,7 @@ def test_arad():
         properties.append(data[filename])
 
     for coord, atoms in molecules:
-        rep = generate_arad_representation(coord, atoms)
+        rep = generate_arad(coord, atoms)
         representations.append(rep)
 
     representations = np.array(representations)
@@ -73,7 +73,7 @@ def test_arad():
     molid = 5
     coordinates, atoms = molecules[molid]
     natoms = len(atoms)
-    X1 = generate_arad_representation(coordinates, atoms, size=natoms)
+    X1 = generate_arad(coordinates, atoms, size=natoms)
     XA = X1[:natoms]
 
     K_atomic_asymm = get_atomic_kernels_arad(XA, XA, sigmas)

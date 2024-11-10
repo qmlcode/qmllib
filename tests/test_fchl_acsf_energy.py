@@ -2,7 +2,7 @@ import numpy as np
 from conftest import ASSETS, get_energies, shuffle_arrays
 
 from qmllib.kernels import get_local_kernel, get_local_symmetric_kernel
-from qmllib.representations import generate_fchl_acsf
+from qmllib.representations import generate_fchl19
 from qmllib.solvers import cho_solve
 from qmllib.utils.xyz_format import read_xyz
 
@@ -27,7 +27,7 @@ def test_energy():
         # Associate a property (heat of formation) with the object
         all_properties.append(data[xyz_file])
 
-        representation = generate_fchl_acsf(atoms, coord, gradients=False, pad=27)
+        representation = generate_fchl19(atoms, coord, gradients=False, pad=27)
 
         all_representations.append(representation)
         all_atoms.append(atoms)

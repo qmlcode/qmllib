@@ -5,7 +5,7 @@ import numpy as np
 from numpy import ndarray
 
 
-def generate_representation(
+def generate_fchl18(
     nuclear_charges: ndarray,
     coordinates: Union[ndarray, List[List[float]]],
     max_size: int = 23,
@@ -84,7 +84,7 @@ def generate_representation(
     return M
 
 
-def generate_displaced_representations(
+def generate_fchl18_displaced(
     nuclear_charges, coordinates, max_size=23, neighbors=23, cut_distance=5.0, cell=None, dx=0.005
 ):
     """Generates displaced representations for the FCHL kernel module.
@@ -121,7 +121,7 @@ def generate_displaced_representations(
                 displaced_coordinates = copy.deepcopy(coordinates)
                 displaced_coordinates[i, xyz] += disp
 
-                rep = generate_representation(
+                rep = generate_fchl18(
                     nuclear_charges,
                     displaced_coordinates,
                     max_size=size,
@@ -135,7 +135,7 @@ def generate_displaced_representations(
     return reps
 
 
-def generate_displaced_representations_5point(
+def generate_fchl18_displaced_5point(
     nuclear_charges, coordinates, max_size=23, neighbors=23, cut_distance=5.0, cell=None, dx=0.005
 ):
     """Generates displaced representations for the FCHL kernel module, using a 5-point stencil.
@@ -172,7 +172,7 @@ def generate_displaced_representations_5point(
                 displaced_coordinates = copy.deepcopy(coordinates)
                 displaced_coordinates[i, xyz] += disp
 
-                rep = generate_representation(
+                rep = generate_fchl18(
                     nuclear_charges,
                     displaced_coordinates,
                     max_size=size,
@@ -186,7 +186,7 @@ def generate_displaced_representations_5point(
     return reps
 
 
-def generate_representation_electric_field(
+def generate_fchl18_electric_field(
     nuclear_charges: ndarray,
     coordinates: ndarray,
     fictitious_charges: Union[ndarray, List[float]] = "gasteiger",

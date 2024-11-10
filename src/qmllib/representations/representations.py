@@ -105,7 +105,7 @@ def generate_coulomb_matrix(
         raise SystemExit
 
 
-def generate_atomic_coulomb_matrix(
+def generate_coulomb_matrix_atomic(
     nuclear_charges: ndarray,
     coordinates: ndarray,
     size: int = 23,
@@ -244,7 +244,7 @@ def generate_atomic_coulomb_matrix(
         raise SystemExit
 
 
-def generate_eigenvalue_coulomb_matrix(
+def generate_coulomb_matrix_eigenvalue(
     nuclear_charges: ndarray, coordinates: ndarray, size: int = 23
 ) -> ndarray:
     """ Creates an eigenvalue Coulomb Matrix representation of a molecule.
@@ -336,7 +336,7 @@ def generate_bob(
 def get_slatm_mbtypes(nuclear_charges: List[ndarray], pbc: str = "000") -> List[List[int64]]:
     """
     Get the list of minimal types of many-body terms in a dataset. This resulting list
-    is necessary as input in the ``generate_slatm_representation()`` function.
+    is necessary as input in the ``generate_slatm()`` function.
 
     :param nuclear_charges: A list of the nuclear charges for each compound in the dataset.
     :type nuclear_charges: list of numpy arrays
@@ -734,7 +734,7 @@ def generate_acsf(
             return rep, grad
 
 
-def generate_fchl_acsf(
+def generate_fchl19(
     nuclear_charges: ndarray,
     coordinates: ndarray,
     elements: List[int] = [1, 6, 7, 8, 16],
@@ -753,8 +753,9 @@ def generate_fchl_acsf(
     gradients: bool = False,
 ) -> Union[Tuple[ndarray, ndarray], ndarray]:
     """
-
     FCHL-ACSF
+
+    https://pubs.aip.org/aip/jcp/article/152/4/044107/1064737/FCHL-revisited-Faster-and-more-accurate-quantum
 
     Reasonable hyperparameters:
 
