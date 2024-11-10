@@ -128,7 +128,7 @@ Please cite the representation that you are using accordingly.
   https://doi.org/10.1063/1.3553717
 
 - | **AARAD** ``generate_aarad``
-  | Alchemical and structural distribution based representation for universal quantum machine learning
+  Alchemical and structural distribution based representation for universal quantum machine learning
   Faber, Christensen, Huang, Lilienfeld,
   J. Chem. Phys. 148, 241717 (2018),
   https://doi.org/10.1063/1.5020710
