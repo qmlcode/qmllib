@@ -221,13 +221,6 @@ def generate_representation_electric_field(
 
     # If a list is given, assume these are the fictitious charges
 
-    print(fictitious_charges)
-    print(type(fictitious_charges))
-    print(nuclear_charges)
-
-    print(len(fictitious_charges))
-    print(len(nuclear_charges))
-
     if isinstance(fictitious_charges, list) or isinstance(fictitious_charges, np.ndarray):
 
         if len(fictitious_charges) != len(nuclear_charges):
@@ -267,9 +260,7 @@ def generate_representation_electric_field(
     #     partial_charges = [atom.partialcharge for atom in mol]
 
     else:
-        # print("QML ERROR: Unable to parse argument for fictitious charges", fictitious_charges)
-        # exit()
-        raise ValueError("Missing charges")
+        raise ValueError("Missing fictitious charges")
 
     size = max_size
     neighbors = size

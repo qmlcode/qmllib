@@ -265,25 +265,28 @@ def matern_kernel(
     """
 
     if metric == "l1":
+
         if order == 0:
             gammas = []
+
         elif order == 1:
             gammas = [1]
             sigma /= np.sqrt(3)
+
         elif order == 2:
             gammas = [1, 1 / 3.0]
             sigma /= np.sqrt(5)
+
         else:
-            print("Order:%d not implemented in Matern Kernel" % order)
-            raise SystemExit
+            raise ValueError(f"Order '{order}' not implemented in Matern Kernel")
 
         return sargan_kernel(A, B, sigma, gammas)
 
     elif metric == "l2":
         pass
+
     else:
-        print("Error: Unknown distance metric %s in Matern kernel" % str(metric))
-        raise SystemExit
+        raise ValueError(f"Unknown distance metric {metric} in Matern kernel")
 
     na = A.shape[0]
     nb = B.shape[0]
@@ -326,10 +329,13 @@ def get_local_kernels_gaussian(
     :rtype: numpy array
     """
 
-    assert np.sum(na) == A.shape[0], "Error in A input"
-    assert np.sum(nb) == B.shape[0], "Error in B input"
+    if np.sum(na) != A.shape[0]:
+        raise ValueError("Error in A input")
+    if np.sum(nb) != B.shape[0]:
+        raise ValueError("Error in B input")
 
-    assert A.shape[1] == B.shape[1], "Error in representation sizes"
+    if A.shape[1] != B.shape[1]:
+        raise ValueError("Error in representation sizes")
 
     nma = len(na)
     nmb = len(nb)
@@ -370,10 +376,13 @@ def get_local_kernels_laplacian(
     :rtype: numpy array
     """
 
-    assert np.sum(na) == A.shape[0], "Error in A input"
-    assert np.sum(nb) == B.shape[0], "Error in B input"
+    if np.sum(na) != A.shape[0]:
+        raise ValueError("Error in A input")
+    if np.sum(nb) != B.shape[0]:
+        raise ValueError("Error in B input")
 
-    assert A.shape[1] == B.shape[1], "Error in representation sizes"
+    if A.shape[1] != B.shape[1]:
+        raise ValueError("Error in representation sizes")
 
     nma = len(na)
     nmb = len(nb)
@@ -403,9 +412,12 @@ def kpca(K: ndarray, n: int = 2, centering: bool = True) -> ndarray:
     :rtype: numpy array
     """
 
-    assert K.shape[0] == K.shape[1], "ERROR: Square matrix required for Kernel PCA."
-    assert np.allclose(K, K.T, atol=1e-8), "ERROR: Symmetric matrix required for Kernel PCA."
-    assert n <= K.shape[0], "ERROR: Requested more principal components than matrix size."
+    if K.shape[0] != K.shape[1]:
+        raise ValueError("Square matrix required for Kernel PCA.")
+    if not np.allclose(K, K.T, atol=1e-8):
+        raise ValueError("Symmetric matrix required for Kernel PCA.")
+    if not n <= K.shape[0]:
+        raise ValueError("Requested more principal components than matrix size.")
 
     size = K.shape[0]
     pca = fkpca(K, size, centering)

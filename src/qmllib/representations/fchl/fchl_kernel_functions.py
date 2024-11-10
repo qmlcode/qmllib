@@ -1,5 +1,3 @@
-from __future__ import division, print_function
-
 from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
@@ -52,8 +50,8 @@ def get_polynomial_parameters(tags: Dict[str, List[float]]) -> Tuple[ndarray, nd
         tags = {"alpha": [1.0], "c": [0.0], "d": [1.0]}
 
     parameters = np.array([tags["alpha"], tags["c"], tags["d"]]).T
-    assert len(tags["alpha"]) == len(tags["c"])
-    assert len(tags["alpha"]) == len(tags["d"])
+    if not (len(tags["alpha"]) == len(tags["c"]) or len(tags["alpha"]) == len(tags["d"])):
+        raise ValueError("Unexpected parameter dimensions")
 
     n_kernels = len(tags["alpha"])
     return kt.polynomial, parameters, n_kernels
@@ -73,7 +71,9 @@ def get_sigmoid_parameters(tags: Dict[str, List[float]]) -> Tuple[ndarray, ndarr
             tags["c"],
         ]
     ).T
-    assert len(tags["alpha"]) == len(tags["c"])
+    if not len(tags["alpha"]) == len(tags["c"]):
+        raise ValueError("Unexpected parameter dimensions")
+
     n_kernels = len(tags["alpha"])
 
     return kt.sigmoid, parameters, n_kernels
@@ -125,8 +125,8 @@ def get_bessel_parameters(tags: Dict[str, List[float]]) -> Tuple[ndarray, ndarra
         tags = {"sigma": [1.0], "v": [1.0], "n": [1.0]}
 
     parameters = np.array([tags["sigma"], tags["v"], tags["n"]]).T
-    assert len(tags["sigma"]) == len(tags["v"])
-    assert len(tags["sigma"]) == len(tags["n"])
+    if not (len(tags["sigma"]) == len(tags["v"]) or len(tags["sigma"]) == len(tags["n"])):
+        raise ValueError("Unexpected parameter dimensions")
 
     n_kernels = len(tags["sigma"])
 
@@ -147,7 +147,8 @@ def get_l2_parameters(tags: Dict[str, List[float]]) -> Tuple[ndarray, ndarray, i
             tags["c"],
         ]
     ).T
-    assert len(tags["alpha"]) == len(tags["c"])
+    if not len(tags["alpha"]) == len(tags["c"]):
+        raise ValueError("Unexpected parameter dimensions")
     n_kernels = len(tags["alpha"])
 
     return kt.l2, parameters, n_kernels
@@ -161,7 +162,9 @@ def get_matern_parameters(tags: Dict[str, List[float]]) -> Tuple[ndarray, ndarra
             "n": [2.0],
         }
 
-    assert len(tags["sigma"]) == len(tags["n"])
+    if not len(tags["sigma"]) == len(tags["n"]):
+        raise ValueError("Unexpected parameter dimensions")
+
     n_kernels = len(tags["sigma"])
 
     n_max = int(max(tags["n"])) + 1
@@ -260,8 +263,6 @@ def get_kernel_parameters(
         idx, parameters, n_kernels = get_polynomial2_parameters(tags)
 
     else:
-
-        print("QML ERROR: Unsupported kernel specification,", name)
-        exit()
+        raise ValueError(f"Unsupported kernel specification '{name}")
 
     return idx, parameters, n_kernels

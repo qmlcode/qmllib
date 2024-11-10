@@ -231,9 +231,9 @@ def condition_number(A, method="cholesky"):
         raise ValueError("expected square matrix")
 
     if method.lower() == "cholesky":
-        assert np.allclose(
-            A, A.T
-        ), "ERROR: Can't use a Cholesky-decomposition for a non-symmetric matrix."
+
+        if not np.allclose(A, A.T):
+            raise ValueError("Can't use a Cholesky-decomposition for a non-symmetric matrix.")
 
         cond = fcond(A)
 

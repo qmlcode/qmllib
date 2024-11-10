@@ -88,8 +88,10 @@ def get_local_kernels(
     atoms_max = A.shape[1]
     neighbors_max = A.shape[3]
 
-    assert B.shape[1] == atoms_max, "ERROR: Check FCHL representation sizes! code = 2"
-    assert B.shape[3] == neighbors_max, "ERROR: Check FCHL representation sizes! code = 3"
+    if not B.shape[1] == atoms_max:
+        raise ValueError("Check FCHL representation sizes")
+    if not B.shape[3] == neighbors_max:
+        raise ValueError("Check FCHL representation sizes")
 
     nm1 = A.shape[0]
     nm2 = B.shape[0]
@@ -432,8 +434,10 @@ def get_global_kernels(
     atoms_max = A.shape[1]
     neighbors_max = A.shape[3]
 
-    assert B.shape[1] == atoms_max, "ERROR: Check FCHL representation sizes!"
-    assert B.shape[3] == neighbors_max, "ERROR: Check FCHL representation sizes!"
+    if not B.shape[1] == atoms_max:
+        raise ValueError("Check FCHL representation sizes!")
+    if not B.shape[3] == neighbors_max:
+        raise ValueError("Check FCHL representation sizes!")
 
     nm1 = A.shape[0]
     nm2 = B.shape[0]
@@ -560,11 +564,8 @@ def get_atomic_kernels(
     :rtype: numpy array
     """
 
-    assert len(A.shape) == 3
-    assert len(B.shape) == 3
-
-    # assert B.shape[1] == atoms_max, "ERROR: Check FCHL representation sizes! code = 2"
-    # assert B.shape[3] == neighbors_max, "ERROR: Check FCHL representation sizes! code = 3"
+    if not len(A.shape) == 3 or not len(B.shape) == 3:
+        raise ValueError("Unexpected shapes")
 
     na1 = A.shape[0]
     na2 = B.shape[0]
@@ -673,7 +674,8 @@ def get_atomic_symmetric_kernels(
     :rtype: numpy array
     """
 
-    assert len(A.shape) == 3
+    if not len(A.shape) == 3:
+        raise ValueError("Unexpected shape")
 
     na1 = A.shape[0]
 
@@ -768,8 +770,10 @@ def get_atomic_local_kernels(
     atoms_max = A.shape[1]
     neighbors_max = A.shape[3]
 
-    assert B.shape[1] == atoms_max, "ERROR: Check FCHL representation sizes! code = 2"
-    assert B.shape[3] == neighbors_max, "ERROR: Check FCHL representation sizes! code = 3"
+    if not B.shape[1] == atoms_max:
+        raise ValueError("Check FCHL representation sizes")
+    if not B.shape[3] == neighbors_max:
+        raise ValueError("Check FCHL representation sizes")
 
     nm1 = A.shape[0]
     nm2 = B.shape[0]
