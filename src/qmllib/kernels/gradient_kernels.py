@@ -59,12 +59,10 @@ def get_global_kernel(
     N1 = np.array([len(Q) for Q in Q1], dtype=np.int32)
     N2 = np.array([len(Q) for Q in Q2], dtype=np.int32)
 
-    assert (
-        N1.shape[0] == X1.shape[0]
-    ), "Error: List of charges does not match shape of representations"
-    assert (
-        N2.shape[0] == X2.shape[0]
-    ), "Error: List of charges does not match shape of representations"
+    if not (N1.shape[0] == X1.shape[0]):
+        raise ValueError("List of charges does not match shape of representations")
+    if not (N2.shape[0] == X2.shape[0]):
+        raise ValueError("Error: List of charges does not match shape of representations")
 
     Q1_input = np.zeros((max(N1), X1.shape[0]), dtype=np.int32)
     Q2_input = np.zeros((max(N2), X2.shape[0]), dtype=np.int32)
@@ -114,12 +112,10 @@ def get_local_kernels(
     N1 = np.array([len(Q) for Q in Q1], dtype=np.int32)
     N2 = np.array([len(Q) for Q in Q2], dtype=np.int32)
 
-    assert (
-        N1.shape[0] == X1.shape[0]
-    ), "Error: List of charges does not match shape of representations"
-    assert (
-        N2.shape[0] == X2.shape[0]
-    ), "Error: List of charges does not match shape of representations"
+    if not (N1.shape[0] == X1.shape[0]):
+        raise ValueError("Error: List of charges does not match shape of representations")
+    if not (N2.shape[0] == X2.shape[0]):
+        raise ValueError("Error: List of charges does not match shape of representations")
 
     Q1_input = np.zeros((max(N1), X1.shape[0]), dtype=np.int32)
     Q2_input = np.zeros((max(N2), X2.shape[0]), dtype=np.int32)
@@ -176,12 +172,10 @@ def get_local_kernel(
     N1 = np.array([len(Q) for Q in Q1], dtype=np.int32)
     N2 = np.array([len(Q) for Q in Q2], dtype=np.int32)
 
-    assert (
-        N1.shape[0] == X1.shape[0]
-    ), "Error: List of charges does not match shape of representations"
-    assert (
-        N2.shape[0] == X2.shape[0]
-    ), "Error: List of charges does not match shape of representations"
+    if not (N1.shape[0] == X1.shape[0]):
+        raise ValueError("List of charges does not match shape of representations")
+    if not (N2.shape[0] == X2.shape[0]):
+        raise ValueError("List of charges does not match shape of representations")
 
     Q1_input = np.zeros((max(N1), X1.shape[0]), dtype=np.int32)
     Q2_input = np.zeros((max(N2), X2.shape[0]), dtype=np.int32)
@@ -228,9 +222,8 @@ def get_local_symmetric_kernels(X1: ndarray, Q1: List[List[int]], SIGMAS: List[f
 
     N1 = np.array([len(Q) for Q in Q1], dtype=np.int32)
 
-    assert (
-        N1.shape[0] == X1.shape[0]
-    ), "Error: List of charges does not match shape of representations"
+    if not (N1.shape[0] == X1.shape[0]):
+        raise ValueError("Error: List of charges does not match shape of representations")
 
     Q1_input = np.zeros((max(N1), X1.shape[0]), dtype=np.int32)
     for i, q in enumerate(Q1):
@@ -275,9 +268,8 @@ def get_local_symmetric_kernel(
 
     N1 = np.array([len(Q) for Q in Q1], dtype=np.int32)
 
-    assert (
-        N1.shape[0] == X1.shape[0]
-    ), "Error: List of charges does not match shape of representations"
+    if not (N1.shape[0] == X1.shape[0]):
+        raise ValueError("Error: List of charges does not match shape of representations")
 
     Q1_input = np.zeros((max(N1), X1.shape[0]), dtype=np.int32)
     for i, q in enumerate(Q1):
@@ -329,12 +321,10 @@ def get_atomic_local_kernel(
     N1 = np.array([len(Q) for Q in Q1], dtype=np.int32)
     N2 = np.array([len(Q) for Q in Q2], dtype=np.int32)
 
-    assert (
-        N1.shape[0] == X1.shape[0]
-    ), "Error: List of charges does not match shape of representations"
-    assert (
-        N2.shape[0] == X2.shape[0]
-    ), "Error: List of charges does not match shape of representations"
+    if not (N1.shape[0] == X1.shape[0]):
+        raise ValueError("List of charges does not match shape of representations")
+    if not (N2.shape[0] == X2.shape[0]):
+        raise ValueError("List of charges does not match shape of representations")
 
     Q1_input = np.zeros((max(N1), X1.shape[0]), dtype=np.int32)
     Q2_input = np.zeros((max(N2), X2.shape[0]), dtype=np.int32)
@@ -394,12 +384,10 @@ def get_atomic_local_gradient_kernel(
     N1 = np.array([len(Q) for Q in Q1], dtype=np.int32)
     N2 = np.array([len(Q) for Q in Q2], dtype=np.int32)
 
-    assert (
-        N1.shape[0] == X1.shape[0]
-    ), "Error: List of charges does not match shape of representations"
-    assert (
-        N2.shape[0] == X2.shape[0]
-    ), "Error: List of charges does not match shape of representations"
+    if not (N1.shape[0] == X1.shape[0]):
+        raise ValueError("List of charges does not match shape of representations")
+    if not (N2.shape[0] == X2.shape[0]):
+        raise ValueError("List of charges does not match shape of representations")
 
     Q1_input = np.zeros((max(N1), X1.shape[0]), dtype=np.int32)
     Q2_input = np.zeros((max(N2), X2.shape[0]), dtype=np.int32)
@@ -475,12 +463,10 @@ def get_local_gradient_kernel(
     N1 = np.array([len(Q) for Q in Q1], dtype=np.int32)
     N2 = np.array([len(Q) for Q in Q2], dtype=np.int32)
 
-    assert (
-        N1.shape[0] == X1.shape[0]
-    ), "Error: List of charges does not match shape of representations"
-    assert (
-        N2.shape[0] == X2.shape[0]
-    ), "Error: List of charges does not match shape of representations"
+    if not (N1.shape[0] == X1.shape[0]):
+        raise ValueError("List of charges does not match shape of representations")
+    if not (N2.shape[0] == X2.shape[0]):
+        raise ValueError("List of charges does not match shape of representations")
 
     Q1_input = np.zeros((max(N1), X1.shape[0]), dtype=np.int32)
     Q2_input = np.zeros((max(N2), X2.shape[0]), dtype=np.int32)
@@ -552,12 +538,10 @@ def get_gdml_kernel(
     N1 = np.array([len(Q) for Q in Q1], dtype=np.int32)
     N2 = np.array([len(Q) for Q in Q2], dtype=np.int32)
 
-    assert (
-        N1.shape[0] == X1.shape[0]
-    ), "Error: List of charges does not match shape of representations"
-    assert (
-        N2.shape[0] == X2.shape[0]
-    ), "Error: List of charges does not match shape of representations"
+    if not (N1.shape[0] == X1.shape[0]):
+        raise ValueError("List of charges does not match shape of representations")
+    if not (N2.shape[0] == X2.shape[0]):
+        raise ValueError("List of charges does not match shape of representations")
 
     Q1_input = np.zeros((max(N1), X1.shape[0]), dtype=np.int32)
     Q2_input = np.zeros((max(N2), X2.shape[0]), dtype=np.int32)
@@ -627,9 +611,8 @@ def get_symmetric_gdml_kernel(
 
     N1 = np.array([len(Q) for Q in Q1], dtype=np.int32)
 
-    assert (
-        N1.shape[0] == X1.shape[0]
-    ), "Error: List of charges does not match shape of representations"
+    if not (N1.shape[0] == X1.shape[0]):
+        raise ValueError("List of charges does not match shape of representations")
 
     Q1_input = np.zeros((max(N1), X1.shape[0]), dtype=np.int32)
 
@@ -692,12 +675,10 @@ def get_gp_kernel(
     N1 = np.array([len(Q) for Q in Q1], dtype=np.int32)
     N2 = np.array([len(Q) for Q in Q2], dtype=np.int32)
 
-    assert (
-        N1.shape[0] == X1.shape[0]
-    ), "Error: List of charges does not match shape of representations"
-    assert (
-        N2.shape[0] == X2.shape[0]
-    ), "Error: List of charges does not match shape of representations"
+    if not (N1.shape[0] == X1.shape[0]):
+        raise ValueError("List of charges does not match shape of representations")
+    if not (N2.shape[0] == X2.shape[0]):
+        raise ValueError("List of charges does not match shape of representations")
 
     Q1_input = np.zeros((max(N1), X1.shape[0]), dtype=np.int32)
     Q2_input = np.zeros((max(N2), X2.shape[0]), dtype=np.int32)
@@ -765,9 +746,8 @@ def get_symmetric_gp_kernel(
 
     N1 = np.array([len(Q) for Q in Q1], dtype=np.int32)
 
-    assert (
-        N1.shape[0] == X1.shape[0]
-    ), "Error: List of charges does not match shape of representations"
+    if not (N1.shape[0] == X1.shape[0]):
+        raise ValueError("List of charges does not match shape of representations")
 
     Q1_input = np.zeros((max(N1), X1.shape[0]), dtype=np.int32)
 

@@ -23,8 +23,9 @@ def getAngle(sp: ndarray, norms: ndarray) -> ndarray:
     return angles
 
 
+
 def generate_arad(
-    coordinates: ndarray, nuclear_charges: ndarray, size: int = 23, cut_distance: float = 5.0
+    nuclear_charges: ndarray, coordinates: ndarray, size: int = 23, cut_distance: float = 5.0
 ) -> ndarray:
     """Generates a representation for the ARAD kernel module.
 
@@ -149,9 +150,12 @@ def get_global_kernels_arad(
 
     amax = X1.shape[1]
 
-    assert X1.shape[3] == amax, "ERROR: Check ARAD decriptor sizes! code = 1"
-    assert X2.shape[1] == amax, "ERROR: Check ARAD decriptor sizes! code = 2"
-    assert X2.shape[3] == amax, "ERROR: Check ARAD decriptor sizes! code = 3"
+    if not X1.shape[3] == amax:
+        raise ValueError("Check ARAD decriptor sizes")
+    if not X2.shape[1] == amax:
+        raise ValueError("Check ARAD decriptor sizes")
+    if not X2.shape[3] == amax:
+        raise ValueError("Check ARAD decriptor sizes")
 
     nm1 = X1.shape[0]
     nm2 = X2.shape[0]
@@ -257,9 +261,12 @@ def get_local_kernels_arad(
 
     amax = X1.shape[1]
 
-    assert X1.shape[3] == amax, "ERROR: Check ARAD decriptor sizes! code = 1"
-    assert X2.shape[1] == amax, "ERROR: Check ARAD decriptor sizes! code = 2"
-    assert X2.shape[3] == amax, "ERROR: Check ARAD decriptor sizes! code = 3"
+    if not X1.shape[3] == amax:
+        raise ValueError("Check ARAD decriptor sizes")
+    if not X2.shape[1] == amax:
+        raise ValueError("Check ARAD decriptor sizes")
+    if not X2.shape[3] == amax:
+        raise ValueError("Check ARAD decriptor sizes")
 
     nm1 = X1.shape[0]
     nm2 = X2.shape[0]
@@ -363,8 +370,10 @@ def get_atomic_kernels_arad(
     :rtype: numpy array
     """
 
-    assert len(X1.shape) == 3
-    assert len(X2.shape) == 3
+    if not len(X1.shape) == 3:
+        raise ValueError("Expected different shape")
+    if not len(X2.shape) == 3:
+        raise ValueError("Expected different shape")
 
     na1 = X1.shape[0]
     na2 = X2.shape[0]
@@ -427,7 +436,8 @@ def get_atomic_symmetric_kernels_arad(
     :rtype: numpy array
     """
 
-    assert len(X1.shape) == 3
+    if not len(X1.shape) == 3:
+        raise ValueError("Expected different shape")
     na1 = X1.shape[0]
 
     N1 = np.empty(na1, dtype=np.int32)

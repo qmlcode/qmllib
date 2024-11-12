@@ -1,4 +1,3 @@
-
 subroutine fmanhattan_distance(A, B, D)
 
    implicit none

@@ -1,4 +1,3 @@
-
 module searchtools
 
    implicit none
