@@ -1,6 +1,6 @@
-====
-What
-====
+===============
+What is qmllib?
+===============
 
 ``qmllib`` is a Python/Fortran toolkit for representation of molecules and solids
 for machine learning of properties of molecules and solids. The library is not
@@ -10,7 +10,7 @@ the goal is to provide usable and efficient implementations of concepts such as
 representations and kernels.
 
 ==============
-QML or QMLLib?
+QML or qmllib?
 ==============
 
 ``qmllib`` represents the core library functionality derived from the original
@@ -19,9 +19,10 @@ applications, but without the high-level abstraction, for example SKLearn.
 
 This package is and should stay free-function design oriented.
 
-Breaking changes from ``qml``:
+If you are moving from ``qml`` to ``qmllib``, note that there are breaking
+changes to the interface to make it more consistent with both argument orders
+and function naming.
 
-* FCHL representations callable interface to be consistent with other representations (e.i. atoms, coordinates)
 
 ==============
 How to install
@@ -52,6 +53,7 @@ or if you want a specific feature branch
 
     pip install git+https://github.com/qmlcode/qmllib@feature_branch
 
+
 =================
 How to contribute
 =================
@@ -73,13 +75,12 @@ You know have a conda environment in `./env` and are ready to run
 
 happy developing
 
+
 ==========
 How to use
 ==========
 
-.. code-block:: python
-
-    raise NotImplementedError
+Notebook examples are coming. For now, see test files in ``tests/*``.
 
 ===========
 How to cite
@@ -134,11 +135,12 @@ Please cite the representation that you are using accordingly.
   https://doi.org/10.1063/1.5020710
 
 
-=========
-What TODO
-=========
+===================
+What is left to do?
+===================
 
-- Setup ifort flags
-- Setup based on FCC env variable or --global-option flags
+- Compile based on ``FCC`` env variable
+- if ``ifort`` find the right flags
 - Find MKL from env (for example conda)
 - Find what numpy has been linked too (lapack or mkl)
+- Notebook examples
