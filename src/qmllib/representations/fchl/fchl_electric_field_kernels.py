@@ -78,10 +78,12 @@ def get_atomic_local_electric_field_gradient_kernels(
     """
 
     atoms_max = A.shape[1]
-    # TODO Unused neighbors_max = A.shape[3]
+    neighbors_max = A.shape[3]
 
-    # assert B.shape[1] == atoms_max, "ERROR: Check FCHL representation sizes! code = 2"
-    # assert B.shape[3] == neighbors_max, "ERROR: Check FCHL representation sizes! code = 3"
+    if not B.shape[1] == atoms_max:
+        raise ValueError("Check FCHL representation sizes")
+    if not B.shape[3] == neighbors_max:
+        raise ValueError("Check FCHL representation sizes")
 
     nm1 = A.shape[0]
     nm2 = B.shape[0]
@@ -218,8 +220,10 @@ def get_gaussian_process_electric_field_kernels(
     atoms_max = A.shape[1]
     neighbors_max = A.shape[3]
 
-    assert B.shape[1] == atoms_max, "ERROR: Check FCHL representation sizes! code = 2"
-    assert B.shape[3] == neighbors_max, "ERROR: Check FCHL representation sizes! code = 3"
+    if not B.shape[1] == atoms_max:
+        raise ValueError("Check FCHL representation sizes")
+    if not B.shape[3] == neighbors_max:
+        raise ValueError("Check FCHL representation sizes")
 
     nm1 = A.shape[0]
     nm2 = B.shape[0]
@@ -318,8 +322,8 @@ def get_kernels_ef_field(
     # atoms_max = A.shape[1]
     # neighbors_max = A.shape[3]
 
-    # assert B.shape[1] == atoms_max, "ERROR: Check FCHL representation sizes! code = 2"
-    # assert B.shape[3] == neighbors_max, "ERROR: Check FCHL representation sizes! code = 3"
+    # assert B.shape[1] == atoms_max, "Check FCHL representation sizes! code = 2"
+    # assert B.shape[3] == neighbors_max, "Check FCHL representation sizes! code = 3"
 
     # nm1 = A.shape[0]
     # nm2 = B.shape[0]
@@ -449,8 +453,8 @@ def get_kernels_ef_field(
 #     atoms_max = A.shape[1]
 #     neighbors_max = A.shape[3]
 
-#     assert B.shape[1] == atoms_max, "ERROR: Check FCHL representation sizes! code = 2"
-#     assert B.shape[3] == neighbors_max, "ERROR: Check FCHL representation sizes! code = 3"
+#     assert B.shape[1] == atoms_max, "Check FCHL representation sizes! code = 2"
+#     assert B.shape[3] == neighbors_max, "Check FCHL representation sizes! code = 3"
 
 
 #     nm1 = A.shape[0]

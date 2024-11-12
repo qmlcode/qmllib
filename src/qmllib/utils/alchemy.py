@@ -307,7 +307,7 @@ def get_alchemy(
 
         return doalchemy, pd
 
-    raise NotImplementedError("QML ERROR: Unknown alchemical method specified:", alchemy)
+    raise NotImplementedError(f"Unknown alchemical method specified: {alchemy}")
 
 
 def QNum_distance(a, b, n_width, m_width, l_width, s_width):
@@ -404,10 +404,12 @@ def gen_custom(e_vec, emax=100):
     num_dims = []
 
     for k, v in e_vec.items():
-        assert isinstance(k, int), "Error! Keys need to be int"
+        if not isinstance(k, int):
+            raise ValueError("Keys need to be type int")
         num_dims.append(len(v))
 
-    assert check_if_unique(num_dims), "Error! Unequal number of dimensions"
+    if not check_if_unique(num_dims):
+        raise ValueError("Unequal number of dimensions")
 
     tmp = np.zeros((emax, num_dims[0]))
 

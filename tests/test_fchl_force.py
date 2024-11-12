@@ -11,10 +11,12 @@ import scipy.stats
 from conftest import ASSETS
 from scipy.linalg import lstsq
 
+from qmllib.representations import (
+    generate_fchl18,
+    generate_fchl18_displaced,
+    generate_fchl18_displaced_5point,
+)
 from qmllib.representations.fchl import (
-    generate_displaced_representations,
-    generate_displaced_representations_5point,
-    generate_representation,
     get_atomic_local_gradient_5point_kernels,
     get_atomic_local_gradient_kernels,
     get_atomic_local_kernels,
@@ -85,15 +87,15 @@ def csv_to_molecular_reps(csv_filename, force_key="orca_forces", energy_key="orc
             force = np.array(ast.literal_eval(row[3]))
             energy = float(row[6])
 
-            rep = generate_representation(
+            rep = generate_fchl18(
                 coordinates, nuclear_charges, max_size=max_atoms, cut_distance=CUT_DISTANCE
             )
 
-            disp_rep = generate_displaced_representations(
+            disp_rep = generate_fchl18_displaced(
                 coordinates, nuclear_charges, max_size=max_atoms, cut_distance=CUT_DISTANCE, dx=DX
             )
 
-            disp_rep5 = generate_displaced_representations_5point(
+            disp_rep5 = generate_fchl18_displaced_5point(
                 coordinates, nuclear_charges, max_size=max_atoms, cut_distance=CUT_DISTANCE, dx=DX
             )
 

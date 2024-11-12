@@ -1,4 +1,3 @@
-
    subroutine check_openmp(compiled_with_openmp)
 
       implicit none

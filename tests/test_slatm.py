@@ -32,7 +32,7 @@ def test_slatm_global_representation():
 
     representations = []
     for coord, atoms in mols:
-        slatm_vector = generate_slatm(coord, atoms, mbtypes)
+        slatm_vector = generate_slatm(atoms, coord, mbtypes)
         representations.append(slatm_vector)
 
     X_qml = np.array([rep for rep in representations])
@@ -68,7 +68,7 @@ def test_slatm_local_representation():
     for _, mol in enumerate(mols):
 
         coord, atoms = mol
-        slatm_vector = generate_slatm(coord, atoms, mbtypes, local=True)
+        slatm_vector = generate_slatm(atoms, coord, mbtypes, local=True)
 
         local_representations.append(slatm_vector)
 
