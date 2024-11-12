@@ -1,13 +1,13 @@
 import numpy as np
 from conftest import ASSETS
 
-from qmllib.representations.bob import get_asize
-from qmllib.representations.representations import (
-    generate_atomic_coulomb_matrix,
+from qmllib.representations import (
     generate_bob,
     generate_coulomb_matrix,
-    generate_eigenvalue_coulomb_matrix,
+    generate_coulomb_matrix_atomic,
+    generate_coulomb_matrix_eigenvalue,
 )
+from qmllib.representations.bob import get_asize
 from qmllib.utils.xyz_format import read_xyz
 
 
@@ -92,7 +92,7 @@ def test_atomic_coulomb_matrix_distance():
     # Generate coulomb matrix representation, sorted by distance
     representations = []
     for coord, nuclear_charges in mols:
-        rep = generate_atomic_coulomb_matrix(nuclear_charges, coord, size=size, sorting="distance")
+        rep = generate_coulomb_matrix_atomic(nuclear_charges, coord, size=size, sorting="distance")
         representations.append(rep)
 
     X_test = np.concatenate([rep for rep in representations])
@@ -114,7 +114,7 @@ def test_atomic_coulomb_matrix_rownorm():
 
     representations = []
     for coord, nuclear_charges in mols:
-        rep = generate_atomic_coulomb_matrix(nuclear_charges, coord, size=size, sorting="row-norm")
+        rep = generate_coulomb_matrix_atomic(nuclear_charges, coord, size=size, sorting="row-norm")
         representations.append(rep)
 
     X_test = np.concatenate(representations)
@@ -132,7 +132,7 @@ def test_atomic_coulomb_matrix_distance_softcut():
     representations = []
 
     for coord, nuclear_charges in mols:
-        rep = generate_atomic_coulomb_matrix(
+        rep = generate_coulomb_matrix_atomic(
             nuclear_charges,
             coord,
             size=size,
@@ -161,7 +161,7 @@ def test_atomic_coulomb_matrix_rownorm_cut():
     representations = []
 
     for coord, nuclear_charges in mols:
-        rep = generate_atomic_coulomb_matrix(
+        rep = generate_coulomb_matrix_atomic(
             nuclear_charges,
             coord,
             size=size,
@@ -188,9 +188,9 @@ def test_atomic_coulomb_matrix_twoatom_distance():
     size = max(atoms.size for _, atoms in mols) + 1
 
     for coord, nuclear_charges in mols:
-        rep = generate_atomic_coulomb_matrix(nuclear_charges, coord, size=size, sorting="distance")
+        rep = generate_coulomb_matrix_atomic(nuclear_charges, coord, size=size, sorting="distance")
         representation_subset = rep[1:3]
-        rep = generate_atomic_coulomb_matrix(
+        rep = generate_coulomb_matrix_atomic(
             nuclear_charges, coord, size=size, sorting="distance", indices=[1, 2]
         )
         for i in range(2):
@@ -213,9 +213,9 @@ def test_atomic_coulomb_matrix_twoatom_rownorm():
 
     for coord, nuclear_charges in mols:
 
-        rep = generate_atomic_coulomb_matrix(nuclear_charges, coord, size=size, sorting="row-norm")
+        rep = generate_coulomb_matrix_atomic(nuclear_charges, coord, size=size, sorting="row-norm")
         representation_subset = rep[1:3]
-        rep = generate_atomic_coulomb_matrix(
+        rep = generate_coulomb_matrix_atomic(
             nuclear_charges, coord, size=size, sorting="row-norm", indices=[1, 2]
         )
         for i in range(2):
@@ -238,7 +238,7 @@ def test_eigenvalue_coulomb_matrix():
     representations = []
 
     for coord, nuclear_charges in mols:
-        rep = generate_eigenvalue_coulomb_matrix(nuclear_charges, coord, size=size)
+        rep = generate_coulomb_matrix_eigenvalue(nuclear_charges, coord, size=size)
         representations.append(rep)
 
     X_test = np.asarray(representations)

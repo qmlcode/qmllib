@@ -23,7 +23,8 @@ def getAngle(sp: ndarray, norms: ndarray) -> ndarray:
     return angles
 
 
-def generate_arad_representation(
+
+def generate_arad(
     nuclear_charges: ndarray, coordinates: ndarray, size: int = 23, cut_distance: float = 5.0
 ) -> ndarray:
     """Generates a representation for the ARAD kernel module.

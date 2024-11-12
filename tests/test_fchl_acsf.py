@@ -7,7 +7,7 @@ from copy import deepcopy
 import numpy as np
 from conftest import ASSETS
 
-from qmllib.representations import generate_fchl_acsf
+from qmllib.representations import generate_fchl19
 from qmllib.utils.xyz_format import read_xyz
 
 np.set_printoptions(linewidth=666, edgeitems=10)
@@ -20,7 +20,7 @@ def get_acsf_numgrad(coordinates, nuclear_charges, dx=1e-5):
     natoms = len(coordinates)
     true_coords = deepcopy(coordinates)
 
-    true_rep = generate_fchl_acsf(nuclear_charges, coordinates, gradients=False, **REP_PARAMS)
+    true_rep = generate_fchl19(nuclear_charges, coordinates, gradients=False, **REP_PARAMS)
 
     gradient = np.zeros((3, natoms, true_rep.shape[0], true_rep.shape[1]))
 
@@ -30,25 +30,25 @@ def get_acsf_numgrad(coordinates, nuclear_charges, dx=1e-5):
             temp_coords = deepcopy(true_coords)
             temp_coords[n, xyz] = x + 2.0 * dx
 
-            (rep, grad) = generate_fchl_acsf(
+            (rep, grad) = generate_fchl19(
                 nuclear_charges, temp_coords, gradients=True, **REP_PARAMS
             )
             gradient[xyz, n] -= rep
 
             temp_coords[n, xyz] = x + dx
-            (rep, grad) = generate_fchl_acsf(
+            (rep, grad) = generate_fchl19(
                 nuclear_charges, temp_coords, gradients=True, **REP_PARAMS
             )
             gradient[xyz, n] += 8.0 * rep
 
             temp_coords[n, xyz] = x - dx
-            (rep, grad) = generate_fchl_acsf(
+            (rep, grad) = generate_fchl19(
                 nuclear_charges, temp_coords, gradients=True, **REP_PARAMS
             )
             gradient[xyz, n] -= 8.0 * rep
 
             temp_coords[n, xyz] = x - 2.0 * dx
-            (rep, grad) = generate_fchl_acsf(
+            (rep, grad) = generate_fchl19(
                 nuclear_charges, temp_coords, gradients=True, **REP_PARAMS
             )
             gradient[xyz, n] += rep
@@ -66,11 +66,9 @@ def test_fchl_acsf():
 
     coordinates, nuclear_charges = read_xyz(ASSETS / "qm7/0101.xyz")
 
-    (repa, anal_grad) = generate_fchl_acsf(
-        nuclear_charges, coordinates, gradients=True, **REP_PARAMS
-    )
+    (repa, anal_grad) = generate_fchl19(nuclear_charges, coordinates, gradients=True, **REP_PARAMS)
 
-    repb = generate_fchl_acsf(nuclear_charges, coordinates, gradients=False, **REP_PARAMS)
+    repb = generate_fchl19(nuclear_charges, coordinates, gradients=False, **REP_PARAMS)
 
     assert np.allclose(repa, repb), "Error in FCHL-ACSF representation implementation"
 
