@@ -88,47 +88,55 @@ How to cite
 
 Please cite the representation that you are using accordingly.
 
-- | **Implementation**
+- **Implementation**
+
   Toolkit for Quantum Chemistry Machine Learning,
   https://github.com/qmlcode/qmllib, <version or git commit>
 
-- | **FCHL19** ``generate_fchl19``
+- **FCHL19** ``generate_fchl19``
+
   FCHL revisited: Faster and more accurate quantum machine learning,
   Christensen, Bratholm, Faber, Lilienfeld,
   J. Chem. Phys. 152, 044107 (2020),
   https://doi.org/10.1063/1.5126701
 
-- | **FCHL18** ``generate_fchl18``
+- **FCHL18** ``generate_fchl18``
+
   Alchemical and structural distribution based representation for universal quantum machine learning,
   Faber, Christensen, Huang, Lilienfeld,
   J. Chem. Phys. 148, 241717 (2018),
   https://doi.org/10.1063/1.5020710
 
-- | **Columb Matrix** ``generate_columnb_matrix_*``
+- **Columb Matrix** ``generate_columnb_matrix_*``
+
   Fast and Accurate Modeling of Molecular Atomization Energies with Machine Learning,
   Rupp, Tkatchenko, Müller, Lilienfeld,
   Phys. Rev. Lett. 108, 058301 (2012)
   DOI: https://doi.org/10.1103/PhysRevLett.108.058301
 
-- | **Bag of Bonds (BoB)** ``generate_bob``
+- **Bag of Bonds (BoB)** ``generate_bob``
+
   Assessment and Validation of Machine Learning Methods for Predicting Molecular Atomization Energies,
   Hansen, Montavon, Biegler, Fazli, Rupp, Scheffler, Lilienfeld, Tkatchenko, Müller,
   J. Chem. Theory Comput. 2013, 9, 8, 3404–3419
   https://doi.org/10.1021/ct400195d
 
-- | **SLATM** ``generate_slatm``
+- **SLATM** ``generate_slatm``
+
   Understanding molecular representations in machine learning: The role of uniqueness and target similarity,
   Huang, Lilienfeld,
   J. Chem. Phys. 145, 161102 (2016)
   https://doi.org/10.1063/1.4964627
 
-- | **ACSF** ``generate_acsf``
+- **ACSF** ``generate_acsf``
+
   Atom-centered symmetry functions for constructing high-dimensional neural network potentials,
   Behler,
   J Chem Phys 21;134(7):074106 (2011)
   https://doi.org/10.1063/1.3553717
 
-- | **AARAD** ``generate_aarad``
+- **AARAD** ``generate_aarad``
+
   Alchemical and structural distribution based representation for universal quantum machine learning,
   Faber, Christensen, Huang, Lilienfeld,
   J. Chem. Phys. 148, 241717 (2018),

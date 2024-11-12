@@ -28,3 +28,5 @@ jobs:
       - run: pip install . -v
       - run: make test python=python
       - run: make format python=python
+      - run: make build python=python
+      - run: make test-dist python=python

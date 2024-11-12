@@ -29,6 +29,9 @@ format:
 test:
 	${python} -m pytest -rs ./tests
 
+test-dist:
+	${python} -m twine check dist/*
+
 types:
 	${python} -m monkeytype run $$(which ${pytest}) ./tests
 	${python} -m monkeytype list-modules | grep ${pkg} | parallel -j${j} "${python} -m monkeytype apply {} > /dev/null && echo {}"
