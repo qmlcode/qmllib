@@ -2,7 +2,8 @@ name: Publish PyPI
 
 on:
   release:
-    types: [published]
+    branches:
+      - "*"
 
 jobs:
 
