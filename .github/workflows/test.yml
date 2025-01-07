@@ -11,7 +11,7 @@ jobs:
 
   test:
     name: Testing
-    runs-on: "ubuntu-latest"
+    runs-on: ["ubuntu-latest", "macos-latest"]
     defaults:
       run:
         shell: bash -l {0}
@@ -23,7 +23,7 @@ jobs:
       - uses: conda-incubator/setup-miniconda@v2
         with:
           activate-environment: dev
-          environment-file: ./environment_dev.yaml
+          environment-file: ./environment.yaml
           python-version: ${{ matrix.python-version }}
       - run: pip install . -v
       - run: make test python=python

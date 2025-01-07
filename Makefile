@@ -1,5 +1,6 @@
-python=./env/bin/python
-mamba=mamba
+env=env
+python=./${env}/bin/python
+conda=mamba
 pkg=qmllib
 pip=./env/bin/pip
 pytest=pytest
@@ -9,14 +10,25 @@ version_file=src/qmllib/version.py
 
 .PHONY: build
 
-all: env
+all: ${env}
 
 ## Setup
 
 env:
-	${mamba} env create -f ./environment_dev.yaml -p ./env --quiet
-	${python} -m pre_commit install
+	echo "TODO"
+
+env_uv:
+	which uv
+	uv venv ${env} --python 3.12
+	uv pip install -r requirements.txt --python ${python}
+	uv pip install -e . --python ${python}
+	make .git/hooks/pre-commit python=${python}
+
+env_conda:
+	which ${conda}
+	${conda} env create -f ./environment.yaml -p ./${env} --quiet
 	${python} -m pip install -e .
+	make .git/hooks/pre-commit python=${python}
 
 ./.git/hooks/pre-commit:
 	${python} -m pre_commit install

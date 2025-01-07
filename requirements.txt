@@ -1,0 +1,18 @@
+# dev
+jupytext
+monkeytype
+numpy
+pandas
+pandas
+pre-commit
+pyarrow
+pytest
+pytest-cov
+scikit-learn
+scipy
+# build
+build
+meson
+ninja
+# publish
+twine

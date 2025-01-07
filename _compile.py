@@ -38,16 +38,35 @@ def find_mkl():
 
 
 def find_env() -> dict[str, str]:
-    """Find compiler flags"""
+    """Find compiler flag"""
+
+    """
+    For anaconda-like envs
+        TODO Find MKL
+
+    For brew,
+
+        brew install llvm libomp
+        brew install openblas lapack
+
+        export LDFLAGS="-L/opt/homebrew/opt/lapack/lib"
+        export CPPFLAGS="-I/opt/homebrew/opt/lapack/include"
+        export LDFLAGS="-L/opt/homebrew/opt/libomp/lib"
+        export CPPFLAGS="-I/opt/homebrew/opt/libomp/include"
+
+    """
+
+    fcc = "gfortran"
 
     # TODO Check if FCC is there, not not raise Error
     # TODO Check if lapack / blas is there, if not raise Error
+    # TODO Check if omp is installed
 
     # TODO Find ifort flags, choose from FCC
     # TODO Find math lib
     # TODO Find os
 
-    COMPILER_FLAGS = [
+    compiler_flags = [
         "-O3",
         "-fopenmp",
         "-m64",
@@ -58,12 +77,19 @@ def find_env() -> dict[str, str]:
         "-Wno-cpp",
     ]
 
-    extra_flags = ["-lgomp", "-lpthread", "-lm", "-ldl"]
+    # Default GNU flags
+    extra_flags = ["-lpthread", "-lm", "-ldl"]
+    openmp_flags = [
+        "-lgomp",
+    ]
     math_flags = ["-L/usr/lib/", "-lblas", "-llapack"]
 
-    fflags = [] + COMPILER_FLAGS
-    ldflags = [] + extra_flags + math_flags
-    fcc = "gfortran"
+    if sys.platform == "darwin":
+        # TODO Currently, problems with finding OpenMP on MAC OS X
+        openmp_flags = []
+
+    fflags = [] + compiler_flags
+    ldflags = [] + extra_flags + math_flags + openmp_flags
 
     env = {"FFLAGS": " ".join(fflags), "LDFLAGS": " ".join(ldflags), "FCC": fcc}
 
