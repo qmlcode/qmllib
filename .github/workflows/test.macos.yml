@@ -27,6 +27,8 @@ jobs:
       #     python-version: ${{ matrix.python-version }}
       - run: which brew
       - run: brew install gcc openblas lapack
+      - run: ls /opt/homebrew/bin/
+      - run: which /opt/homebrew/bin/gfortran
       - run: which gfortran
       - run: pip install . -v
       - run: make test python=python
