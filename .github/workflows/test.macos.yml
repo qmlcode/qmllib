@@ -26,6 +26,7 @@ jobs:
       #     environment-file: ./environment.yaml
       #     python-version: ${{ matrix.python-version }}
       - run: which brew
+      - run: brew install gfortran openblas lapack
       - run: pip install . -v
       - run: make test python=python
       - run: make format python=python
