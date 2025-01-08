@@ -20,11 +20,12 @@ jobs:
         python-version: ['3.12']
     steps:
       - uses: actions/checkout@v2
-      - uses: conda-incubator/setup-miniconda@v2
-        with:
-          activate-environment: dev
-          environment-file: ./environment.yaml
-          python-version: ${{ matrix.python-version }}
+      # - uses: conda-incubator/setup-miniconda@v2
+      #   with:
+      #     activate-environment: dev
+      #     environment-file: ./environment.yaml
+      #     python-version: ${{ matrix.python-version }}
+      - run: which brew
       - run: pip install . -v
       - run: make test python=python
       - run: make format python=python
