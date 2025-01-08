@@ -26,6 +26,7 @@ jobs:
       #     environment-file: ./environment.yaml
       #     python-version: ${{ matrix.python-version }}
       - run: which brew
+      - run: brew uninstall gcc*
       - run: brew install gcc openblas lapack
       - run: ls /opt/homebrew/bin/
       - run: which /opt/homebrew/bin/gfortran
