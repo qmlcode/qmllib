@@ -26,12 +26,12 @@ jobs:
       #     environment-file: ./environment.yaml
       #     python-version: ${{ matrix.python-version }}
       - run: which brew
-      - run: brew uninstall gcc*
+      - run: brew ls --versions gcc
+      - run: brew ls --versions gfortran
       - run: brew install gcc openblas lapack
       - run: ls /opt/homebrew/bin/
-      - run: which /opt/homebrew/bin/gfortran
-      - run: which gfortran
-      - run: pip install . -v
+      - run: which gfortran-14
+      - run: FC=gfortran-14 pip install . -v
       - run: make test python=python
       - run: make format python=python
       - run: make build python=python

@@ -7,6 +7,8 @@ from pathlib import Path
 
 import numpy as np
 
+DEFAULT_FC = "gfortran"
+
 f90_modules = {
     "representations/frepresentations": ["frepresentations.f90"],
     "representations/facsf": ["facsf.f90"],
@@ -56,13 +58,13 @@ def find_env() -> dict[str, str]:
 
     """
 
-    fcc = "gfortran"
+    fc = os.environ.get("FC", DEFAULT_FC)
 
-    # TODO Check if FCC is there, not not raise Error
+    # TODO Check if FC is there, not not raise Error
     # TODO Check if lapack / blas is there, if not raise Error
     # TODO Check if omp is installed
 
-    # TODO Find ifort flags, choose from FCC
+    # TODO Find ifort flags, choose from FC
     # TODO Find math lib
     # TODO Find os
 
@@ -91,7 +93,7 @@ def find_env() -> dict[str, str]:
     fflags = [] + compiler_flags
     ldflags = [] + extra_flags + math_flags + openmp_flags
 
-    env = {"FFLAGS": " ".join(fflags), "LDFLAGS": " ".join(ldflags), "FCC": fcc}
+    env = {"FFLAGS": " ".join(fflags), "LDFLAGS": " ".join(ldflags), "FC": fc}
 
     return env
 
