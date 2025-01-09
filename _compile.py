@@ -67,8 +67,9 @@ def find_env() -> dict[str, str]:
     # TODO Check if omp is installed
 
     # TODO Find ifort flags, choose from FC
-    # TODO Find math lib
-    # TODO Find os
+    # TODO Find mkl lib
+
+    # TODO Check if darwin, check for brew paths
 
     # Default GNU flags
     compiler_flags = [
