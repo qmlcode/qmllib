@@ -60,6 +60,8 @@ def find_env() -> dict[str, str]:
 
     fc = os.environ.get("FC", DEFAULT_FC)
 
+    print(f"Using FC={fc}")
+
     # TODO Check if FC is there, not not raise Error
     # TODO Check if lapack / blas is there, if not raise Error
     # TODO Check if omp is installed
@@ -70,7 +72,6 @@ def find_env() -> dict[str, str]:
 
     compiler_flags = [
         "-O3",
-        "-fopenmp",
         "-m64",
         "-march=native",
         "-fPIC",
@@ -79,19 +80,24 @@ def find_env() -> dict[str, str]:
         "-Wno-cpp",
     ]
 
+    compiler_openmp = [
+        "-fopenmp",
+    ]
+
     # Default GNU flags
-    extra_flags = ["-lpthread", "-lm", "-ldl"]
-    openmp_flags = [
+    linker_flags = ["-lpthread", "-lm", "-ldl"]
+    linker_openmp = [
         "-lgomp",
     ]
-    math_flags = ["-L/usr/lib/", "-lblas", "-llapack"]
+    linker_math = ["-L/usr/lib/", "-lblas", "-llapack"]
 
     if sys.platform == "darwin":
         # TODO Currently, problems with finding OpenMP on MAC OS X
-        openmp_flags = []
+        linker_openmp = []
+        compiler_openmp = []
 
-    fflags = [] + compiler_flags
-    ldflags = [] + extra_flags + math_flags + openmp_flags
+    fflags = [] + compiler_flags + compiler_openmp
+    ldflags = [] + linker_flags + linker_math + linker_openmp
 
     env = {"FFLAGS": " ".join(fflags), "LDFLAGS": " ".join(ldflags), "FC": fc}
 
