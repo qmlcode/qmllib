@@ -21,14 +21,16 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: which brew
-      - run: brew ls --versions gcc
-      - run: brew ls --versions gfortran
       - run: brew install gcc openblas lapack
       - run: ls /opt/homebrew/bin/
       - run: which gfortran-14
+
+      # TODO Setup uv
+
       - run: pip install -r ./requirements.txt
+
       - run: FC=gfortran-14 pip install . -v
       - run: make test python=python
       - run: make format python=python
-      - run: make build python=python
+      - run: FC=gfortran-14 make build python=python
       - run: make test-dist python=python

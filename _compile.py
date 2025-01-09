@@ -70,6 +70,7 @@ def find_env() -> dict[str, str]:
     # TODO Find math lib
     # TODO Find os
 
+    # Default GNU flags
     compiler_flags = [
         "-O3",
         "-m64",
@@ -79,17 +80,22 @@ def find_env() -> dict[str, str]:
         "-Wno-unused-function",
         "-Wno-cpp",
     ]
-
     compiler_openmp = [
         "-fopenmp",
     ]
-
-    # Default GNU flags
-    linker_flags = ["-lpthread", "-lm", "-ldl"]
+    linker_flags = [
+        "-lpthread",
+        "-lm",
+        "-ldl",
+    ]
     linker_openmp = [
         "-lgomp",
     ]
-    linker_math = ["-L/usr/lib/", "-lblas", "-llapack"]
+    linker_math = [
+        "-L/usr/lib/",
+        "-lblas",
+        "-llapack",
+    ]
 
     if sys.platform == "darwin":
         # TODO Currently, problems with finding OpenMP on MAC OS X
