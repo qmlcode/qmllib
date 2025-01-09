@@ -105,7 +105,7 @@ def find_env() -> dict[str, str]:
         linker_openmp = [
             "-L/opt/homebrew/opt/libomp/lib",
             "-lomp",
-        ]  # Path to libomp from Homebrew
+        ]
 
     fflags = [] + compiler_flags + compiler_openmp
     ldflags = [] + linker_flags + linker_math + linker_openmp

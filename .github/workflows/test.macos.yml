@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: which brew
-      - run: brew install gcc openblas lapack
+      - run: brew install gcc openblas lapack libomp
       - run: ls /opt/homebrew/bin/
       - run: which gfortran-14
 
