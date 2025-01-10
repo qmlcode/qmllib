@@ -99,14 +99,22 @@ def find_env() -> dict[str, str]:
     ]
 
     if sys.platform == "darwin":
-        # TODO Currently, problems with finding OpenMP on MAC OS X
-        compiler_openmp = [
-            "-fopenmp",
-        ]
-        linker_openmp = [
-            "-L/opt/homebrew/opt/libomp/lib",
-            "-lomp",
-        ]
+
+        expected_omp_dir = Path("/opt/homebrew/opt/libomp/lib")
+
+        if expected_omp_dir.is_dir():
+            compiler_openmp = [
+                "-fopenmp",
+            ]
+            linker_openmp = [
+                f"-L{expected_omp_dir}",
+                "-lomp",
+            ]
+
+        else:
+            print(f"Expected OpenMP dir not found: {expected_omp_dir}, compiling without OpenMP")
+            compiler_openmp = []
+            linker_openmp = []
 
     fflags = [] + compiler_flags + compiler_openmp
     ldflags = [] + linker_flags + linker_math + linker_openmp
