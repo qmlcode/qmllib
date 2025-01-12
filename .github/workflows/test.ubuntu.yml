@@ -1,4 +1,4 @@
-name: Test Ubuntu
+name: Test
 
 on:
   push:
@@ -10,14 +10,15 @@ on:
 jobs:
 
   test:
-    name: Testing
-    runs-on: ["ubuntu-latest"]
-    defaults:
-      run:
-        shell: bash -l {0}
+    name: Testing ${{matrix.os}} Python ${{matrix.python-version}}, with Numpy ${{matrix.numpy-version}}
+    runs-on: ${{matrix.os}}
+
     strategy:
       matrix:
-        python-version: ['3.12']
+        os: [ubuntu-latest, macos-latest]
+        python-version: ['3.11', '3.12']
+        numpy-version: ['1', '2']
+
     steps:
       - uses: actions/checkout@v2
       - uses: conda-incubator/setup-miniconda@v2
