@@ -1,5 +1,6 @@
 env=env
 python=./${env}/bin/python
+python_version=3.12
 conda=mamba
 pkg=qmllib
 pip=./env/bin/pip
@@ -19,7 +20,7 @@ env:
 
 env_uv:
 	which uv
-	uv venv ${env} --python 3.12
+	uv venv ${env} --python ${python_version}
 	uv pip install -r requirements.txt --python ${python}
 	uv pip install -e . --python ${python}
 	make .git/hooks/pre-commit python=${python}

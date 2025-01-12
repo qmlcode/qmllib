@@ -60,8 +60,6 @@ def find_env() -> dict[str, str]:
 
     fc = os.environ.get("FC", DEFAULT_FC)
 
-    print(f"Using FC={fc}")
-
     # TODO Check if FC is there, not not raise Error
     # TODO Check if lapack / blas is there, if not raise Error
     # TODO Check if omp is installed
@@ -127,6 +125,9 @@ def find_env() -> dict[str, str]:
 def main():
     """Compile f90 in src/qmllib"""
 
+    print(
+        f"Using python {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+    )
     print(f"Using numpy {np.__version__}")
 
     # Find and set Fortran compiler, compiler flags and linker flags

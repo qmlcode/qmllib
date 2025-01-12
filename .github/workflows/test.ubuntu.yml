@@ -1,4 +1,4 @@
-name: Test
+name: Test Ubuntu
 
 on:
   push:
@@ -10,7 +10,7 @@ on:
 jobs:
 
   test:
-    name: Testing ${{matrix.os}} Python ${{matrix.python-version}}
+    name: Testing ${{matrix.os}} py-${{matrix.python-version}}
     runs-on: ${{matrix.os}}
 
     strategy:

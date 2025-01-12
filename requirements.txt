@@ -3,6 +3,7 @@ jupytext
 monkeytype
 numpy
 pandas
+pip
 pre-commit
 pytest
 pytest-cov
