@@ -108,6 +108,7 @@ def find_env() -> dict[str, str]:
                 f"-L{expected_omp_dir}",
                 "-lomp",
             ]
+            linker_math += ["-L/usr/lib/"]
 
         else:
             print(f"Expected OpenMP dir not found: {expected_omp_dir}, compiling without OpenMP")
@@ -117,7 +118,7 @@ def find_env() -> dict[str, str]:
     # FreeBSD specific flags
     if "freebsd" in sys.platform:
         # Location of BLAS / Lapack for FreeBSD 14
-        linker_math += ["/usr/local/lib/"]
+        linker_math += ["-L/usr/local/lib/"]
 
     fflags = [] + compiler_flags + compiler_openmp
     ldflags = [] + linker_flags + linker_math + linker_openmp
