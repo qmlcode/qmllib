@@ -30,7 +30,7 @@ jobs:
       #     environment-file: ./environment.yaml
       #     python-version: ${{ matrix.python-version }}
 
-      - run: apt install gcc libomp-dev libopenblas-dev
+      - run: sudo apt-get install gcc libomp-dev libopenblas-dev
 
       - run: make env_uv python_version=${{ matrix.python-version }}
 
