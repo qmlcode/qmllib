@@ -60,26 +60,6 @@ def find_env() -> dict[str, str]:
 
     fc = os.environ.get("FC", DEFAULT_FC)
 
-    linker_mathlib_dirs = [
-        "/usr/lib/",  # Debian
-        "/lib/",  # Alpine
-        "/usr/local/lib/",  # FreeBSD
-        "/usr/lib64/",  # Redhat
-    ]
-
-    mathlib_path = None
-
-    for dir in linker_mathlib_dirs:
-
-        if not Path(dir).is_dir():
-            continue
-
-        mathlib_path = dir
-        break
-
-    if mathlib_path is None:
-        print("Unable to find mathlib path")
-
     # TODO Check if FC is there, not not raise Error
     # TODO Check if lapack / blas is there, if not raise Error
     # TODO Check if omp is installed
@@ -115,10 +95,8 @@ def find_env() -> dict[str, str]:
         "-llapack",
     ]
 
-    if mathlib_path is not None:
-        linker_math += [f"-L{mathlib_path}"]
-
-    if sys.platform == "darwin":
+    # MacOS X specific flags
+    if "darwin " in sys.platform:
 
         expected_omp_dir = Path("/opt/homebrew/opt/libomp/lib")
 
@@ -135,6 +113,11 @@ def find_env() -> dict[str, str]:
             print(f"Expected OpenMP dir not found: {expected_omp_dir}, compiling without OpenMP")
             compiler_openmp = []
             linker_openmp = []
+
+    # FreeBSD specific flags
+    if "freebsd" in sys.platform:
+        # Location of BLAS / Lapack for FreeBSD 14
+        linker_math += ["/usr/local/lib/"]
 
     fflags = [] + compiler_flags + compiler_openmp
     ldflags = [] + linker_flags + linker_math + linker_openmp
