@@ -93,10 +93,11 @@ def find_env() -> dict[str, str]:
     linker_math = [
         "-lblas",
         "-llapack",
+        "-L/usr/lib/",
     ]
 
     # MacOS X specific flags
-    if "darwin " in sys.platform:
+    if "darwin" in sys.platform:
 
         expected_omp_dir = Path("/opt/homebrew/opt/libomp/lib")
 
@@ -108,7 +109,6 @@ def find_env() -> dict[str, str]:
                 f"-L{expected_omp_dir}",
                 "-lomp",
             ]
-            linker_math += ["-L/usr/lib/"]
 
         else:
             print(f"Expected OpenMP dir not found: {expected_omp_dir}, compiling without OpenMP")
