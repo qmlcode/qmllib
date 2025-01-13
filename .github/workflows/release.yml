@@ -1,56 +1,56 @@
-name: Release Version
+# name: Release Version
 
-# When merged into main
-# - Only when src is changed
-# - minor version bump - if new test functions are added?
-# - patch version bump - if no new tests
+# # When merged into main
+# # - Only when src is changed
+# # - minor version bump - if new test functions are added?
+# # - patch version bump - if no new tests
 
-on:
-  push:
-    branches:
-      - main
+# on:
+#   push:
+#     branches:
+#       - main
 
-jobs:
-  release:
-    name: Creating release
-    runs-on: "ubuntu-latest"
-    permissions: write-all
-    defaults:
-      run:
-        shell: bash -l {0}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
+# jobs:
+#   release:
+#     name: Creating release
+#     runs-on: "ubuntu-latest"
+#     permissions: write-all
+#     defaults:
+#       run:
+#         shell: bash -l {0}
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v4
+#         with:
+#           fetch-depth: 2
 
-      - name: Early exit
-        env:
-          GH_RUN_ID: ${{ github.run_id }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: make gh-has-src-changed || make gh-cancel
+#       - name: Early exit
+#         env:
+#           GH_RUN_ID: ${{ github.run_id }}
+#           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#         run: make gh-has-src-changed || make gh-cancel
 
-      - name: Setup
-        run: |
-          git config --global user.name 'Github Actions'
-          git config --global user.email 'none@none.none'
+#       - name: Setup
+#         run: |
+#           git config --global user.name 'Github Actions'
+#           git config --global user.email 'none@none.none'
 
-      - name:
-        run: echo $(git log -5 --oneline)
+#       - name:
+#         run: echo $(git log -5 --oneline)
 
-      - name: Bump version
-        run: make bump-version-auto
+#       - name: Bump version
+#         run: make bump-version-auto
 
-      - name: Commit version
-        run: make commit-version-tag
+#       - name: Commit version
+#         run: make commit-version-tag
 
-      - name: Push to main
-        run: git push origin $(git rev-parse --abbrev-ref HEAD) --tags
+#       - name: Push to main
+#         run: git push origin $(git rev-parse --abbrev-ref HEAD) --tags
 
-      - name: Create release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          export tag="$( make version )"
-          echo "$tag"
-          make gh-release
+#       - name: Create release
+#         env:
+#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#         run: |
+#           export tag="$( make version )"
+#           echo "$tag"
+#           make gh-release
