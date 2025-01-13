@@ -30,7 +30,7 @@ jobs:
       #     environment-file: ./environment.yaml
       #     python-version: ${{ matrix.python-version }}
 
-      - run: make uv_env python_version=${{ matrix.python-version }}
+      - run: make env_uv python_version=${{ matrix.python-version }}
 
       # - run: pip install . -v
       - run: make test
