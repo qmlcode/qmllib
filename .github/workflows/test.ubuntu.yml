@@ -16,7 +16,7 @@ jobs:
     strategy:
       matrix:
         os: ['ubuntu-latest']
-        python-version: ['3.11','3.12']
+        python-version: ['3.11', '3.12']
 
     steps:
       - uses: actions/checkout@v2
@@ -24,18 +24,11 @@ jobs:
       - name: Install the latest version of uv
         uses: astral-sh/setup-uv@v5
 
-      # - uses: conda-incubator/setup-miniconda@v2
-      #   with:
-      #     activate-environment: dev
-      #     environment-file: ./environment.yaml
-      #     python-version: ${{ matrix.python-version }}
-
       - run: sudo apt-get install -y gcc libomp-dev libopenblas-dev
 
       - run: make env_uv python_version=${{ matrix.python-version }}
 
-      # - run: pip install . -v
       - run: make test
-      - run: make format python=python
-      - run: make build python=python
-      - run: make test-dist python=python
+      - run: make format
+      - run: make build
+      - run: make test-dist
