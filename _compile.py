@@ -7,6 +7,8 @@ from pathlib import Path
 
 import numpy as np
 
+DEFAULT_FC = "gfortran"
+
 f90_modules = {
     "representations/frepresentations": ["frepresentations.f90"],
     "representations/facsf": ["facsf.f90"],
@@ -38,18 +40,58 @@ def find_mkl():
 
 
 def find_env() -> dict[str, str]:
-    """Find compiler flags"""
+    """Find compiler flag"""
 
-    # TODO Check if FCC is there, not not raise Error
+    """
+    For anaconda-like envs
+        TODO Find MKL
+
+    For brew,
+
+        brew install llvm libomp
+        brew install openblas lapack
+
+        export LDFLAGS="-L/opt/homebrew/opt/lapack/lib"
+        export CPPFLAGS="-I/opt/homebrew/opt/lapack/include"
+        export LDFLAGS="-L/opt/homebrew/opt/libomp/lib"
+        export CPPFLAGS="-I/opt/homebrew/opt/libomp/include"
+
+    """
+
+    fc = os.environ.get("FC", DEFAULT_FC)
+
+    linker_mathlib_dirs = [
+        "/usr/lib/",  # Debian
+        "/lib/",  # Alpine
+        "/usr/local/lib/",  # FreeBSD
+        "/usr/lib64/",  # Redhat
+    ]
+
+    mathlib_path = None
+
+    for dir in linker_mathlib_dirs:
+
+        if not Path(dir).is_dir():
+            continue
+
+        mathlib_path = dir
+        break
+
+    if mathlib_path is None:
+        print("Unable to find mathlib path")
+
+    # TODO Check if FC is there, not not raise Error
     # TODO Check if lapack / blas is there, if not raise Error
+    # TODO Check if omp is installed
 
-    # TODO Find ifort flags, choose from FCC
-    # TODO Find math lib
-    # TODO Find os
+    # TODO Find ifort flags, choose from FC
+    # TODO Find mkl lib
 
-    COMPILER_FLAGS = [
+    # TODO Check if darwin, check for brew paths
+
+    # Default GNU flags
+    compiler_flags = [
         "-O3",
-        "-fopenmp",
         "-m64",
         "-march=native",
         "-fPIC",
@@ -57,15 +99,47 @@ def find_env() -> dict[str, str]:
         "-Wno-unused-function",
         "-Wno-cpp",
     ]
+    compiler_openmp = [
+        "-fopenmp",
+    ]
+    linker_flags = [
+        "-lpthread",
+        "-lm",
+        "-ldl",
+    ]
+    linker_openmp = [
+        "-lgomp",
+    ]
+    linker_math = [
+        "-lblas",
+        "-llapack",
+    ]
 
-    extra_flags = ["-lgomp", "-lpthread", "-lm", "-ldl"]
-    math_flags = ["-L/usr/lib/", "-lblas", "-llapack"]
+    if mathlib_path is not None:
+        linker_math += [f"-L{mathlib_path}"]
 
-    fflags = [] + COMPILER_FLAGS
-    ldflags = [] + extra_flags + math_flags
-    fcc = "gfortran"
+    if sys.platform == "darwin":
 
-    env = {"FFLAGS": " ".join(fflags), "LDFLAGS": " ".join(ldflags), "FCC": fcc}
+        expected_omp_dir = Path("/opt/homebrew/opt/libomp/lib")
+
+        if expected_omp_dir.is_dir():
+            compiler_openmp = [
+                "-fopenmp",
+            ]
+            linker_openmp = [
+                f"-L{expected_omp_dir}",
+                "-lomp",
+            ]
+
+        else:
+            print(f"Expected OpenMP dir not found: {expected_omp_dir}, compiling without OpenMP")
+            compiler_openmp = []
+            linker_openmp = []
+
+    fflags = [] + compiler_flags + compiler_openmp
+    ldflags = [] + linker_flags + linker_math + linker_openmp
+
+    env = {"FFLAGS": " ".join(fflags), "LDFLAGS": " ".join(ldflags), "FC": fc}
 
     return env
 
@@ -73,6 +147,9 @@ def find_env() -> dict[str, str]:
 def main():
     """Compile f90 in src/qmllib"""
 
+    print(
+        f"Using python {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+    )
     print(f"Using numpy {np.__version__}")
 
     # Find and set Fortran compiler, compiler flags and linker flags

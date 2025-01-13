@@ -28,14 +28,19 @@ and function naming.
 How to install
 ==============
 
-You need a fortran compiler and math library. Default is `gfortran` and `openblas`.
-
+You need a fortran compiler, OpenMP and a math library. Default is `gfortran` and `openblas`.
 
 .. code-block:: bash
 
-    sudo apt install libopenblas-dev gcc
+    sudo apt install gcc libomp-dev libopenblas-dev
 
-You can install it via PyPi
+If you are on mac, you can install `gcc`, OpenML and BLAS/Lapack via `brew`
+
+.. code-block:: bash
+
+    brew install gcc libomp openblas lapack
+
+You can then install via PyPi
 
 .. code-block:: bash
 
