@@ -20,13 +20,20 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: conda-incubator/setup-miniconda@v2
-        with:
-          activate-environment: dev
-          environment-file: ./environment.yaml
-          python-version: ${{ matrix.python-version }}
-      - run: pip install . -v
-      - run: make test python=python
+
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v5
+
+      # - uses: conda-incubator/setup-miniconda@v2
+      #   with:
+      #     activate-environment: dev
+      #     environment-file: ./environment.yaml
+      #     python-version: ${{ matrix.python-version }}
+
+      - run: make uv_env python_version=${{ matrix.python-version }}
+
+      # - run: pip install . -v
+      - run: make test
       - run: make format python=python
       - run: make build python=python
       - run: make test-dist python=python
