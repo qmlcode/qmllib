@@ -2,9 +2,8 @@ import numpy as np
 from conftest import ASSETS, get_energies, shuffle_arrays
 from scipy.special import binom, factorial, jn
 
-from qmllib.representations.fchl import generate_representation
-from qmllib.representations.fchl import generate_representation as generate_fchl_representation
 from qmllib.representations.fchl import (
+    generate_fchl18,
     get_atomic_kernels,
     get_atomic_symmetric_kernels,
     get_global_kernels,
@@ -41,7 +40,7 @@ def _get_training_data(n_points, representation_options={}):
         # Associate a property (heat of formation) with the object
         all_properties.append(data[xyz_file])
 
-        representation = generate_fchl_representation(coord, atoms, **_representation_options)
+        representation = generate_fchl18(atoms, coord, **_representation_options)
 
         assert (
             representation.shape[0] == _representation_options["max_size"]
@@ -454,9 +453,9 @@ def test_fchl_local_periodic():
 
     X = np.array(
         [
-            generate_representation(
-                fractional_coordinates[i],
+            generate_fchl18(
                 nuclear_charges[i],
+                fractional_coordinates[i],
                 cell=cells[i],
                 max_size=36,
                 neighbors=200,
@@ -1252,6 +1251,8 @@ def test_fchl_l2():
 
     K_test = np.zeros((n_points, n_points))
 
+    print(K)
+
     # UNUSED sigma = 2.0
     # UNUSED v = 3
     # UNUSED n = 2
@@ -1267,6 +1268,9 @@ def test_fchl_l2():
                 for jj in range(Sij.shape[1]):
 
                     K_test[i, j] += np.exp(Sij[ii, jj] * inv_sigma)
+
+    print(K_test)
+    print(np.max(K - K_test))
 
     assert np.allclose(K, K_test), "Error in FCHL l2 kernels"
 

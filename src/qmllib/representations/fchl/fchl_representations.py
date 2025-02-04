@@ -5,9 +5,9 @@ import numpy as np
 from numpy import ndarray
 
 
-def generate_representation(
-    coordinates: Union[ndarray, List[List[float]]],
+def generate_fchl18(
     nuclear_charges: ndarray,
+    coordinates: Union[ndarray, List[List[float]]],
     max_size: int = 23,
     neighbors: int = 23,
     cut_distance: float = 5.0,
@@ -15,10 +15,10 @@ def generate_representation(
 ) -> ndarray:
     """Generates a representation for the FCHL kernel module.
 
-    :param coordinates: Input coordinates.
-    :type coordinates: numpy array
     :param nuclear_charges: List of nuclear charges.
     :type nuclear_charges: numpy array
+    :param coordinates: Input coordinates.
+    :type coordinates: numpy array
     :param max_size: Max number of atoms in representation.
     :type max_size: integer
     :param neighbors: Max number of atoms within the cut-off around an atom. (For periodic systems)
@@ -84,15 +84,15 @@ def generate_representation(
     return M
 
 
-def generate_displaced_representations(
-    coordinates, nuclear_charges, max_size=23, neighbors=23, cut_distance=5.0, cell=None, dx=0.005
+def generate_fchl18_displaced(
+    nuclear_charges, coordinates, max_size=23, neighbors=23, cut_distance=5.0, cell=None, dx=0.005
 ):
     """Generates displaced representations for the FCHL kernel module.
 
-    :param coordinates: Input coordinates.
-    :type coordinates: numpy array
     :param nuclear_charges: List of nuclear charges.
     :type nuclear_charges: numpy array
+    :param coordinates: Input coordinates.
+    :type coordinates: numpy array
     :param max_size: Max number of atoms in representation.
     :type max_size: integer
     :param neighbors: Max number of atoms within the cut-off around an atom. (For periodic systems)
@@ -121,9 +121,9 @@ def generate_displaced_representations(
                 displaced_coordinates = copy.deepcopy(coordinates)
                 displaced_coordinates[i, xyz] += disp
 
-                rep = generate_representation(
-                    displaced_coordinates,
+                rep = generate_fchl18(
                     nuclear_charges,
+                    displaced_coordinates,
                     max_size=size,
                     neighbors=neighbors,
                     cut_distance=cut_distance,
@@ -135,15 +135,15 @@ def generate_displaced_representations(
     return reps
 
 
-def generate_displaced_representations_5point(
-    coordinates, nuclear_charges, max_size=23, neighbors=23, cut_distance=5.0, cell=None, dx=0.005
+def generate_fchl18_displaced_5point(
+    nuclear_charges, coordinates, max_size=23, neighbors=23, cut_distance=5.0, cell=None, dx=0.005
 ):
     """Generates displaced representations for the FCHL kernel module, using a 5-point stencil.
 
-    :param coordinates: Input coordinates.
-    :type coordinates: numpy array
     :param nuclear_charges: List of nuclear charges.
     :type nuclear_charges: numpy array
+    :param coordinates: Input coordinates.
+    :type coordinates: numpy array
     :param max_size: Max number of atoms in representation.
     :type max_size: integer
     :param neighbors: Max number of atoms within the cut-off around an atom. (For periodic systems)
@@ -172,9 +172,9 @@ def generate_displaced_representations_5point(
                 displaced_coordinates = copy.deepcopy(coordinates)
                 displaced_coordinates[i, xyz] += disp
 
-                rep = generate_representation(
-                    displaced_coordinates,
+                rep = generate_fchl18(
                     nuclear_charges,
+                    displaced_coordinates,
                     max_size=size,
                     neighbors=neighbors,
                     cut_distance=cut_distance,
@@ -186,9 +186,9 @@ def generate_displaced_representations_5point(
     return reps
 
 
-def generate_representation_electric_field(
-    coordinates: ndarray,
+def generate_fchl18_electric_field(
     nuclear_charges: ndarray,
+    coordinates: ndarray,
     fictitious_charges: Union[ndarray, List[float]] = "gasteiger",
     max_size: int = 23,
     neighbors: int = 23,
@@ -220,13 +220,6 @@ def generate_representation_electric_field(
     partial_charges = None
 
     # If a list is given, assume these are the fictitious charges
-
-    print(fictitious_charges)
-    print(type(fictitious_charges))
-    print(nuclear_charges)
-
-    print(len(fictitious_charges))
-    print(len(nuclear_charges))
 
     if isinstance(fictitious_charges, list) or isinstance(fictitious_charges, np.ndarray):
 
@@ -267,9 +260,7 @@ def generate_representation_electric_field(
     #     partial_charges = [atom.partialcharge for atom in mol]
 
     else:
-        # print("QML ERROR: Unable to parse argument for fictitious charges", fictitious_charges)
-        # exit()
-        raise ValueError("Missing charges")
+        raise ValueError("Missing fictitious charges")
 
     size = max_size
     neighbors = size

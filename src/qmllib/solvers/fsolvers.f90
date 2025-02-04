@@ -1,4 +1,3 @@
-
 subroutine fcho_solve(A, y, x)
 
    implicit none

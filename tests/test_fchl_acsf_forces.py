@@ -12,7 +12,7 @@ from qmllib.kernels import (
     get_gp_kernel,
     get_symmetric_gp_kernel,
 )
-from qmllib.representations import generate_fchl_acsf
+from qmllib.representations import generate_fchl19
 from qmllib.solvers import cho_solve, svd_solve
 
 np.set_printoptions(linewidth=999, edgeitems=10, suppress=True)
@@ -59,7 +59,7 @@ def get_reps(df):
 
         energy = float(df["atomization_energy"][i])
 
-        (x1, dx1) = generate_fchl_acsf(nuclear_charges, coordinates, gradients=True, pad=max_atoms)
+        (x1, dx1) = generate_fchl19(nuclear_charges, coordinates, gradients=True, pad=max_atoms)
 
         x.append(x1)
         f.append(force)

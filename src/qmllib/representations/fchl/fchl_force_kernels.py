@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-
 import numpy as np
 
 from qmllib.utils.alchemy import get_alchemy
@@ -40,19 +38,19 @@ def get_gaussian_process_kernels(
     nm1 = A.shape[0]
     nm2 = B.shape[0]
 
-    assert B.shape[1] == 3
-    assert B.shape[2] == 2
-    assert B.shape[5] == 5
-    assert A.shape[2] == 5
-    # assert B.shape[2] == 2
-    # assert B.shape[5] == 5
-
     atoms_max = B.shape[4]
-    assert A.shape[1] == atoms_max
-    assert B.shape[3] == atoms_max
-
     neighbors_max = B.shape[6]
-    assert A.shape[3] == neighbors_max
+
+    if (
+        not B.shape[1] == 3
+        or not B.shape[2] == 2
+        or not B.shape[5] == 5
+        or not A.shape[2] == 5
+        or not A.shape[1] == atoms_max
+        or not B.shape[3] == atoms_max
+        or not A.shape[3] == neighbors_max
+    ):
+        raise ValueError("Representations have wrong shape")
 
     N1 = np.zeros((nm1), dtype=np.int32)
 
@@ -142,19 +140,20 @@ def get_local_gradient_kernels(
     nm1 = A.shape[0]
     nm2 = B.shape[0]
 
-    assert B.shape[1] == 3
-    assert B.shape[2] == 2
-    assert B.shape[5] == 5
-    assert A.shape[2] == 5
-    # assert B.shape[2] == 2
-    # assert B.shape[5] == 5
-
     atoms_max = B.shape[4]
-    assert A.shape[1] == atoms_max
-    assert B.shape[3] == atoms_max
 
     neighbors_max = B.shape[6]
-    assert A.shape[3] == neighbors_max
+
+    if (
+        not B.shape[1] == 3
+        or not B.shape[2] == 2
+        or not B.shape[5] == 5
+        or not A.shape[2] == 5
+        or not A.shape[1] == atoms_max
+        or not B.shape[3] == atoms_max
+        or not A.shape[3] == neighbors_max
+    ):
+        raise ValueError("Representations have wrong shape")
 
     N1 = np.zeros((nm1), dtype=np.int32)
 
@@ -244,19 +243,22 @@ def get_local_hessian_kernels(
     nm1 = A.shape[0]
     nm2 = B.shape[0]
 
-    assert A.shape[1] == 3
-    assert A.shape[2] == 2
-    assert A.shape[5] == 5
-    assert B.shape[1] == 3
-    assert B.shape[2] == 2
-    assert B.shape[5] == 5
-
     atoms_max = A.shape[4]
-    assert A.shape[3] == atoms_max
-    assert B.shape[3] == atoms_max
 
     neighbors_max = A.shape[6]
-    assert B.shape[6] == neighbors_max
+
+    if (
+        not A.shape[1] == 3
+        or not A.shape[2] == 2
+        or not A.shape[5] == 5
+        or not B.shape[1] == 3
+        or not B.shape[2] == 2
+        or not B.shape[5] == 5
+        or not A.shape[3] == atoms_max
+        or not B.shape[3] == atoms_max
+        or not B.shape[6] == neighbors_max
+    ):
+        raise ValueError("Representations have wrong shape")
 
     N1 = np.zeros((nm1), dtype=np.int32)
     N2 = np.zeros((nm2), dtype=np.int32)
@@ -348,14 +350,17 @@ def get_local_symmetric_hessian_kernels(
 
     nm1 = A.shape[0]
 
-    assert A.shape[1] == 3
-    assert A.shape[2] == 2
-    assert A.shape[5] == 5
-
     atoms_max = A.shape[4]
-    assert A.shape[3] == atoms_max
 
     # Unused neighbors_max = A.shape[6]
+
+    if (
+        not A.shape[1] == 3
+        or not A.shape[2] == 2
+        or not A.shape[5] == 5
+        or not A.shape[3] == atoms_max
+    ):
+        raise ValueError("Representations have wrong shape")
 
     N1 = np.zeros((nm1), dtype=np.int32)
 
@@ -431,19 +436,20 @@ def get_force_alphas(
     nm1 = A.shape[0]
     nm2 = B.shape[0]
 
-    assert B.shape[1] == 3
-    assert B.shape[2] == 2
-    assert B.shape[5] == 5
-    assert A.shape[2] == 5
-    # assert B.shape[2] == 2
-    # assert B.shape[5] == 5
-
     atoms_max = B.shape[4]
-    assert A.shape[1] == atoms_max
-    assert B.shape[3] == atoms_max
 
     neighbors_max = B.shape[6]
-    assert A.shape[3] == neighbors_max
+
+    if (
+        not B.shape[1] == 3
+        or not B.shape[2] == 2
+        or not B.shape[5] == 5
+        or not A.shape[2] == 5
+        or not A.shape[1] == atoms_max
+        or not B.shape[3] == atoms_max
+        or not A.shape[3] == neighbors_max
+    ):
+        raise ValueError("Representations have wrong shape")
 
     N1 = np.zeros((nm1), dtype=np.int32)
 
@@ -541,17 +547,20 @@ def get_atomic_local_gradient_kernels(
     nm1 = A.shape[0]
     nm2 = B.shape[0]
 
-    assert B.shape[1] == 3
-    assert B.shape[2] == 2
-    assert B.shape[5] == 5
-    assert A.shape[2] == 5
-
     atoms_max = B.shape[4]
-    assert A.shape[1] == atoms_max
-    assert B.shape[3] == atoms_max
 
     neighbors_max = B.shape[6]
-    assert A.shape[3] == neighbors_max
+
+    if (
+        not B.shape[1] == 3
+        or not B.shape[2] == 2
+        or not B.shape[5] == 5
+        or not A.shape[2] == 5
+        or not A.shape[1] == atoms_max
+        or not B.shape[3] == atoms_max
+        or not A.shape[3] == neighbors_max
+    ):
+        raise ValueError("Representations have wrong shape")
 
     N1 = np.zeros((nm1), dtype=np.int32)
 
@@ -643,17 +652,20 @@ def get_atomic_local_gradient_5point_kernels(
     nm1 = A.shape[0]
     nm2 = B.shape[0]
 
-    assert B.shape[1] == 3
-    assert B.shape[2] == 5
-    assert B.shape[5] == 5
-    assert A.shape[2] == 5
-
     atoms_max = B.shape[4]
-    assert A.shape[1] == atoms_max
-    assert B.shape[3] == atoms_max
 
     neighbors_max = B.shape[6]
-    assert A.shape[3] == neighbors_max
+
+    if (
+        not B.shape[1] == 3
+        or not B.shape[2] == 5
+        or not B.shape[5] == 5
+        or not A.shape[2] == 5
+        or not A.shape[1] == atoms_max
+        or not B.shape[3] == atoms_max
+        or not A.shape[3] == neighbors_max
+    ):
+        raise ValueError("Representations have wrong shape")
 
     N1 = np.zeros((nm1), dtype=np.int32)
 

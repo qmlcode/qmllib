@@ -1,4 +1,3 @@
-
 module slatm_utils
 
    implicit none
