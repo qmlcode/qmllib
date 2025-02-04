@@ -2,14 +2,13 @@
 This file contains tests for the atom centred symmetry function module.
 """
 
-import glob
-import os
+import pathlib
 import random
 from copy import deepcopy
 
 import numpy as np
 
-from qmllib.representations import generate_fchl_acsf
+from qmllib.representations import generate_fchl19
 from qmllib.utils.xyz_format import read_xyz
 
 # from tests.conftest import ASSETS
@@ -34,7 +33,7 @@ def pbc_corrected_drep(drep, num_atoms):
     return new_drep
 
 
-def generate_fchl_acsf_brute_pbc(nuclear_charges, coordinates, cell, gradients=False):
+def generate_fchl19_brute_pbc(nuclear_charges, coordinates, cell, gradients=False):
     num_atoms = len(nuclear_charges)
     all_coords = deepcopy(coordinates)
     all_charges = deepcopy(nuclear_charges)
@@ -55,9 +54,9 @@ def generate_fchl_acsf_brute_pbc(nuclear_charges, coordinates, cell, gradients=F
     if gradients:
         if len(all_charges) > 2500:
             return None, None
-        rep, drep = generate_fchl_acsf(all_charges, all_coords, gradients=gradients, **REP_PARAMS)
+        rep, drep = generate_fchl19(all_charges, all_coords, gradients=gradients, **REP_PARAMS)
     else:
-        rep = generate_fchl_acsf(all_charges, all_coords, gradients=gradients, **REP_PARAMS)
+        rep = generate_fchl19(all_charges, all_coords, gradients=gradients, **REP_PARAMS)
 
     rep = rep[:num_atoms, :]
     if gradients:
@@ -71,7 +70,7 @@ def get_acsf_numgrad(coordinates, nuclear_charges, dx=1e-6, cell=None):
     natoms = len(coordinates)
     true_coords = deepcopy(coordinates)
 
-    true_rep = generate_fchl_acsf(
+    true_rep = generate_fchl19(
         nuclear_charges, coordinates, gradients=False, cell=cell, **REP_PARAMS
     )
 
@@ -83,25 +82,25 @@ def get_acsf_numgrad(coordinates, nuclear_charges, dx=1e-6, cell=None):
             temp_coords = deepcopy(true_coords)
             temp_coords[n, xyz] = x + 2.0 * dx
 
-            rep = generate_fchl_acsf(
+            rep = generate_fchl19(
                 nuclear_charges, temp_coords, gradients=False, cell=cell, **REP_PARAMS
             )
             gradient[xyz, n] -= rep
 
             temp_coords[n, xyz] = x + dx
-            rep = generate_fchl_acsf(
+            rep = generate_fchl19(
                 nuclear_charges, temp_coords, gradients=False, cell=cell, **REP_PARAMS
             )
             gradient[xyz, n] += 8.0 * rep
 
             temp_coords[n, xyz] = x - dx
-            rep = generate_fchl_acsf(
+            rep = generate_fchl19(
                 nuclear_charges, temp_coords, gradients=False, cell=cell, **REP_PARAMS
             )
             gradient[xyz, n] -= 8.0 * rep
 
             temp_coords[n, xyz] = x - 2.0 * dx
-            rep = generate_fchl_acsf(
+            rep = generate_fchl19(
                 nuclear_charges, temp_coords, gradients=False, cell=cell, **REP_PARAMS
             )
             gradient[xyz, n] += rep
@@ -129,9 +128,9 @@ def suitable_cell(coords, cell_added_cutoff=0.1):
     return np.diag((max_coords - min_coords) * (1.0 + cell_added_cutoff))
 
 
-def test_fchl_acsf():
+def test_fchl19():
 
-    all_xyzs = glob.glob(os.path.dirname(__file__) + "/assets/qm7/*.xyz")
+    all_xyzs = list(pathlib.Path("./assets/qm7").glob("*.xyz"))
     random.seed(1)
     xyzs = random.sample(all_xyzs, 16)
     #    xyzs=["/home/konst/qmlcode/qmllib/tests/assets/qm7/0101.xyz"]
@@ -143,21 +142,21 @@ def test_fchl_acsf():
 
         cell = suitable_cell(coordinates)
 
-        (repa, anal_grad) = generate_fchl_acsf(
+        (repa, anal_grad) = generate_fchl19(
             nuclear_charges, coordinates, gradients=True, cell=cell, **REP_PARAMS
         )
 
-        repb = generate_fchl_acsf(
+        repb = generate_fchl19(
             nuclear_charges, coordinates, gradients=False, cell=cell, **REP_PARAMS
         )
 
-        assert np.allclose(repa, repb), "Error in FCHL-ACSF representation implementation"
+        assert np.allclose(repa, repb), "Error in FCHL19 representation implementation"
 
-        repc = generate_fchl_acsf_brute_pbc(nuclear_charges, coordinates, cell)
+        repc = generate_fchl19_brute_pbc(nuclear_charges, coordinates, cell)
 
         assert np.allclose(repa, repc), "Error in PBC implementation"
 
-        repd, brute_pbc_grad = generate_fchl_acsf_brute_pbc(
+        repd, brute_pbc_grad = generate_fchl19_brute_pbc(
             nuclear_charges, coordinates, cell, gradients=True
         )
         if repd is None:
@@ -179,4 +178,4 @@ def test_fchl_acsf():
 #        assert np.allclose(anal_grad, brute_pbc_grad), "Error in FCHL-ACSF gradient implementation"
 
 
-test_fchl_acsf()
+test_fchl19()
