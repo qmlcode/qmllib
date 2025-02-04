@@ -1,5 +1,7 @@
-python=./env/bin/python
-mamba=mamba
+env=env
+python=./${env}/bin/python
+python_version=3.12
+conda=mamba
 pkg=qmllib
 pip=./env/bin/pip
 pytest=pytest
@@ -9,14 +11,25 @@ version_file=src/qmllib/version.py
 
 .PHONY: build
 
-all: env
+all: ${env}
 
 ## Setup
 
 env:
-	${mamba} env create -f ./environment_dev.yaml -p ./env --quiet
-	${python} -m pre_commit install
+	echo "TODO"
+
+env_uv:
+	which uv
+	uv venv ${env} --python ${python_version}
+	uv pip install -r requirements.txt --python ${python}
+	uv pip install -e . --python ${python}
+	make .git/hooks/pre-commit python=${python}
+
+env_conda:
+	which ${conda}
+	${conda} env create -f ./environment.yaml -p ./${env} --quiet
 	${python} -m pip install -e .
+	make .git/hooks/pre-commit python=${python}
 
 ./.git/hooks/pre-commit:
 	${python} -m pre_commit install
@@ -29,12 +42,15 @@ format:
 test:
 	${python} -m pytest -rs ./tests
 
+test-dist:
+	${python} -m twine check dist/*
+
 types:
 	${python} -m monkeytype run $$(which ${pytest}) ./tests
-	${python} -m monkeytype list-modules | grep ${pkg} | parallel -j${j} "${python} -m monkeytype apply {}"
+	${python} -m monkeytype list-modules | grep ${pkg} | parallel -j${j} "${python} -m monkeytype apply {} > /dev/null && echo {}"
 
 cov:
-	${python} -m pytest -vrs --cov=${pkg} --cov-report html tests
+	${python} -m pytest --cov=${pkg} --cov-config .coveragerc --cov-report html tests
 
 compile:
 	${python} _compile.py
@@ -53,11 +69,16 @@ VERSION_MINOR=$(shell echo ${VERSION} | cut -d'.' -f2)
 VERSION_MAJOR=$(shell echo ${VERSION} | cut -d'.' -f1)
 GIT_COMMIT=$(shell git rev-parse --short HEAD)
 
+version:
+	echo ${VERSION}
+
+bump-version-auto:
+	test $(git diff HEAD^ HEAD tests | grep -q "+def") && make bump-version-minor || make bump-version-patch
+
 bump-version-dev:
 	test ! -z "${VERSION}"
 	test ! -z "${GIT_COMMIT}"
-	exit 1
-	# Not Implemented
+	exit 1 # Not Implemented
 
 bump-version-patch:
 	test ! -z "${VERSION_PATCH}"
@@ -72,9 +93,22 @@ bump-version-major:
 	echo "__version__ = \"$(shell awk 'BEGIN{print ${VERSION_MAJOR}+1}').0.0\"" > ${version_file}
 
 commit-version-tag:
-	git tag --list | grep -qix "${VERSION}"
+	# git tag --list | grep -qix "${VERSION}"
 	git commit -m "Release ${VERSION}" --no-verify ${version_file}
 	git tag 'v${VERSION}'
+
+gh-release:
+	gh release create "v${VERSION}" \
+	--repo="$${GITHUB_REPOSITORY}" \
+	--title="$${GITHUB_REPOSITORY#*/} ${VERSION}" \
+	--generate-notes
+
+gh-has-src-changed:
+	git diff HEAD^ HEAD src | grep -q "+"
+
+gh-cancel:
+	gh run cancel $${GH_RUN_ID}
+	gh run watch $${GH_RUN_ID}
 
 ## Clean
 
@@ -83,6 +117,7 @@ clean:
 		-name "*.so" \
 		-name "*.pyc" \
 		-name ".pyo" \
+		-name ".mod" \
 		-delete
 	rm -rf ./src/*.egg-info/
 	rm -rf *.whl

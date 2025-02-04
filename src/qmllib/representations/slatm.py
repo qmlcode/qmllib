@@ -131,8 +131,8 @@ def get_sbop(
     z1, z2 = mbtype
     zs, coords, c = obj
 
-    if iloc:
-        assert ia is not None, "#ERROR: plz specify `za and `ia "
+    if iloc and ia is None:
+        raise ValueError("Please specify za and ia")
 
     if pbc != "000":
         raise NotImplementedError("Periodic boundary conditions not implemented")
@@ -169,7 +169,6 @@ def get_sbot(
     dgrid: float = 0.0262,
     pbc: str = "000",
 ) -> ndarray:
-
     """
     sigma -- standard deviation of gaussian distribution centered on a specific angle
             defaults to 0.05 (rad), approximately 3 degree
@@ -180,8 +179,8 @@ def get_sbot(
     z1, z2, z3 = mbtype
     zs, coords, c = obj
 
-    if iloc:
-        assert ia is not None, "#ERROR: plz specify `za and `ia "
+    if iloc and ia is None:
+        raise ValueError("Please specify za and ia")
 
     if pbc != "000":
         raise NotImplementedError("Periodic boundary conditions not implemented")

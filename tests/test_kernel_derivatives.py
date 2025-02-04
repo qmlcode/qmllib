@@ -78,7 +78,7 @@ def csv_to_molecular_reps(csv_filename):
 
                         disp_coords[j, xyz] += disp
 
-                        # dx1 = generate_fchl_acsf(nuclear_charges, disp_coords, **REP_PARAMS)
+                        # dx1 = generate_fchl19(nuclear_charges, disp_coords, **REP_PARAMS)
                         # print(dx1.shape)
                         dx1 = generate_acsf(nuclear_charges, disp_coords, pad=MAX_ATOMS)
 

@@ -32,8 +32,7 @@ def vector_to_matrix(v):
     """
 
     if not (np.sqrt(8 * v.shape[0] + 1) == int(np.sqrt(8 * v.shape[0] + 1))):
-        print("ERROR: Can not make a square matrix.")
-        exit(1)
+        raise ValueError("Can not make a square matrix.")
 
     n = v.shape[0]
     l = (-1 + int(np.sqrt(8 * n + 1))) // 2
@@ -101,11 +100,10 @@ def generate_coulomb_matrix(
         return fgenerate_unsorted_coulomb_matrix(nuclear_charges, coordinates, size)
 
     else:
-        print("ERROR: Unknown sorting scheme requested")
-        raise SystemExit
+        raise ValueError("Unknown sorting scheme requested")
 
 
-def generate_atomic_coulomb_matrix(
+def generate_coulomb_matrix_atomic(
     nuclear_charges: ndarray,
     coordinates: ndarray,
     size: int = 23,
@@ -205,8 +203,7 @@ def generate_atomic_coulomb_matrix(
                 return np.zeros((0, 0))
 
         else:
-            print("ERROR: Unknown value %s given for 'indices' variable" % indices)
-            raise SystemExit
+            raise ValueError("Unknown value %s given for 'indices' variable" % indices)
     else:
         indices = np.asarray(indices, dtype=int) + 1
         nindices = indices.size
@@ -240,11 +237,10 @@ def generate_atomic_coulomb_matrix(
         )
 
     else:
-        print("ERROR: Unknown sorting scheme requested")
-        raise SystemExit
+        raise ValueError("Unknown sorting scheme requested")
 
 
-def generate_eigenvalue_coulomb_matrix(
+def generate_coulomb_matrix_eigenvalue(
     nuclear_charges: ndarray, coordinates: ndarray, size: int = 23
 ) -> ndarray:
     """ Creates an eigenvalue Coulomb Matrix representation of a molecule.
@@ -336,7 +332,7 @@ def generate_bob(
 def get_slatm_mbtypes(nuclear_charges: List[ndarray], pbc: str = "000") -> List[List[int64]]:
     """
     Get the list of minimal types of many-body terms in a dataset. This resulting list
-    is necessary as input in the ``generate_slatm_representation()`` function.
+    is necessary as input in the ``generate_slatm()`` function.
 
     :param nuclear_charges: A list of the nuclear charges for each compound in the dataset.
     :type nuclear_charges: list of numpy arrays
@@ -401,8 +397,8 @@ def get_slatm_mbtypes(nuclear_charges: List[ndarray], pbc: str = "000") -> List[
 
 
 def generate_slatm(
-    coordinates: ndarray,
     nuclear_charges: ndarray,
+    coordinates: ndarray,
     mbtypes: List[List[int64]],
     unit_cell: None = None,
     local: bool = False,
@@ -421,10 +417,10 @@ def generate_slatm(
 
     NOTE: You will need to run the ``get_slatm_mbtypes()`` function to get the ``mbtypes`` input (or generate it manually).
 
-    :param coordinates: Input coordinates
-    :type coordinates: numpy array
     :param nuclear_charges: List of nuclear charges.
     :type nuclear_charges: numpy array
+    :param coordinates: Input coordinates
+    :type coordinates: numpy array
     :param mbtypes: Many-body types for the whole dataset, including 1-, 2- and 3-body types. Could be obtained by calling ``get_slatm_mbtypes()``.
     :type mbtypes: list
     :param local: Generate a local representation. Defaulted to False (i.e., global representation); otherwise, atomic version.
@@ -451,8 +447,9 @@ def generate_slatm(
         c = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
 
     if pbc != "000":
-        # print(' -- handling systems with periodic boundary condition')
-        assert c is not None, "ERROR: Please specify unit cell for SLATM"
+        if c is None:
+            raise ValueError("Please specify unit cell for SLATM")
+
         # =======================================================================
         # PBC may introduce new many-body terms, so at the stage of get statistics
         # info from db, we've already considered this point by letting maximal number
@@ -470,7 +467,6 @@ def generate_slatm(
         mbs = []
         X2Ns = []
         for ia in range(na):
-            # if iprt: print '               -- ia = ', ia + 1
             n1 = 0
             n2 = 0
             n3 = 0
@@ -486,7 +482,6 @@ def generate_slatm(
                             ]
                         ),
                     )
-                    # print ' -- mbsi = ', mbsi
                     if alchemy:
                         n1 = 1
                         n1_0 = mbs_ia.shape[0]
@@ -500,7 +495,6 @@ def generate_slatm(
                         n1 += len(mbsi)
                         mbs_ia = np.concatenate((mbs_ia, mbsi), axis=0)
                 elif len(mbtype) == 2:
-                    # print ' 001, pbc = ', pbc
                     mbsi = get_sbop(
                         mbtype,
                         obj,
@@ -513,7 +507,6 @@ def generate_slatm(
                         rpower=rpower,
                     )
                     mbsi *= 0.5  # only for the two-body parts, local rpst
-                    # print ' 002'
                     if alchemy:
                         n2 = len(mbsi)
                         n2_0 = mbs_ia.shape[0]
@@ -557,7 +550,9 @@ def generate_slatm(
             X2N = [n1, n2, n3]
             if X2N not in X2Ns:
                 X2Ns.append(X2N)
-        assert len(X2Ns) == 1, "#ERROR: multiple `X2N ???"
+
+        if len(X2Ns) != 1:
+            raise ValueError("multiple `X2N ???")
 
     else:
         n1 = 0
@@ -734,7 +729,7 @@ def generate_acsf(
             return rep, grad
 
 
-def generate_fchl_acsf(
+def generate_fchl19(
     nuclear_charges: ndarray,
     coordinates: ndarray,
     elements: List[int] = [1, 6, 7, 8, 16],
@@ -754,8 +749,9 @@ def generate_fchl_acsf(
     cell: Union[ndarray, None] = None,
 ) -> Union[Tuple[ndarray, ndarray], ndarray]:
     """
-
     FCHL-ACSF
+
+    https://pubs.aip.org/aip/jcp/article/152/4/044107/1064737/FCHL-revisited-Faster-and-more-accurate-quantum
 
     Reasonable hyperparameters:
 
@@ -858,8 +854,7 @@ def generate_fchl_acsf(
     else:
 
         if nFourier > 1:
-            print("Error: FCHL-ACSF only supports nFourier=1, requested", nFourier)
-            exit()
+            raise ValueError(f"FCHL-ACSF only supports nFourier=1, requested {nFourier}")
 
         (rep, grad) = fgenerate_fchl_acsf_and_gradients(
             coordinates,

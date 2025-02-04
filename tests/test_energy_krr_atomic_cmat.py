@@ -2,7 +2,7 @@ import numpy as np
 from conftest import ASSETS, get_energies, shuffle_arrays
 
 from qmllib.kernels import get_local_kernels_gaussian, get_local_kernels_laplacian
-from qmllib.representations import generate_atomic_coulomb_matrix
+from qmllib.representations import generate_coulomb_matrix_atomic
 from qmllib.solvers import cho_solve
 from qmllib.utils.xyz_format import read_xyz
 
@@ -23,7 +23,7 @@ def test_krr_gaussian_local_cmat():
     for filename in filenames:
         coord, atoms = read_xyz((ASSETS / "qm7" / filename).with_suffix(".xyz"))
 
-        representation = generate_atomic_coulomb_matrix(atoms, coord, size=23, sorting="row-norm")
+        representation = generate_coulomb_matrix_atomic(atoms, coord, size=23, sorting="row-norm")
 
         all_representations.append(representation)
         all_properties.append(data[filename])
@@ -106,7 +106,7 @@ def test_krr_laplacian_local_cmat():
     for filename in filenames:
         coord, atoms = read_xyz((ASSETS / "qm7" / filename).with_suffix(".xyz"))
 
-        representation = generate_atomic_coulomb_matrix(atoms, coord, size=23, sorting="row-norm")
+        representation = generate_coulomb_matrix_atomic(atoms, coord, size=23, sorting="row-norm")
 
         all_representations.append(representation)
         all_properties.append(data[filename])

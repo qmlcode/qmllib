@@ -6,10 +6,12 @@ import numpy as np
 import pytest
 from scipy.linalg import lstsq
 
+from qmllib.representations import (
+    generate_fchl18,
+    generate_fchl18_displaced,
+    generate_fchl18_electric_field,
+)
 from qmllib.representations.fchl import (
-    generate_displaced_representations,
-    generate_representation,
-    generate_representation_electric_field,
     get_atomic_local_electric_field_gradient_kernels,
     get_atomic_local_gradient_kernels,
     get_atomic_local_kernels,
@@ -148,12 +150,10 @@ def parse_csv(filename):
             # Coordinates (Angstrom)
             coords = np.array(ast.literal_eval(row[2]))
 
-            rep = generate_representation(coords, nuclear_charges, **REP_ARGS)
-            rep_gradient = generate_displaced_representations(
-                coords, nuclear_charges, dx=DX, **REP_ARGS
-            )
-            rep_dipole = generate_representation_electric_field(
-                coords, nuclear_charges, fictitious_charges="Gasteiger", **REP_ARGS
+            rep = generate_fchl18(nuclear_charges, coords, **REP_ARGS)
+            rep_gradient = generate_fchl18_displaced(nuclear_charges, coords, dx=DX, **REP_ARGS)
+            rep_dipole = generate_fchl18_electric_field(
+                nuclear_charges, coords, fictitious_charges="Gasteiger", **REP_ARGS
             )
 
             E.append(energy)
@@ -247,8 +247,8 @@ def test_generate_representation():
     # Test with fictitious charges from a numpy array
     fic_charges1 = np.array([-0.41046649, 0.20523324, 0.20523324])
 
-    rep1 = generate_representation_electric_field(
-        coords, nuclear_charges, fictitious_charges=fic_charges1, max_size=3
+    rep1 = generate_fchl18_electric_field(
+        nuclear_charges, coords, fictitious_charges=fic_charges1, max_size=3
     )
 
     assert np.allclose(rep1, rep_ref), "Error generating representation for electric fields"
@@ -256,8 +256,8 @@ def test_generate_representation():
     # Test with fictitious charges from a list
     fic_charges2 = [-0.41046649, 0.20523324, 0.20523324]
 
-    rep2 = generate_representation_electric_field(
-        coords, nuclear_charges, fictitious_charges=fic_charges2, max_size=3
+    rep2 = generate_fchl18_electric_field(
+        nuclear_charges, coords, fictitious_charges=fic_charges2, max_size=3
     )
 
     assert np.allclose(rep2, rep_ref), "Error generating representation for electric fields"
@@ -275,7 +275,9 @@ def test_generate_representation_pybel():
     #     return
 
     # rep3 = generate_representation_electric_field(
-    #     coords, nuclear_charges, fictitious_charges="Gasteiger", max_size=3
+    # nuclear_charges,
+    # coords,
+    # fictitious_charges="Gasteiger", max_size=3
     # )
 
     # assert np.allclose(
@@ -366,8 +368,8 @@ def test_gaussian_process_field_dependent():
         ang_rad = ang / 180.0 * np.pi
 
         field = np.array([np.cos(ang_rad), np.sin(ang_rad), 0.0]) * 0.001
-        rep = generate_representation_electric_field(
-            coordinates, nuclear_charges, max_size=2, neighbors=2, cut_distance=1e6
+        rep = generate_fchl18_electric_field(
+            nuclear_charges, coordinates, max_size=2, neighbors=2, cut_distance=1e6
         )
         fields.append(field)
         reps.append(rep)
@@ -395,8 +397,8 @@ def test_gaussian_process_field_dependent():
 
         field = np.array([np.cos(ang_rad), np.sin(ang_rad), 0.0]) * 0.001
 
-        rep = generate_representation_electric_field(
-            coordinates, nuclear_charges, max_size=2, neighbors=2, cut_distance=1e6
+        rep = generate_fchl18_electric_field(
+            nuclear_charges, coordinates, max_size=2, neighbors=2, cut_distance=1e6
         )
 
         fields_test.append(field)
@@ -459,11 +461,3 @@ def test_gaussian_process_field_dependent():
     assert dtmae < 0.002, "Error in training dipole"
     assert emae < 0.0001, "Error in test energy"
     assert etmae < 0.0001, "Error in training energy"
-
-
-if __name__ == "__main__":
-
-    test_multiple_operators()
-    test_generate_representation()
-    test_gaussian_process()
-    test_gaussian_process_field_dependent()

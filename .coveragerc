@@ -1,0 +1,5 @@
+[report]
+exclude_also =
+    def __repr__
+    raise ValueError
+    raise NotImplementedError

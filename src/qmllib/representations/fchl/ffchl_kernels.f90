@@ -1,6 +1,3 @@
-
-! Inspiration from:
-! http://crsouza.com/2010/03/17/kernel-functions-for-machine-learning-applications/#kernel_functions
 module ffchl_kernels
 
    implicit none
@@ -251,7 +248,8 @@ contains
 
    end subroutine polynomial2_kernel
 
-   function kernel(s11, s22, s12, kernel_idx, parameters) result(k)
+   !function kernel(s11, s22, s12, kernel_idx, parameters) result(k)
+   subroutine kernel(s11, s22, s12, kernel_idx, parameters, k)
 
       use ffchl_kernel_types
 
@@ -264,10 +262,11 @@ contains
       double precision, intent(in), dimension(:, :) :: parameters
 
       integer :: n
-      double precision, allocatable, dimension(:) :: k
+      !double precision, allocatable, dimension(:) :: k
+      double precision, dimension(:) :: k
 
       n = size(parameters, dim=1)
-      allocate (k(n))
+      !allocate (k(n))
 
       if (kernel_idx == GAUSSIAN) then
          call gaussian_kernel(s11, s22, s12, parameters, k)
@@ -307,6 +306,6 @@ contains
          stop
       end if
 
-   end function kernel
+   end subroutine kernel
 
 end module ffchl_kernels
