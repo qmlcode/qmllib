@@ -700,7 +700,7 @@ subroutine fgenerate_fchl_acsf(coordinates, nuclear_charges, elements, &
    allocate (radial(nbasis2), saved_radial(nbasis2, natoms_tot), saved_j(natoms_tot))
 
    radial = 0.0d0
-!$OMP PARALLEL DO PRIVATE(n,m,rij,radial,mu,sigma, saved_radial, saved_j) SCHEDULE(dynamic)
+!$OMP PARALLEL DO PRIVATE(n,m,rij,radial,mu,sigma, saved_radial, saved_j, max_j_id) SCHEDULE(dynamic)
    do i = 1, natoms
 ! index of the element of atom i
       max_j_id = 0
@@ -723,7 +723,7 @@ subroutine fgenerate_fchl_acsf(coordinates, nuclear_charges, elements, &
          end if
       end do
       m = element_types(i)
-      !$OMP CRITICAL
+!$OMP CRITICAL
       do j_id = 1, max_j_id
          j = saved_j(j_id)
          ! index of the element of atom j
@@ -733,7 +733,7 @@ subroutine fgenerate_fchl_acsf(coordinates, nuclear_charges, elements, &
             rep(j, (m - 1)*nbasis2 + 1:m*nbasis2) = rep(j, (m - 1)*nbasis2 + 1:m*nbasis2) + saved_radial(:, j_id)
          end if
       end do
-      !$OMP END CRITICAL
+!$OMP END CRITICAL
    end do
 !$OMP END PARALLEL DO
    deallocate (radial, saved_radial, saved_j)
