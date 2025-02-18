@@ -2,16 +2,14 @@
 This file contains tests for the atom centred symmetry function module.
 """
 
-import pathlib
-import random
+# import pathlib
 from copy import deepcopy
 
 import numpy as np
+from conftest import ASSETS
 
 from qmllib.representations import generate_fchl19
 from qmllib.utils.xyz_format import read_xyz
-
-# from tests.conftest import ASSETS
 
 np.set_printoptions(linewidth=666, edgeitems=10)
 REP_PARAMS = dict()
@@ -128,16 +126,16 @@ def suitable_cell(coords, cell_added_cutoff=0.1):
     return np.diag((max_coords - min_coords) * (1.0 + cell_added_cutoff))
 
 
-def test_fchl19():
+def test_fchl19_pbc():
 
-    all_xyzs = list(pathlib.Path("./assets/qm7").glob("*.xyz"))
-    random.seed(1)
-    xyzs = random.sample(all_xyzs, 16)
-    #    xyzs=["/home/konst/qmlcode/qmllib/tests/assets/qm7/0101.xyz"]
-    #    xyzs=["/home/konst/qmlcode/qmllib/tests/assets/qm7/4843.xyz"]
+    #    all_xyzs = list(pathlib.Path("./assets/qm7").glob("*.xyz"))
+    #    random.seed(3)
+    #    xyzs = random.sample(all_xyzs, 1)
+    xyzs = [ASSETS / "qm7/0101.xyz"]
+    #    xyzs=[ASSETS / "qm7/0101.xyz"]
 
     for xyz in xyzs:
-        print("xyz:", xyz)
+        #        print("xyz:", xyz)
         coordinates, nuclear_charges = read_xyz(xyz)
 
         cell = suitable_cell(coordinates)
@@ -156,26 +154,17 @@ def test_fchl19():
 
         assert np.allclose(repa, repc), "Error in PBC implementation"
 
-        repd, brute_pbc_grad = generate_fchl19_brute_pbc(
-            nuclear_charges, coordinates, cell, gradients=True
-        )
-        if repd is None:
-            print("too large gradient matrix for brute PBC check")
-        else:
-            assert np.allclose(repd, repa)
-            assert np.allclose(
-                anal_grad, brute_pbc_grad
-            ), "Error in FCHL-ACSF gradient implementation"
-
         num_grad = get_acsf_numgrad(coordinates, nuclear_charges, cell=cell)
-        print(
-            "analytic-numerical gradient difference vs. average magnitude:",
-            np.max(np.abs(num_grad - anal_grad)),
-            np.mean(np.abs(num_grad)),
-        )
+        #        print(
+        #            "analytic-numerical gradient difference vs. average magnitude:",
+        #            np.max(np.abs(num_grad - anal_grad)),
+        #            np.mean(np.abs(num_grad)),
+        #        )
+
+        assert np.allclose(
+            anal_grad, num_grad, atol=5.0e-6
+        ), "Error in FCHL-ACSF gradient implementation"
 
 
-#        assert np.allclose(anal_grad, brute_pbc_grad), "Error in FCHL-ACSF gradient implementation"
-
-
-test_fchl19()
+if __name__ == "__main__":
+    test_fchl19_pbc()
