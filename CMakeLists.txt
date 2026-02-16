@@ -13,6 +13,10 @@ target_link_libraries(qmllib_common INTERFACE pybind11::headers Python::Module)
 add_library(qmllib_fortran OBJECT src/qmllib/kernels/kernel.f90)
 set_property(TARGET qmllib_fortran PROPERTY POSITION_INDEPENDENT_CODE ON)
 
+# Fortran solvers as an object library
+add_library(qmllib_solvers OBJECT src/qmllib/solvers/fsolvers.f90)
+set_property(TARGET qmllib_solvers PROPERTY POSITION_INDEPENDENT_CODE ON)
+
 # Build the Python extension module via pybind11 and link the Fortran objects
 pybind11_add_module(_qmllib MODULE
     src/qmllib/kernels/bindings.cpp
@@ -21,6 +25,14 @@ pybind11_add_module(_qmllib MODULE
 
 # Ensure the built filename is exactly "_qmllib.*"
 set_target_properties(_qmllib PROPERTIES OUTPUT_NAME "_qmllib")
+
+# Build the Python extension module for solvers
+pybind11_add_module(_solvers MODULE
+    src/qmllib/solvers/bindings_solvers.cpp
+    $<TARGET_OBJECTS:qmllib_solvers>
+)
+
+set_target_properties(_solvers PROPERTIES OUTPUT_NAME "_solvers")
 
 # C++ kernel implementation (your new code)
 add_library(qmllib_kernels OBJECT src/qmllib/kernels/kernels.cpp)
@@ -41,6 +53,7 @@ if (OpenMP_CXX_FOUND)
 endif()
 if (OpenMP_Fortran_FOUND)
   target_link_libraries(_qmllib PRIVATE OpenMP::OpenMP_Fortran)
+  target_link_libraries(_solvers PRIVATE OpenMP::OpenMP_Fortran)
 endif()
 
 # Optional BLAS/LAPACK backends (enable later if needed)
@@ -48,14 +61,17 @@ if(APPLE)
   find_library(ACCELERATE Accelerate REQUIRED)
   target_link_libraries(_qmllib PRIVATE ${ACCELERATE})
   target_link_libraries(_kernels PRIVATE ${ACCELERATE})
+  target_link_libraries(_solvers PRIVATE ${ACCELERATE})
 elseif(WIN32)
   find_package(MKL CONFIG REQUIRED)
   target_link_libraries(_qmllib PRIVATE MKL::MKL)
   target_link_libraries(_kernels PRIVATE MKL::MKL)
+  target_link_libraries(_solvers PRIVATE MKL::MKL)
 else()
   find_package(BLAS REQUIRED)
   target_link_libraries(_qmllib PRIVATE BLAS::BLAS)
   target_link_libraries(_kernels PRIVATE BLAS::BLAS)
+  target_link_libraries(_solvers PRIVATE BLAS::BLAS)
 endif()
 
 # Conservative optimization flags (portable wheels). Override via env if you want.
@@ -72,7 +88,7 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES "Intel")
 endif()
 
 # Install the compiled extension into the Python package and the Python shim
-install(TARGETS _qmllib _kernels
+install(TARGETS _qmllib _kernels _solvers
   LIBRARY DESTINATION qmllib   # Linux/macOS
   RUNTIME DESTINATION qmllib   # Windows (.pyd)
 )
