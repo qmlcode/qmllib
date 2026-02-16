@@ -1,3 +1,0 @@
-include *.py
-recursive-include src/qmllib *.f90
-global-exclude *~ *.py[cod] *.so
