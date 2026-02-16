@@ -67,6 +67,33 @@ else()
   target_link_libraries(_representations PRIVATE BLAS::BLAS)
 endif()
 
+# Compiler optimization flags (portable wheels)
+if (CMAKE_Fortran_COMPILER_ID STREQUAL "IntelLLVM" OR CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
+  set(FORTRAN_OPT_FLAGS -O3 -ipo -xHost -fp-model fast=2 -no-prec-div -fno-alias -qopenmp)
+elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
+  set(FORTRAN_OPT_FLAGS -O3 -fopenmp -mcpu=native -mtune=native -ffast-math -ftree-vectorize)
+endif()
+
+if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+  set(CXX_OPT_FLAGS -O3 -march=native -ffast-math -fopenmp -mtune=native -ftree-vectorize)
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "Intel")
+  set(CXX_OPT_FLAGS -O3 -qopt-report=3 -qopenmp -xHost)
+endif()
+
+# Apply optimization flags to Fortran object libraries
+if(FORTRAN_OPT_FLAGS)
+  target_compile_options(qmllib_solvers PRIVATE ${FORTRAN_OPT_FLAGS})
+  target_compile_options(qmllib_representations PRIVATE ${FORTRAN_OPT_FLAGS})
+  target_compile_options(qmllib_utils PRIVATE ${FORTRAN_OPT_FLAGS})
+endif()
+
+# Apply optimization flags to C++ binding modules
+if(CXX_OPT_FLAGS)
+  target_compile_options(_solvers PRIVATE ${CXX_OPT_FLAGS})
+  target_compile_options(_representations PRIVATE ${CXX_OPT_FLAGS})
+  target_compile_options(_utils PRIVATE ${CXX_OPT_FLAGS})
+endif()
+
 # Install the compiled extension into the Python package and the Python shim
 install(TARGETS _solvers _representations _utils
   LIBRARY DESTINATION qmllib   # Linux/macOS
