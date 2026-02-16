@@ -6,13 +6,14 @@ from numpy import int64, ndarray
 
 from qmllib.constants.periodic_table import NUCLEAR_CHARGE
 
-from .facsf import (
-    fgenerate_acsf,
-    fgenerate_acsf_and_gradients,
-    fgenerate_fchl_acsf,
-    fgenerate_fchl_acsf_and_gradients,
-)
-from .frepresentations import (
+# TODO: Convert facsf from f2py to pybind11
+# from .facsf import (
+#     fgenerate_acsf,
+#     fgenerate_acsf_and_gradients,
+#     fgenerate_fchl_acsf,
+#     fgenerate_fchl_acsf_and_gradients,
+# )
+from qmllib._representations import (
     fgenerate_atomic_coulomb_matrix,
     fgenerate_bob,
     fgenerate_coulomb_matrix,
@@ -20,7 +21,8 @@ from .frepresentations import (
     fgenerate_local_coulomb_matrix,
     fgenerate_unsorted_coulomb_matrix,
 )
-from .slatm import get_boa, get_sbop, get_sbot
+# TODO: Convert fslatm from f2py to pybind11
+# from .slatm import get_boa, get_sbop, get_sbot
 
 
 def vector_to_matrix(v):
@@ -52,7 +54,10 @@ def vector_to_matrix(v):
 
 
 def generate_coulomb_matrix(
-    nuclear_charges: ndarray, coordinates: ndarray, size: int = 23, sorting: str = "row-norm"
+    nuclear_charges: ndarray,
+    coordinates: ndarray,
+    size: int = 23,
+    sorting: str = "row-norm",
 ) -> ndarray:
     """ Creates a Coulomb Matrix representation of a molecule.
         Sorting of the elements can either be done by ``sorting="row-norm"`` or ``sorting="unsorted"``.
@@ -316,20 +321,22 @@ def generate_bob(
 
     n = 0
     atoms = sorted(asize, key=asize.get)
-    nmax = [asize[key] for key in atoms]
-    ids = np.zeros(len(nmax), dtype=int)
+    nmax = np.array([asize[key] for key in atoms], dtype=np.int32)
+    ids = np.zeros(len(nmax), dtype=np.int32)
     for i, (key, value) in enumerate(zip(atoms, nmax)):
         n += value * (1 + value)
         ids[i] = NUCLEAR_CHARGE[key]
         for j in range(i):
             v = nmax[j]
             n += 2 * value * v
-    n /= 2
+    n = int(n // 2)
 
     return fgenerate_bob(nuclear_charges, coordinates, nuclear_charges, ids, nmax, n)
 
 
-def get_slatm_mbtypes(nuclear_charges: List[ndarray], pbc: str = "000") -> List[List[int64]]:
+def get_slatm_mbtypes(
+    nuclear_charges: List[ndarray], pbc: str = "000"
+) -> List[List[int64]]:
     """
     Get the list of minimal types of many-body terms in a dataset. This resulting list
     is necessary as input in the ``generate_slatm()`` function.
@@ -379,7 +386,9 @@ def get_slatm_mbtypes(nuclear_charges: List[ndarray], pbc: str = "000") -> List[
         for zi in zsmax
     ]
 
-    bops = [[zi, zi] for zi in zsmax] + [list(x) for x in itertools.combinations(zsmax, 2)]
+    bops = [[zi, zi] for zi in zsmax] + [
+        list(x) for x in itertools.combinations(zsmax, 2)
+    ]
 
     bots = []
     for i in zsmax:
@@ -576,7 +585,12 @@ def generate_slatm(
                     mbs = np.concatenate((mbs, mbsi), axis=0)
             elif len(mbtype) == 2:
                 mbsi = get_sbop(
-                    mbtype, obj, sigma=sigmas[0], dgrid=dgrids[0], rcut=rcut, rpower=rpower
+                    mbtype,
+                    obj,
+                    sigma=sigmas[0],
+                    dgrid=dgrids[0],
+                    rcut=rcut,
+                    rpower=rpower,
                 )
 
                 if alchemy:
@@ -593,7 +607,9 @@ def generate_slatm(
                     n2 += len(mbsi)
                     mbs = np.concatenate((mbs, mbsi), axis=0)
             else:  # len(mbtype) == 3:
-                mbsi = get_sbot(mbtype, obj, sigma=sigmas[1], dgrid=dgrids[1], rcut=rcut)
+                mbsi = get_sbot(
+                    mbtype, obj, sigma=sigmas[1], dgrid=dgrids[1], rcut=rcut
+                )
 
                 if alchemy:
                     n3 = len(mbsi)
@@ -672,7 +688,6 @@ def generate_acsf(
     descr_size = n_elements * nRs2 + (n_elements * (n_elements + 1)) // 2 * nRs3 * nTs
 
     if gradients is False:
-
         rep = fgenerate_acsf(
             coordinates,
             nuclear_charges,
@@ -690,7 +705,6 @@ def generate_acsf(
         )
 
         if pad is not None:
-
             rep_pad = np.zeros((pad, descr_size))
             rep_pad[:natoms, :] += rep
 
@@ -700,7 +714,6 @@ def generate_acsf(
             return rep
 
     else:
-
         (rep, grad) = fgenerate_acsf_and_gradients(
             coordinates,
             nuclear_charges,
@@ -799,7 +812,6 @@ def generate_fchl19(
     three_body_weight = np.sqrt(eta3 / np.pi) * three_body_weight
 
     if gradients is False:
-
         rep = fgenerate_fchl_acsf(
             coordinates,
             nuclear_charges,
@@ -820,7 +832,6 @@ def generate_fchl19(
         )
 
         if pad is not False:
-
             rep_pad = np.zeros((pad, descr_size))
             rep_pad[:natoms, :] += rep
 
@@ -830,9 +841,10 @@ def generate_fchl19(
             return rep
 
     else:
-
         if nFourier > 1:
-            raise ValueError(f"FCHL-ACSF only supports nFourier=1, requested {nFourier}")
+            raise ValueError(
+                f"FCHL-ACSF only supports nFourier=1, requested {nFourier}"
+            )
 
         (rep, grad) = fgenerate_fchl_acsf_and_gradients(
             coordinates,

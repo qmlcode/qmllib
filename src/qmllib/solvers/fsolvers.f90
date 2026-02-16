@@ -1,16 +1,15 @@
-subroutine fcho_solve(A, y, x)
-
+subroutine fcho_solve(A, y, x, n) bind(C, name="fcho_solve")
+   use, intrinsic :: iso_c_binding
    implicit none
 
-   double precision, dimension(:, :), intent(in) :: A
-   double precision, dimension(:), intent(in) :: y
-   double precision, dimension(:), intent(inout) :: x
+   integer(c_int), value :: n
+   real(c_double), intent(inout) :: A(n, n)
+   real(c_double), intent(in) :: y(n)
+   real(c_double), intent(out) :: x(n)
 
-   integer :: info, na
+   integer :: info
 
-   na = size(A, dim=1)
-
-   call dpotrf("U", na, A, na, info)
+   call dpotrf("U", n, A, n, info)
    if (info > 0) then
       write (*, *) "WARNING: Error in LAPACK Cholesky decomposition DPOTRF()."
       write (*, *) "WARNING: The", info, "-th leading order is not positive definite."
@@ -19,9 +18,9 @@ subroutine fcho_solve(A, y, x)
       write (*, *) "WARNING: The", -info, "-th argument had an illegal value."
    end if
 
-   x(:na) = y(:na)
+   x(:) = y(:)
 
-   call dpotrs("U", na, 1, A, na, x, na, info)
+   call dpotrs("U", n, 1, A, n, x, n, info)
    if (info < 0) then
       write (*, *) "WARNING: Error in LAPACK Cholesky solver DPOTRS()."
       write (*, *) "WARNING: The", -info, "-th argument had an illegal value."
@@ -29,100 +28,89 @@ subroutine fcho_solve(A, y, x)
 
 end subroutine fcho_solve
 
-subroutine fcho_invert(A)
-
+subroutine fcho_invert(A, n) bind(C, name="fcho_invert")
+   use, intrinsic :: iso_c_binding
    implicit none
 
-   double precision, dimension(:, :), intent(inout) :: A
-   integer :: info, na
+   integer(c_int), value :: n
+   real(c_double), intent(inout) :: A(n, n)
+   integer :: info
 
-   na = size(A, dim=1)
-
-   call dpotrf("L", na, A, na, info)
+   call dpotrf("L", n, A, n, info)
    if (info > 0) then
       write (*, *) "WARNING: Cholesky decomposition DPOTRF() exited with error code:", info
    end if
 
-   call dpotri("L", na, A, na, info)
+   call dpotri("L", n, A, n, info)
    if (info > 0) then
       write (*, *) "WARNING: Cholesky inversion DPOTRI() exited with error code:", info
    end if
 
 end subroutine fcho_invert
 
-subroutine fbkf_invert(A)
-
+subroutine fbkf_invert(A, n) bind(C, name="fbkf_invert")
+   use, intrinsic :: iso_c_binding
    implicit none
 
-   double precision, dimension(:, :), intent(inout) :: A
-   integer :: info, na, nb
-
-   integer, dimension(size(A, 1)) :: ipiv   ! pivot indices
+   integer(c_int), value :: n
+   real(c_double), intent(inout) :: A(n, n)
+   
+   integer :: info, nb
+   integer, dimension(n) :: ipiv
    integer :: ilaenv
-
    integer :: lwork
-
    double precision, allocatable, dimension(:) :: work
 
-   na = size(A, dim=1)
-
-   nb = ilaenv(1, 'DSYTRF', "L", na, -1, -1, -1)
-
-   lwork = na*nb
-
+   nb = ilaenv(1, 'DSYTRF', "L", n, -1, -1, -1)
+   lwork = n*nb
    allocate (work(lwork))
 
-   ! call dpotrf("L", na, A , na, info)
-   call dsytrf("L", na, A, na, ipiv, work, lwork, info)
+   call dsytrf("L", n, A, n, ipiv, work, lwork, info)
    if (info > 0) then
-      write (*, *) "WARNING: Bunch-Kaufman factorization DSYTRI() exited with error code:", info
+      write (*, *) "WARNING: Bunch-Kaufman factorization DSYTRF() exited with error code:", info
    end if
 
-   ! call dpotri("L", na, A , na, info )
-   call dsytri("L", na, a, na, ipiv, work, info)
+   call dsytri("L", n, a, n, ipiv, work, info)
    if (info > 0) then
-      write (*, *) "WARNING: BKF inversion DPOTRI() exited with error code:", info
+      write (*, *) "WARNING: BKF inversion DSYTRI() exited with error code:", info
    end if
 
    deallocate (work)
 
 end subroutine fbkf_invert
 
-subroutine fbkf_solve(A, y, x)
-
+subroutine fbkf_solve(A, y, x, n) bind(C, name="fbkf_solve")
+   use, intrinsic :: iso_c_binding
    implicit none
 
-   double precision, dimension(:, :), intent(in) :: A
-   double precision, dimension(:), intent(in) :: y
-   double precision, dimension(:), intent(inout) :: x
+   integer(c_int), value :: n
+   real(c_double), intent(inout) :: A(n, n)
+   real(c_double), intent(in) :: y(n)
+   real(c_double), intent(out) :: x(n)
 
    double precision, allocatable, dimension(:) :: work
    integer :: ilaenv
+   integer, dimension(n) :: ipiv
+   integer :: info, nb, lwork
 
-   integer, dimension(size(A, 1)) :: ipiv   ! pivot indices
-   integer :: info, na, nb, lwork
-
-   na = size(A, dim=1)
-
-   nb = ilaenv(1, 'DSYTRF', "L", na, -1, -1, -1)
-
-   lwork = na*nb
+   nb = ilaenv(1, 'DSYTRF', "L", n, -1, -1, -1)
+   lwork = n*nb
    allocate (work(lwork))
 
-   call dsytrf("L", na, A, na, ipiv, work, lwork, info)
+   call dsytrf("L", n, A, n, ipiv, work, lwork, info)
    if (info > 0) then
-      write (*, *) "WARNING: Bunch-Kaufman factorization DSYTRI() exited with error code:", info
+      write (*, *) "WARNING: Bunch-Kaufman factorization DSYTRF() exited with error code:", info
    end if
 
-   x(:na) = y(:na)
+   x(:) = y(:)
 
-   call dsytrs("L", na, 1, A, na, ipiv, x, na, info)
-
+   call dsytrs("L", n, 1, A, n, ipiv, x, n, info)
    if (info > 0) then
       write (*, *) "WARNING: Bunch-Kaufman solver DSYTRS() exited with error code:", info
    end if
 
    deallocate (work)
+   
 end subroutine fbkf_solve
 
 subroutine fqrlq_solve(A, y, la, x)

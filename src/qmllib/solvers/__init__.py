@@ -3,16 +3,39 @@ from typing import Optional
 import numpy as np
 from numpy import ndarray
 
-from .fsolvers import (
-    fbkf_invert,
-    fbkf_solve,
-    fcho_invert,
-    fcho_solve,
-    fcond,
-    fcond_ge,
-    fqrlq_solve,
-    fsvd_solve,
-)
+# Import pybind11-based solvers
+try:
+    from qmllib._solvers import (
+        fbkf_invert as _fbkf_invert,
+        fbkf_solve as _fbkf_solve,
+        fcho_invert as _fcho_invert,
+        fcho_solve as _fcho_solve,
+    )
+
+    _SOLVERS_AVAILABLE = True
+except ImportError:
+    _SOLVERS_AVAILABLE = False
+    # Fallback to f2py if available
+    try:
+        from .fsolvers import (
+            fbkf_invert as _fbkf_invert,
+            fbkf_solve as _fbkf_solve,
+            fcho_invert as _fcho_invert,
+            fcho_solve as _fcho_solve,
+        )
+    except ImportError:
+        pass
+
+# These are not yet migrated to pybind11, keep using f2py if available
+try:
+    from .fsolvers import (
+        fcond,
+        fcond_ge,
+        fqrlq_solve,
+        fsvd_solve,
+    )
+except ImportError:
+    pass
 
 
 def cho_invert(A: ndarray) -> ndarray:
@@ -31,18 +54,15 @@ def cho_invert(A: ndarray) -> ndarray:
 
     matrix = np.asfortranarray(A)
 
-    fcho_invert(matrix)
-
-    # Matrix to store the inverse
-    i_lower = np.tril_indices_from(A)
-
-    # Copy lower triangle to upper
-    matrix.T[i_lower] = matrix[i_lower]
+    # The pybind11 function already returns the inverted matrix with triangles copied
+    matrix = _fcho_invert(matrix)
 
     return matrix
 
 
-def cho_solve(A: ndarray, y: ndarray, l2reg: float = 0.0, destructive: bool = False) -> ndarray:
+def cho_solve(
+    A: ndarray, y: ndarray, l2reg: float = 0.0, destructive: bool = False
+) -> ndarray:
     """Solves the equation
 
         :math:`A x = y`
@@ -75,17 +95,15 @@ def cho_solve(A: ndarray, y: ndarray, l2reg: float = 0.0, destructive: bool = Fa
     A_diag = A[np.diag_indices_from(A)]
 
     for i in range(len(y)):
-
         A[i, i] += l2reg
 
     x = np.zeros(n)
-    fcho_solve(A, y, x)
+    _fcho_solve(A, y, x)
 
     # Reset diagonal after Cholesky-decomposition
     A[np.diag_indices_from(A)] = A_diag
 
     if destructive is False:
-
         # Copy lower triangle to upper
         i_lower = np.tril_indices_from(A)
         A.T[i_lower] = A[i_lower]
@@ -109,13 +127,8 @@ def bkf_invert(A: ndarray) -> ndarray:
 
     matrix = np.asfortranarray(A)
 
-    fbkf_invert(matrix)
-
-    # Matrix to store the inverse
-    i_lower = np.tril_indices_from(A)
-
-    # Copy lower triangle to upper
-    matrix.T[i_lower] = matrix[i_lower]
+    # The pybind11 function already returns the inverted matrix with triangles copied
+    matrix = _fbkf_invert(matrix)
 
     return matrix
 
@@ -144,13 +157,13 @@ def bkf_solve(A: ndarray, y: ndarray) -> ndarray:
 
     n = A.shape[0]
 
-    # Backup diagonal before Cholesky-decomposition
+    # Backup diagonal before decomposition
     A_diag = A[np.diag_indices_from(A)]
 
     x = np.zeros(n)
-    fbkf_solve(A, y, x)
+    _fbkf_solve(A, y, x)
 
-    # Reset diagonal after Cholesky-decomposition
+    # Reset diagonal after decomposition
     A[np.diag_indices_from(A)] = A_diag
 
     # Copy lower triangle to upper
@@ -231,16 +244,16 @@ def condition_number(A, method="cholesky"):
         raise ValueError("expected square matrix")
 
     if method.lower() == "cholesky":
-
         if not np.allclose(A, A.T):
-            raise ValueError("Can't use a Cholesky-decomposition for a non-symmetric matrix.")
+            raise ValueError(
+                "Can't use a Cholesky-decomposition for a non-symmetric matrix."
+            )
 
         cond = fcond(A)
 
         return cond
 
     elif method.lower() == "lu":
-
         cond = fcond_ge(A)
 
         return cond

@@ -1,13 +1,11 @@
 [build-system]
-requires = ["setuptools", "numpy", "meson", "ninja"]
-build-backend = "setuptools.build_meta"
+requires = ["scikit-build-core>=0.9", "pybind11", "setuptools"]
+build-backend = "scikit_build_core.build"
 
 [project]
 name = "qmllib"
 dynamic = ["version"]
 authors = []
-requires-python = ">=3.9"
-readme="README.rst"
 description="Python/Fortran toolkit for representation of molecules and solids for machine learning of properties of molecules and solids."
 classifiers = [
     "Intended Audience :: Developers",
@@ -19,22 +17,32 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Chemistry",
 ]
 keywords = ["qml", "quantum chemistry", "machine learning"]
-dependencies=["numpy", "scipy"]
+readme="README.rst"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=2.00",   # required at runtime
+    "scipy>=1.10",  # required at runtime
+]
+
+
+[project.optional-dependencies]
+test = ["pytest>=8", "pytest-xdist", "pytest-cov", "pytest-timeout"]
 
 [project.urls]
 Homepage = "https://qmlcode.org"
+Issues = "https://github.com/youruser/kernelforge/issues"
 
-[options.packages.find]
-where="src"
+[tool.scikit-build]
+wheel.expand-macos-universal-tags = true
+wheel.py-api = "py3"
+cmake.build-type = "Release"
+cmake.verbose = true
+wheel.packages = ["python/kernelforge"]
 
-[tool.setuptools]
-include-package-data = true
+# optional: put compiled outputs under build/{tag}/ to avoid clashes
+# build-dir = "build/{wheel_tag}"
 
-[tool.setuptools.dynamic]
-version = {attr = "qmllib.version.__version__"}
-
-[tool.setuptools.package-data]
-"*" = ['*.so']
-
-# [tool.black]
-# line-length = 120
+[tool.scikit-build.cmake.define]
+CMAKE_VERBOSE_MAKEFILE = "ON"
+CMAKE_BUILD_TYPE = "Release"

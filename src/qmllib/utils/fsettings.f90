@@ -1,18 +1,19 @@
-   subroutine check_openmp(compiled_with_openmp)
-
+   subroutine check_openmp(compiled_with_openmp) bind(C, name="check_openmp")
+      use, intrinsic :: iso_c_binding
       implicit none
-      logical, intent(out):: compiled_with_openmp
+      integer(c_int), intent(out) :: compiled_with_openmp
 
-      compiled_with_openmp = .false.
+      compiled_with_openmp = 0
 
-!$    compiled_with_openmp = .true.
+!$    compiled_with_openmp = 1
 
    end subroutine check_openmp
 
-   function get_threads() result(nt)
+   function get_threads() result(nt) bind(C, name="get_threads")
 !$    use omp_lib
+      use, intrinsic :: iso_c_binding
       implicit none
-      integer :: nt
+      integer(c_int) :: nt
 
       nt = 0
 !$    nt = omp_get_max_threads()
