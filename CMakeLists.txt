@@ -21,6 +21,18 @@ set_property(TARGET qmllib_representations PROPERTY POSITION_INDEPENDENT_CODE ON
 add_library(qmllib_utils OBJECT src/qmllib/utils/fsettings.f90)
 set_property(TARGET qmllib_utils PROPERTY POSITION_INDEPENDENT_CODE ON)
 
+# Fortran kernels as an object library
+add_library(qmllib_fkernels OBJECT 
+    src/qmllib/kernels/fkpca.f90
+    src/qmllib/kernels/fkwasserstein.f90
+    src/qmllib/kernels/fkernels.f90
+)
+set_property(TARGET qmllib_fkernels PROPERTY POSITION_INDEPENDENT_CODE ON)
+
+# Fortran distance functions as an object library
+add_library(qmllib_fdistance OBJECT src/qmllib/kernels/fdistance.f90)
+set_property(TARGET qmllib_fdistance PROPERTY POSITION_INDEPENDENT_CODE ON)
+
 # Build the Python extension module for solvers
 pybind11_add_module(_solvers MODULE
     src/qmllib/solvers/bindings_solvers.cpp
@@ -45,11 +57,29 @@ pybind11_add_module(_utils MODULE
 
 set_target_properties(_utils PROPERTIES OUTPUT_NAME "_utils")
 
+# Build the Python extension module for kernels (kpca and wasserstein)
+pybind11_add_module(_fkernels MODULE
+    src/qmllib/kernels/bindings_fkernels.cpp
+    $<TARGET_OBJECTS:qmllib_fkernels>
+)
+
+set_target_properties(_fkernels PROPERTIES OUTPUT_NAME "_fkernels")
+
+# Build the Python extension module for distance functions
+pybind11_add_module(_fdistance MODULE
+    src/qmllib/kernels/bindings_fdistance.cpp
+    $<TARGET_OBJECTS:qmllib_fdistance>
+)
+
+set_target_properties(_fdistance PROPERTIES OUTPUT_NAME "_fdistance")
+
 find_package(OpenMP)
 if (OpenMP_Fortran_FOUND)
   target_link_libraries(_solvers PRIVATE OpenMP::OpenMP_Fortran)
   target_link_libraries(_representations PRIVATE OpenMP::OpenMP_Fortran)
   target_link_libraries(_utils PRIVATE OpenMP::OpenMP_Fortran)
+  target_link_libraries(_fkernels PRIVATE OpenMP::OpenMP_Fortran)
+  target_link_libraries(_fdistance PRIVATE OpenMP::OpenMP_Fortran)
 endif()
 
 # Optional BLAS/LAPACK backends
@@ -57,15 +87,20 @@ if(APPLE)
   find_library(ACCELERATE Accelerate REQUIRED)
   target_link_libraries(_solvers PRIVATE ${ACCELERATE})
   target_link_libraries(_representations PRIVATE ${ACCELERATE})
+  target_link_libraries(_fkernels PRIVATE ${ACCELERATE})
 elseif(WIN32)
   find_package(MKL CONFIG REQUIRED)
   target_link_libraries(_solvers PRIVATE MKL::MKL)
   target_link_libraries(_representations PRIVATE MKL::MKL)
+  target_link_libraries(_fkernels PRIVATE MKL::MKL)
 else()
   find_package(BLAS REQUIRED)
   target_link_libraries(_solvers PRIVATE BLAS::BLAS)
   target_link_libraries(_representations PRIVATE BLAS::BLAS)
+  target_link_libraries(_fkernels PRIVATE BLAS::BLAS)
 endif()
+
+# Note: _fdistance doesn't need BLAS/LAPACK
 
 # Compiler optimization flags (portable wheels)
 if (CMAKE_Fortran_COMPILER_ID STREQUAL "IntelLLVM" OR CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
@@ -85,6 +120,8 @@ if(FORTRAN_OPT_FLAGS)
   target_compile_options(qmllib_solvers PRIVATE ${FORTRAN_OPT_FLAGS})
   target_compile_options(qmllib_representations PRIVATE ${FORTRAN_OPT_FLAGS})
   target_compile_options(qmllib_utils PRIVATE ${FORTRAN_OPT_FLAGS})
+  target_compile_options(qmllib_fkernels PRIVATE ${FORTRAN_OPT_FLAGS})
+  target_compile_options(qmllib_fdistance PRIVATE ${FORTRAN_OPT_FLAGS})
 endif()
 
 # Apply optimization flags to C++ binding modules
@@ -92,10 +129,12 @@ if(CXX_OPT_FLAGS)
   target_compile_options(_solvers PRIVATE ${CXX_OPT_FLAGS})
   target_compile_options(_representations PRIVATE ${CXX_OPT_FLAGS})
   target_compile_options(_utils PRIVATE ${CXX_OPT_FLAGS})
+  target_compile_options(_fkernels PRIVATE ${CXX_OPT_FLAGS})
+  target_compile_options(_fdistance PRIVATE ${CXX_OPT_FLAGS})
 endif()
 
 # Install the compiled extension into the Python package and the Python shim
-install(TARGETS _solvers _representations _utils
+install(TARGETS _solvers _representations _utils _fkernels _fdistance
   LIBRARY DESTINATION qmllib   # Linux/macOS
   RUNTIME DESTINATION qmllib   # Windows (.pyd)
 )

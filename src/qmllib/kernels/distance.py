@@ -3,7 +3,13 @@ from typing import Union
 import numpy as np
 from numpy import ndarray
 
-from .fdistance import fl2_distance, fmanhattan_distance, fp_distance_double, fp_distance_integer
+# Import from pybind11 module
+from qmllib._fdistance import (
+    fl2_distance,
+    fmanhattan_distance,
+    fp_distance_double,
+    fp_distance_integer,
+)
 
 
 def manhattan_distance(A: ndarray, B: ndarray) -> ndarray:

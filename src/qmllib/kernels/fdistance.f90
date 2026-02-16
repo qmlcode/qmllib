@@ -1,16 +1,21 @@
-subroutine fmanhattan_distance(A, B, D)
-
+subroutine fmanhattan_distance(A, nv, na, B, nb, D) bind(C, name="fmanhattan_distance")
+   use, intrinsic :: iso_c_binding
    implicit none
 
-   double precision, dimension(:, :), intent(in) :: A
-   double precision, dimension(:, :), intent(in) :: B
-   double precision, dimension(:, :), intent(inout) :: D
+   integer(c_int), value :: nv, na, nb
+   real(c_double), intent(in) :: A(nv, na)
+   real(c_double), intent(in) :: B(nv, nb)
+   real(c_double), intent(inout) :: D(na, nb)
 
-   integer :: na, nb
    integer :: i, j
 
-   na = size(A, dim=2)
-   nb = size(B, dim=2)
+   ! Validate input
+   if (na <= 0 .OR. nb <= 0 .OR. nv <= 0) then
+      write (*, *) "ERROR: Manhattan distance"
+      write (*, *) "nv=", nv, "na=", na, "nb=", nb
+      write (*, *) "All dimensions must be positive"
+      stop
+   end if
 
 !$OMP PARALLEL DO
    do i = 1, nb
@@ -22,23 +27,26 @@ subroutine fmanhattan_distance(A, B, D)
 
 end subroutine fmanhattan_distance
 
-subroutine fl2_distance(A, B, D)
-
+subroutine fl2_distance(A, nv, na, B, nb, D) bind(C, name="fl2_distance")
+   use, intrinsic :: iso_c_binding
    implicit none
 
-   double precision, dimension(:, :), intent(in) :: A
-   double precision, dimension(:, :), intent(in) :: B
-   double precision, dimension(:, :), intent(inout) :: D
+   integer(c_int), value :: nv, na, nb
+   real(c_double), intent(in) :: A(nv, na)
+   real(c_double), intent(in) :: B(nv, nb)
+   real(c_double), intent(inout) :: D(na, nb)
 
-   integer :: na, nb, nv
    integer :: i, j
 
    double precision, allocatable, dimension(:) :: temp
 
-   nv = size(A, dim=1)
-
-   na = size(A, dim=2)
-   nb = size(B, dim=2)
+   ! Validate input
+   if (na <= 0 .OR. nb <= 0 .OR. nv <= 0) then
+      write (*, *) "ERROR: L2 distance"
+      write (*, *) "nv=", nv, "na=", na, "nb=", nb
+      write (*, *) "All dimensions must be positive"
+      stop
+   end if
 
    allocate (temp(nv))
 
@@ -55,25 +63,28 @@ subroutine fl2_distance(A, B, D)
 
 end subroutine fl2_distance
 
-subroutine fp_distance_double(A, B, D, p)
-
+subroutine fp_distance_double(A, nv, na, B, nb, D, p) bind(C, name="fp_distance_double")
+   use, intrinsic :: iso_c_binding
    implicit none
 
-   double precision, dimension(:, :), intent(in) :: A
-   double precision, dimension(:, :), intent(in) :: B
-   double precision, dimension(:, :), intent(inout) :: D
-   double precision, intent(in) :: p
+   integer(c_int), value :: nv, na, nb
+   real(c_double), intent(in) :: A(nv, na)
+   real(c_double), intent(in) :: B(nv, nb)
+   real(c_double), intent(inout) :: D(na, nb)
+   real(c_double), value :: p
 
-   integer :: na, nb, nv
    integer :: i, j
 
    double precision, allocatable, dimension(:) :: temp
    double precision :: inv_p
 
-   nv = size(A, dim=1)
-
-   na = size(A, dim=2)
-   nb = size(B, dim=2)
+   ! Validate input
+   if (na <= 0 .OR. nb <= 0 .OR. nv <= 0) then
+      write (*, *) "ERROR: Lp distance (double)"
+      write (*, *) "nv=", nv, "na=", na, "nb=", nb
+      write (*, *) "All dimensions must be positive"
+      stop
+   end if
 
    inv_p = 1.0d0/p
 
@@ -92,25 +103,27 @@ subroutine fp_distance_double(A, B, D, p)
 
 end subroutine fp_distance_double
 
-subroutine fp_distance_integer(A, B, D, p)
-
+subroutine fp_distance_integer(A, nv, na, B, nb, D, p) bind(C, name="fp_distance_integer")
+   use, intrinsic :: iso_c_binding
    implicit none
 
-   double precision, dimension(:, :), intent(in) :: A
-   double precision, dimension(:, :), intent(in) :: B
-   double precision, dimension(:, :), intent(inout) :: D
-   integer, intent(in) :: p
+   integer(c_int), value :: nv, na, nb, p
+   real(c_double), intent(in) :: A(nv, na)
+   real(c_double), intent(in) :: B(nv, nb)
+   real(c_double), intent(inout) :: D(na, nb)
 
-   integer :: na, nb, nv
    integer :: i, j
 
    double precision, allocatable, dimension(:) :: temp
    double precision :: inv_p
 
-   nv = size(A, dim=1)
-
-   na = size(A, dim=2)
-   nb = size(B, dim=2)
+   ! Validate input
+   if (na <= 0 .OR. nb <= 0 .OR. nv <= 0) then
+      write (*, *) "ERROR: Lp distance (integer)"
+      write (*, *) "nv=", nv, "na=", na, "nb=", nb
+      write (*, *) "All dimensions must be positive"
+      stop
+   end if
 
    inv_p = 1.0d0/dble(p)
 

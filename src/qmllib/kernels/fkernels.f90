@@ -1,24 +1,25 @@
 subroutine fget_local_kernels_gaussian(q1, q2, n1, n2, sigmas, &
-        & nm1, nm2, nsigmas, kernels)
+        & nm1, nm2, nsigmas, nq1, nq2, kernels) bind(C, name="fget_local_kernels_gaussian")
 
+   use, intrinsic :: iso_c_binding
    implicit none
 
-   double precision, dimension(:, :), intent(in) :: q1
-   double precision, dimension(:, :), intent(in) :: q2
+   ! Array dimensions
+   integer(c_int), intent(in), value :: nq1  ! Size of q1 dimension 2
+   integer(c_int), intent(in), value :: nq2  ! Size of q2 dimension 2
+   integer(c_int), intent(in), value :: nm1
+   integer(c_int), intent(in), value :: nm2
+   integer(c_int), intent(in), value :: nsigmas
+
+   double precision, dimension(3, nq1), intent(in) :: q1
+   double precision, dimension(3, nq2), intent(in) :: q2
 
    ! List of numbers of atoms in each molecule
-   integer, dimension(:), intent(in) :: n1
-   integer, dimension(:), intent(in) :: n2
+   integer, dimension(nm1), intent(in) :: n1
+   integer, dimension(nm2), intent(in) :: n2
 
    ! Sigma in the Gaussian kernel
-   double precision, dimension(:), intent(in) :: sigmas
-
-   ! Number of molecules
-   integer, intent(in) :: nm1
-   integer, intent(in) :: nm2
-
-   ! Number of sigmas
-   integer, intent(in) :: nsigmas
+   double precision, dimension(nsigmas), intent(in) :: sigmas
 
    ! -1.0 / sigma^2 for use in the kernel
    double precision, dimension(nsigmas) :: inv_sigma2
@@ -86,26 +87,27 @@ subroutine fget_local_kernels_gaussian(q1, q2, n1, n2, sigmas, &
 end subroutine fget_local_kernels_gaussian
 
 subroutine fget_local_kernels_laplacian(q1, q2, n1, n2, sigmas, &
-        & nm1, nm2, nsigmas, kernels)
+        & nm1, nm2, nsigmas, nq1, nq2, kernels) bind(C, name="fget_local_kernels_laplacian")
 
+   use, intrinsic :: iso_c_binding
    implicit none
 
-   double precision, dimension(:, :), intent(in) :: q1
-   double precision, dimension(:, :), intent(in) :: q2
+   ! Array dimensions
+   integer(c_int), intent(in), value :: nq1
+   integer(c_int), intent(in), value :: nq2
+   integer(c_int), intent(in), value :: nm1
+   integer(c_int), intent(in), value :: nm2
+   integer(c_int), intent(in), value :: nsigmas
+
+   double precision, dimension(3, nq1), intent(in) :: q1
+   double precision, dimension(3, nq2), intent(in) :: q2
 
    ! List of numbers of atoms in each molecule
-   integer, dimension(:), intent(in) :: n1
-   integer, dimension(:), intent(in) :: n2
+   integer, dimension(nm1), intent(in) :: n1
+   integer, dimension(nm2), intent(in) :: n2
 
    ! Sigma in the Gaussian kernel
-   double precision, dimension(:), intent(in) :: sigmas
-
-   ! Number of molecules
-   integer, intent(in) :: nm1
-   integer, intent(in) :: nm2
-
-   ! Number of sigmas
-   integer, intent(in) :: nsigmas
+   double precision, dimension(nsigmas), intent(in) :: sigmas
 
    ! -1.0 / sigma^2 for use in the kernel
    double precision, dimension(nsigmas) :: inv_sigma2
@@ -173,27 +175,28 @@ subroutine fget_local_kernels_laplacian(q1, q2, n1, n2, sigmas, &
 end subroutine fget_local_kernels_laplacian
 
 subroutine fget_vector_kernels_laplacian(q1, q2, n1, n2, sigmas, &
-        & nm1, nm2, nsigmas, kernels)
+        & nm1, nm2, nsigmas, rep_size, max_atoms, kernels) bind(C, name="fget_vector_kernels_laplacian")
 
+   use, intrinsic :: iso_c_binding
    implicit none
 
-   ! Descriptors for the training set
-   double precision, dimension(:, :, :), intent(in) :: q1
-   double precision, dimension(:, :, :), intent(in) :: q2
+   ! Array dimensions
+   integer(c_int), intent(in), value :: nm1
+   integer(c_int), intent(in), value :: nm2
+   integer(c_int), intent(in), value :: nsigmas
+   integer(c_int), intent(in), value :: rep_size
+   integer(c_int), intent(in), value :: max_atoms
+
+   ! Descriptors for the training set (rep_size, max_atoms, nm)
+   double precision, dimension(rep_size, max_atoms, nm1), intent(in) :: q1
+   double precision, dimension(rep_size, max_atoms, nm2), intent(in) :: q2
 
    ! List of numbers of atoms in each molecule
-   integer, dimension(:), intent(in) :: n1
-   integer, dimension(:), intent(in) :: n2
+   integer, dimension(nm1), intent(in) :: n1
+   integer, dimension(nm2), intent(in) :: n2
 
    ! Sigma in the Gaussian kernel
-   double precision, dimension(:), intent(in) :: sigmas
-
-   ! Number of molecules
-   integer, intent(in) :: nm1
-   integer, intent(in) :: nm2
-
-   ! Number of sigmas
-   integer, intent(in) :: nsigmas
+   double precision, dimension(nsigmas), intent(in) :: sigmas
 
    ! -1.0 / sigma^2 for use in the kernel
    double precision, dimension(nsigmas) :: inv_sigma
@@ -243,27 +246,28 @@ subroutine fget_vector_kernels_laplacian(q1, q2, n1, n2, sigmas, &
 end subroutine fget_vector_kernels_laplacian
 
 subroutine fget_vector_kernels_gaussian(q1, q2, n1, n2, sigmas, &
-        & nm1, nm2, nsigmas, kernels)
+        & nm1, nm2, nsigmas, rep_size, max_atoms, kernels) bind(C, name="fget_vector_kernels_gaussian")
 
+   use, intrinsic :: iso_c_binding
    implicit none
 
-   ! Representations (n_samples, n_max_atoms, rep_size)
-   double precision, dimension(:, :, :), intent(in) :: q1
-   double precision, dimension(:, :, :), intent(in) :: q2
+   ! Array dimensions
+   integer(c_int), intent(in), value :: nm1
+   integer(c_int), intent(in), value :: nm2
+   integer(c_int), intent(in), value :: nsigmas
+   integer(c_int), intent(in), value :: rep_size
+   integer(c_int), intent(in), value :: max_atoms
+
+   ! Representations (rep_size, max_atoms, nm)
+   double precision, dimension(rep_size, max_atoms, nm1), intent(in) :: q1
+   double precision, dimension(rep_size, max_atoms, nm2), intent(in) :: q2
 
    ! List of numbers of atoms in each molecule
-   integer, dimension(:), intent(in) :: n1
-   integer, dimension(:), intent(in) :: n2
+   integer, dimension(nm1), intent(in) :: n1
+   integer, dimension(nm2), intent(in) :: n2
 
    ! Sigma in the Gaussian kernel
-   double precision, dimension(:), intent(in) :: sigmas
-
-   ! Number of molecules
-   integer, intent(in) :: nm1
-   integer, intent(in) :: nm2
-
-   ! Number of sigmas
-   integer, intent(in) :: nsigmas
+   double precision, dimension(nsigmas), intent(in) :: sigmas
 
    ! -1.0 / sigma^2 for use in the kernel
    double precision, dimension(nsigmas) :: inv_sigma2
@@ -313,24 +317,25 @@ subroutine fget_vector_kernels_gaussian(q1, q2, n1, n2, sigmas, &
 end subroutine fget_vector_kernels_gaussian
 
 subroutine fget_vector_kernels_gaussian_symmetric(q, n, sigmas, &
-        & nm, nsigmas, kernels)
+        & nm, nsigmas, rep_size, max_atoms, kernels) bind(C, name="fget_vector_kernels_gaussian_symmetric")
 
+   use, intrinsic :: iso_c_binding
    implicit none
 
-   ! Representations (rep_size, n_samples, n_max_atoms)
-   double precision, dimension(:, :, :), intent(in) :: q
+   ! Array dimensions
+   integer(c_int), intent(in), value :: nm
+   integer(c_int), intent(in), value :: nsigmas
+   integer(c_int), intent(in), value :: rep_size
+   integer(c_int), intent(in), value :: max_atoms
+
+   ! Representations (rep_size, max_atoms, nm)
+   double precision, dimension(rep_size, max_atoms, nm), intent(in) :: q
 
    ! List of numbers of atoms in each molecule
-   integer, dimension(:), intent(in) :: n
+   integer, dimension(nm), intent(in) :: n
 
    ! Sigma in the Gaussian kernel
-   double precision, dimension(:), intent(in) :: sigmas
-
-   ! Number of molecules
-   integer, intent(in) :: nm
-
-   ! Number of sigmas
-   integer, intent(in) :: nsigmas
+   double precision, dimension(nsigmas), intent(in) :: sigmas
 
    ! Resulting kernels
    double precision, dimension(nsigmas, nm, nm), intent(out) :: kernels
@@ -349,8 +354,7 @@ subroutine fget_vector_kernels_gaussian_symmetric(q, n, sigmas, &
 
    kernels = 1.0d0
 
-   i = size(q, dim=3)
-   allocate (atomic_distance(i, i))
+   allocate (atomic_distance(max_atoms, max_atoms))
    atomic_distance(:, :) = 0.0d0
 
    !$OMP PARALLEL DO PRIVATE(atomic_distance,ni,nj,ja,ia,val) SCHEDULE(dynamic) COLLAPSE(2)
@@ -386,24 +390,25 @@ subroutine fget_vector_kernels_gaussian_symmetric(q, n, sigmas, &
 end subroutine fget_vector_kernels_gaussian_symmetric
 
 subroutine fget_vector_kernels_laplacian_symmetric(q, n, sigmas, &
-        & nm, nsigmas, kernels)
+        & nm, nsigmas, rep_size, max_atoms, kernels) bind(C, name="fget_vector_kernels_laplacian_symmetric")
 
+   use, intrinsic :: iso_c_binding
    implicit none
 
-   ! Representations (rep_size, n_samples, n_max_atoms)
-   double precision, dimension(:, :, :), intent(in) :: q
+   ! Array dimensions
+   integer(c_int), intent(in), value :: nm
+   integer(c_int), intent(in), value :: nsigmas
+   integer(c_int), intent(in), value :: rep_size
+   integer(c_int), intent(in), value :: max_atoms
+
+   ! Representations (rep_size, max_atoms, nm)
+   double precision, dimension(rep_size, max_atoms, nm), intent(in) :: q
 
    ! List of numbers of atoms in each molecule
-   integer, dimension(:), intent(in) :: n
+   integer, dimension(nm), intent(in) :: n
 
    ! Sigma in the Laplacian kernel
-   double precision, dimension(:), intent(in) :: sigmas
-
-   ! Number of molecules
-   integer, intent(in) :: nm
-
-   ! Number of sigmas
-   integer, intent(in) :: nsigmas
+   double precision, dimension(nsigmas), intent(in) :: sigmas
 
    ! Resulting kernels
    double precision, dimension(nsigmas, nm, nm), intent(out) :: kernels
@@ -422,8 +427,7 @@ subroutine fget_vector_kernels_laplacian_symmetric(q, n, sigmas, &
 
    kernels = 1.0d0
 
-   i = size(q, dim=3)
-   allocate (atomic_distance(i, i))
+   allocate (atomic_distance(max_atoms, max_atoms))
    atomic_distance(:, :) = 0.0d0
 
    !$OMP PARALLEL DO PRIVATE(atomic_distance,ni,nj,ja,ia,val) SCHEDULE(dynamic) COLLAPSE(2)
@@ -458,17 +462,18 @@ subroutine fget_vector_kernels_laplacian_symmetric(q, n, sigmas, &
 
 end subroutine fget_vector_kernels_laplacian_symmetric
 
-subroutine fgaussian_kernel(a, na, b, nb, k, sigma)
+subroutine fgaussian_kernel(a, na, b, nb, k, sigma, rep_size) bind(C, name="fgaussian_kernel")
 
+   use, intrinsic :: iso_c_binding
    implicit none
 
-   double precision, dimension(:, :), intent(in) :: a
-   double precision, dimension(:, :), intent(in) :: b
+   integer(c_int), intent(in), value :: na, nb, rep_size
 
-   integer, intent(in) :: na, nb
+   double precision, dimension(rep_size, na), intent(in) :: a
+   double precision, dimension(rep_size, nb), intent(in) :: b
 
-   double precision, dimension(:, :), intent(inout) :: k
-   double precision, intent(in) :: sigma
+   double precision, dimension(na, nb), intent(inout) :: k
+   double precision, intent(in), value :: sigma
 
    double precision, allocatable, dimension(:) :: temp
 
@@ -477,7 +482,7 @@ subroutine fgaussian_kernel(a, na, b, nb, k, sigma)
 
    inv_sigma = -0.5d0/(sigma*sigma)
 
-   allocate (temp(size(a, dim=1)))
+   allocate (temp(rep_size))
 
    !$OMP PARALLEL DO PRIVATE(temp) COLLAPSE(2)
    do i = 1, nb
@@ -492,16 +497,17 @@ subroutine fgaussian_kernel(a, na, b, nb, k, sigma)
 
 end subroutine fgaussian_kernel
 
-subroutine fgaussian_kernel_symmetric(x, n, k, sigma)
+subroutine fgaussian_kernel_symmetric(x, n, k, sigma, rep_size) bind(C, name="fgaussian_kernel_symmetric")
 
+   use, intrinsic :: iso_c_binding
    implicit none
 
-   double precision, dimension(:, :), intent(in) :: x
+   integer(c_int), intent(in), value :: n, rep_size
 
-   integer, intent(in) :: n
+   double precision, dimension(rep_size, n), intent(in) :: x
 
-   double precision, dimension(:, :), intent(inout) :: k
-   double precision, intent(in) :: sigma
+   double precision, dimension(n, n), intent(inout) :: k
+   double precision, intent(in), value :: sigma
 
    double precision, allocatable, dimension(:) :: temp
    double precision :: val
@@ -513,7 +519,7 @@ subroutine fgaussian_kernel_symmetric(x, n, k, sigma)
 
    k = 1.0d0
 
-   allocate (temp(size(x, dim=1)))
+   allocate (temp(rep_size))
 
    !$OMP PARALLEL DO PRIVATE(temp, val) SCHEDULE(dynamic)
    do i = 1, n
@@ -530,17 +536,18 @@ subroutine fgaussian_kernel_symmetric(x, n, k, sigma)
 
 end subroutine fgaussian_kernel_symmetric
 
-subroutine flaplacian_kernel(a, na, b, nb, k, sigma)
+subroutine flaplacian_kernel(a, na, b, nb, k, sigma, rep_size) bind(C, name="flaplacian_kernel")
 
+   use, intrinsic :: iso_c_binding
    implicit none
 
-   double precision, dimension(:, :), intent(in) :: a
-   double precision, dimension(:, :), intent(in) :: b
+   integer(c_int), intent(in), value :: na, nb, rep_size
 
-   integer, intent(in) :: na, nb
+   double precision, dimension(rep_size, na), intent(in) :: a
+   double precision, dimension(rep_size, nb), intent(in) :: b
 
-   double precision, dimension(:, :), intent(inout) :: k
-   double precision, intent(in) :: sigma
+   double precision, dimension(na, nb), intent(inout) :: k
+   double precision, intent(in), value :: sigma
 
    double precision :: inv_sigma
 
@@ -558,16 +565,17 @@ subroutine flaplacian_kernel(a, na, b, nb, k, sigma)
 
 end subroutine flaplacian_kernel
 
-subroutine flaplacian_kernel_symmetric(x, n, k, sigma)
+subroutine flaplacian_kernel_symmetric(x, n, k, sigma, rep_size) bind(C, name="flaplacian_kernel_symmetric")
 
+   use, intrinsic :: iso_c_binding
    implicit none
 
-   double precision, dimension(:, :), intent(in) :: x
+   integer(c_int), intent(in), value :: n, rep_size
 
-   integer, intent(in) :: n
+   double precision, dimension(rep_size, n), intent(in) :: x
 
-   double precision, dimension(:, :), intent(inout) :: k
-   double precision, intent(in) :: sigma
+   double precision, dimension(n, n), intent(inout) :: k
+   double precision, intent(in), value :: sigma
 
    double precision :: val
 
@@ -590,16 +598,17 @@ subroutine flaplacian_kernel_symmetric(x, n, k, sigma)
 
 end subroutine flaplacian_kernel_symmetric
 
-subroutine flinear_kernel(a, na, b, nb, k)
+subroutine flinear_kernel(a, na, b, nb, k, rep_size) bind(C, name="flinear_kernel")
 
+   use, intrinsic :: iso_c_binding
    implicit none
 
-   double precision, dimension(:, :), intent(in) :: a
-   double precision, dimension(:, :), intent(in) :: b
+   integer(c_int), intent(in), value :: na, nb, rep_size
 
-   integer, intent(in) :: na, nb
+   double precision, dimension(rep_size, na), intent(in) :: a
+   double precision, dimension(rep_size, nb), intent(in) :: b
 
-   double precision, dimension(:, :), intent(inout) :: k
+   double precision, dimension(na, nb), intent(inout) :: k
 
    integer :: i, j
 
@@ -613,25 +622,25 @@ subroutine flinear_kernel(a, na, b, nb, k)
 
 end subroutine flinear_kernel
 
-subroutine fmatern_kernel_l2(a, na, b, nb, k, sigma, order)
+subroutine fmatern_kernel_l2(a, na, b, nb, k, sigma, order, rep_size) bind(C, name="fmatern_kernel_l2")
 
+   use, intrinsic :: iso_c_binding
    implicit none
 
-   double precision, dimension(:, :), intent(in) :: a
-   double precision, dimension(:, :), intent(in) :: b
+   integer(c_int), intent(in), value :: na, nb, order, rep_size
 
-   integer, intent(in) :: na, nb
+   double precision, dimension(rep_size, na), intent(in) :: a
+   double precision, dimension(rep_size, nb), intent(in) :: b
 
-   double precision, dimension(:, :), intent(inout) :: k
-   double precision, intent(in) :: sigma
-   integer, intent(in) :: order
+   double precision, dimension(na, nb), intent(inout) :: k
+   double precision, intent(in), value :: sigma
 
    double precision, allocatable, dimension(:) :: temp
 
    double precision :: inv_sigma, inv_sigma2, d, d2
    integer :: i, j
 
-   allocate (temp(size(a, dim=1)))
+   allocate (temp(rep_size))
 
    if (order == 0) then
       inv_sigma = -1.0d0/sigma
@@ -676,18 +685,19 @@ subroutine fmatern_kernel_l2(a, na, b, nb, k, sigma, order)
 
 end subroutine fmatern_kernel_l2
 
-subroutine fsargan_kernel(a, na, b, nb, k, sigma, gammas, ng)
+subroutine fsargan_kernel(a, na, b, nb, k, sigma, gammas, ng, rep_size) bind(C, name="fsargan_kernel")
 
+   use, intrinsic :: iso_c_binding
    implicit none
 
-   double precision, dimension(:, :), intent(in) :: a
-   double precision, dimension(:, :), intent(in) :: b
-   double precision, dimension(:), intent(in) :: gammas
+   integer(c_int), intent(in), value :: na, nb, ng, rep_size
 
-   integer, intent(in) :: na, nb, ng
+   double precision, dimension(rep_size, na), intent(in) :: a
+   double precision, dimension(rep_size, nb), intent(in) :: b
+   double precision, dimension(ng), intent(in) :: gammas
 
-   double precision, dimension(:, :), intent(inout) :: k
-   double precision, intent(in) :: sigma
+   double precision, dimension(na, nb), intent(inout) :: k
+   double precision, intent(in), value :: sigma
 
    double precision, allocatable, dimension(:) :: prefactor
    double precision :: inv_sigma

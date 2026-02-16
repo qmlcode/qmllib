@@ -3,7 +3,8 @@ from typing import List, Union
 import numpy as np
 from numpy import float64, ndarray
 
-from .fkernels import (
+# Import from pybind11 modules
+from qmllib._fkernels import (
     fgaussian_kernel,
     fgaussian_kernel_symmetric,
     fget_local_kernels_gaussian,
@@ -18,7 +19,9 @@ from .fkernels import (
 )
 
 
-def wasserstein_kernel(A: ndarray, B: ndarray, sigma: float, p: int = 1, q: int = 1) -> ndarray:
+def wasserstein_kernel(
+    A: ndarray, B: ndarray, sigma: float, p: int = 1, q: int = 1
+) -> ndarray:
     """Calculates the Wasserstein kernel matrix K, where :math:`K_{ij}`:
 
     :math:`K_{ij} = \\exp \\big( -\\frac{(W_p(A_i, B_i))^q}{\\sigma} \\big)`
@@ -40,10 +43,10 @@ def wasserstein_kernel(A: ndarray, B: ndarray, sigma: float, p: int = 1, q: int 
     na = A.shape[0]
     nb = B.shape[0]
 
-    K = np.empty((na, nb), order="F")
-
-    # Note: Transposed for Fortran
-    fwasserstein_kernel(A.T, na, B.T, nb, K, sigma, p, q)
+    # Transpose for Fortran column-major format (rep_size, n_samples)
+    K = fwasserstein_kernel(
+        np.asfortranarray(A.T), na, np.asfortranarray(B.T), nb, sigma, p, q
+    )
 
     return K
 
@@ -67,13 +70,8 @@ def laplacian_kernel(A: ndarray, B: ndarray, sigma: float) -> ndarray:
     :rtype: numpy array
     """
 
-    na = A.shape[0]
-    nb = B.shape[0]
-
-    K = np.empty((na, nb), order="F")
-
-    # Note: Transposed for Fortran
-    flaplacian_kernel(A.T, na, B.T, nb, K, sigma)
+    # Transpose for Fortran column-major format (rep_size, n_samples)
+    K = flaplacian_kernel(np.asfortranarray(A.T), np.asfortranarray(B.T), sigma)
 
     return K
 
@@ -95,12 +93,8 @@ def laplacian_kernel_symmetric(A: ndarray, sigma: float) -> ndarray:
     :rtype: numpy array
     """
 
-    na = A.shape[0]
-
-    K = np.empty((na, na), order="F")
-
-    # Note: Transposed for Fortran
-    flaplacian_kernel_symmetric(A.T, na, K, sigma)
+    # Transpose for Fortran column-major format (rep_size, n_samples)
+    K = flaplacian_kernel_symmetric(np.asfortranarray(A.T), sigma)
 
     return K
 
@@ -124,13 +118,8 @@ def gaussian_kernel(A: ndarray, B: ndarray, sigma: float) -> ndarray:
     :rtype: numpy array
     """
 
-    na = A.shape[0]
-    nb = B.shape[0]
-
-    K = np.empty((na, nb), order="F")
-
-    # Note: Transposed for Fortran
-    fgaussian_kernel(A.T, na, B.T, nb, K, sigma)
+    # Transpose for Fortran column-major format (rep_size, n_samples)
+    K = fgaussian_kernel(np.asfortranarray(A.T), np.asfortranarray(B.T), sigma)
 
     return K
 
@@ -152,12 +141,8 @@ def gaussian_kernel_symmetric(A: ndarray, sigma: float) -> ndarray:
     :rtype: numpy array
     """
 
-    na = A.shape[0]
-
-    K = np.empty((na, na), order="F")
-
-    # Note: Transposed for Fortran
-    fgaussian_kernel_symmetric(A.T, na, K, sigma)
+    # Transpose for Fortran column-major format (rep_size, n_samples)
+    K = fgaussian_kernel_symmetric(np.asfortranarray(A.T), sigma)
 
     return K
 
@@ -180,13 +165,8 @@ def linear_kernel(A: ndarray, B: ndarray) -> ndarray:
     :rtype: numpy array
     """
 
-    na = A.shape[0]
-    nb = B.shape[0]
-
-    K = np.empty((na, nb), order="F")
-
-    # Note: Transposed for Fortran
-    flinear_kernel(A.T, na, B.T, nb, K)
+    # Transpose for Fortran column-major format (rep_size, n_samples)
+    K = flinear_kernel(np.asfortranarray(A.T), np.asfortranarray(B.T))
 
     return K
 
@@ -222,13 +202,10 @@ def sargan_kernel(
     if ng == 0:
         return laplacian_kernel(A, B, sigma)
 
-    na = A.shape[0]
-    nb = B.shape[0]
-
-    K = np.empty((na, nb), order="F")
-
-    # Note: Transposed for Fortran
-    fsargan_kernel(A.T, na, B.T, nb, K, sigma, gammas, ng)
+    # Transpose for Fortran column-major format (rep_size, n_samples)
+    K = fsargan_kernel(
+        np.asfortranarray(A.T), np.asfortranarray(B.T), sigma, np.asfortranarray(gammas)
+    )
 
     return K
 
@@ -265,7 +242,6 @@ def matern_kernel(
     """
 
     if metric == "l1":
-
         if order == 0:
             gammas = []
 
@@ -288,13 +264,8 @@ def matern_kernel(
     else:
         raise ValueError(f"Unknown distance metric {metric} in Matern kernel")
 
-    na = A.shape[0]
-    nb = B.shape[0]
-
-    K = np.empty((na, nb), order="F")
-
-    # Note: Transposed for Fortran
-    fmatern_kernel_l2(A.T, na, B.T, nb, K, sigma, order)
+    # Transpose for Fortran column-major format (rep_size, n_samples)
+    K = fmatern_kernel_l2(np.asfortranarray(A.T), np.asfortranarray(B.T), sigma, order)
 
     return K
 
@@ -337,13 +308,16 @@ def get_local_kernels_gaussian(
     if A.shape[1] != B.shape[1]:
         raise ValueError("Error in representation sizes")
 
-    nma = len(na)
-    nmb = len(nb)
-
     sigmas = np.asarray(sigmas)
-    nsigmas = len(sigmas)
 
-    return fget_local_kernels_gaussian(A.T, B.T, na, nb, sigmas, nma, nmb, nsigmas)
+    # Transpose for Fortran column-major format (3, n_atoms)
+    return fget_local_kernels_gaussian(
+        np.asfortranarray(A.T),
+        np.asfortranarray(B.T),
+        np.asfortranarray(na, dtype=np.int32),
+        np.asfortranarray(nb, dtype=np.int32),
+        np.asfortranarray(sigmas),
+    )
 
 
 def get_local_kernels_laplacian(
@@ -384,13 +358,16 @@ def get_local_kernels_laplacian(
     if A.shape[1] != B.shape[1]:
         raise ValueError("Error in representation sizes")
 
-    nma = len(na)
-    nmb = len(nb)
-
     sigmas = np.asarray(sigmas)
-    nsigmas = len(sigmas)
 
-    return fget_local_kernels_laplacian(A.T, B.T, na, nb, sigmas, nma, nmb, nsigmas)
+    # Transpose for Fortran column-major format (3, n_atoms)
+    return fget_local_kernels_laplacian(
+        np.asfortranarray(A.T),
+        np.asfortranarray(B.T),
+        np.asfortranarray(na, dtype=np.int32),
+        np.asfortranarray(nb, dtype=np.int32),
+        np.asfortranarray(sigmas),
+    )
 
 
 def kpca(K: ndarray, n: int = 2, centering: bool = True) -> ndarray:

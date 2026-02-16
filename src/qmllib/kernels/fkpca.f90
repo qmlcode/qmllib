@@ -1,11 +1,11 @@
-subroutine fkpca(k, n, centering, kpca)
-
+subroutine fkpca(k, n, centering, kpca) bind(C, name="fkpca")
+   use, intrinsic :: iso_c_binding
    implicit none
 
-   double precision, dimension(:, :), intent(in) :: k
-   integer, intent(in) :: n
-   logical, intent(in) :: centering
-   double precision, dimension(n, n), intent(out) :: kpca
+   integer(c_int), value :: n
+   integer(c_int), value :: centering  ! 0=false, 1=true
+   real(c_double), intent(in) :: k(n, n)
+   real(c_double), intent(out) :: kpca(n, n)
 
    ! Eigenvalues
    double precision, dimension(n) :: eigenvals
@@ -23,12 +23,19 @@ subroutine fkpca(k, n, centering, kpca)
 
    kpca(:, :) = k(:, :)
 
+   ! Validate input
+   if (n <= 0) then
+      write (*, *) "ERROR: Kernel PCA"
+      write (*, *) "n=", n, "must be positive"
+      stop
+   end if
+
    ! This first part centers the matrix,
    ! basically Kpca = K - G@K - K@G + G@K@G, with G = 1/n
    ! It is a bit hard to follow, sry, but it is very fast
    ! and requires very little memory overhead.
 
-   if (centering) then
+   if (centering /= 0) then
 
       inv_n = 1.0d0/n
 
