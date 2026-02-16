@@ -44,6 +44,14 @@ subroutine fgenerate_coulomb_matrix(atomic_charges, coordinates, natoms, nmax, c
 
    integer :: i, j, m, n, idx
 
+   ! Validate input dimensions
+   if (natoms > nmax) then
+      write (*, *) "ERROR: Coulomb matrix generation"
+      write (*, *) "natoms=", natoms, "but nmax=", nmax
+      write (*, *) "nmax must be >= natoms"
+      stop
+   end if
+
    ! Allocate temporary
    allocate (pair_distance_matrix(natoms, natoms))
    allocate (row_norms(natoms))
@@ -118,6 +126,14 @@ subroutine fgenerate_unsorted_coulomb_matrix(atomic_charges, coordinates, natoms
    double precision, allocatable, dimension(:, :) :: pair_distance_matrix
 
    integer :: i, j, m, n, idx
+
+   ! Validate input dimensions
+   if (natoms > nmax) then
+      write (*, *) "ERROR: Coulomb matrix generation"
+      write (*, *) "natoms=", natoms, "but nmax=", nmax
+      write (*, *) "nmax must be >= natoms"
+      stop
+   end if
 
    ! Allocate temporary
    allocate (pair_distance_matrix(natoms, natoms))
@@ -546,6 +562,14 @@ subroutine fgenerate_eigenvalue_coulomb_matrix(atomic_charges, coordinates, nato
    double precision, allocatable, dimension(:) :: eigenvalues
 
    integer :: i, j, info, lwork
+
+   ! Validate input dimensions
+   if (natoms > nmax) then
+      write (*, *) "ERROR: Coulomb matrix generation"
+      write (*, *) "natoms=", natoms, "but nmax=", nmax
+      write (*, *) "nmax must be >= natoms"
+      stop
+   end if
 
    ! Allocate temporary
    allocate (pair_distance_matrix(nmax, nmax))
