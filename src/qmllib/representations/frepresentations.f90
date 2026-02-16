@@ -24,16 +24,15 @@ contains
 
 end module representations
 
-subroutine fgenerate_coulomb_matrix(atomic_charges, coordinates, nmax, cm)
-
+subroutine fgenerate_coulomb_matrix(atomic_charges, coordinates, natoms, nmax, cm) &
+      bind(C, name="fgenerate_coulomb_matrix")
+   use, intrinsic :: iso_c_binding
    implicit none
 
-   double precision, dimension(:), intent(in) :: atomic_charges
-   double precision, dimension(:, :), intent(in) :: coordinates
-
-   integer, intent(in) :: nmax
-
-   double precision, dimension(((nmax + 1)*nmax)/2), intent(out):: cm
+   integer(c_int), value :: natoms, nmax
+   real(c_double), intent(in) :: atomic_charges(natoms)
+   real(c_double), intent(in) :: coordinates(natoms, 3)
+   real(c_double), intent(out) :: cm((nmax + 1)*nmax/2)
 
    double precision, allocatable, dimension(:) :: row_norms
    double precision :: pair_norm
@@ -44,16 +43,6 @@ subroutine fgenerate_coulomb_matrix(atomic_charges, coordinates, nmax, cm)
    double precision, allocatable, dimension(:, :) :: pair_distance_matrix
 
    integer :: i, j, m, n, idx
-   integer :: natoms
-
-   if (size(coordinates, dim=1) /= size(atomic_charges, dim=1)) then
-      write (*, *) "ERROR: Coulomb matrix generation"
-      write (*, *) size(coordinates, dim=1), "coordinates, but", &
-          & size(atomic_charges, dim=1), "atom_types!"
-      stop
-   else
-      natoms = size(atomic_charges, dim=1)
-   end if
 
    ! Allocate temporary
    allocate (pair_distance_matrix(natoms, natoms))
@@ -114,32 +103,21 @@ subroutine fgenerate_coulomb_matrix(atomic_charges, coordinates, nmax, cm)
    deallocate (sorted_atoms)
 end subroutine fgenerate_coulomb_matrix
 
-subroutine fgenerate_unsorted_coulomb_matrix(atomic_charges, coordinates, nmax, cm)
-
+subroutine fgenerate_unsorted_coulomb_matrix(atomic_charges, coordinates, natoms, nmax, cm) &
+      bind(C, name="fgenerate_unsorted_coulomb_matrix")
+   use, intrinsic :: iso_c_binding
    implicit none
 
-   double precision, dimension(:), intent(in) :: atomic_charges
-   double precision, dimension(:, :), intent(in) :: coordinates
-
-   integer, intent(in) :: nmax
-
-   double precision, dimension(((nmax + 1)*nmax)/2), intent(out):: cm
+   integer(c_int), value :: natoms, nmax
+   real(c_double), intent(in) :: atomic_charges(natoms)
+   real(c_double), intent(in) :: coordinates(natoms, 3)
+   real(c_double), intent(out) :: cm((nmax + 1)*nmax/2)
 
    double precision :: pair_norm
 
    double precision, allocatable, dimension(:, :) :: pair_distance_matrix
 
    integer :: i, j, m, n, idx
-   integer :: natoms
-
-   if (size(coordinates, dim=1) /= size(atomic_charges, dim=1)) then
-      write (*, *) "ERROR: Coulomb matrix generation"
-      write (*, *) size(coordinates, dim=1), "coordinates, but", &
-          & size(atomic_charges, dim=1), "atom_types!"
-      stop
-   else
-      natoms = size(atomic_charges, dim=1)
-   end if
 
    ! Allocate temporary
    allocate (pair_distance_matrix(natoms, natoms))
@@ -180,19 +158,16 @@ end subroutine fgenerate_unsorted_coulomb_matrix
 
 subroutine fgenerate_local_coulomb_matrix(central_atom_indices, central_natoms, &
         & atomic_charges, coordinates, natoms, nmax, cent_cutoff, cent_decay, &
-        & int_cutoff, int_decay, cm)
-
+        & int_cutoff, int_decay, cm) bind(C, name="fgenerate_local_coulomb_matrix")
+   use, intrinsic :: iso_c_binding
    implicit none
 
-   integer, intent(in) :: central_natoms
-   integer, dimension(:), intent(in) :: central_atom_indices
-   double precision, dimension(:), intent(in) :: atomic_charges
-   double precision, dimension(:, :), intent(in) :: coordinates
-   integer, intent(in) :: natoms
-   integer, intent(in) :: nmax
-   double precision, intent(inout) :: cent_cutoff, cent_decay, int_cutoff, int_decay
-
-   double precision, dimension(central_natoms, ((nmax + 1)*nmax)/2), intent(out):: cm
+   integer(c_int), value :: central_natoms, natoms, nmax
+   integer(c_int), intent(in) :: central_atom_indices(central_natoms)
+   real(c_double), intent(in) :: atomic_charges(natoms)
+   real(c_double), intent(in) :: coordinates(natoms, 3)
+   real(c_double), intent(inout) :: cent_cutoff, cent_decay, int_cutoff, int_decay
+   real(c_double), intent(out) :: cm(central_natoms, (nmax + 1)*nmax/2)
 
    integer :: idx
 
@@ -212,13 +187,6 @@ subroutine fgenerate_local_coulomb_matrix(central_atom_indices, central_natoms, 
    integer i, j, m, n, k, l
 
    double precision, parameter :: pi = 4.0d0*atan(1.0d0)
-
-   if (size(coordinates, dim=1) /= size(atomic_charges, dim=1)) then
-      write (*, *) "ERROR: Coulomb matrix generation"
-      write (*, *) size(coordinates, dim=1), "coordinates, but", &
-          & size(atomic_charges, dim=1), "atom_types!"
-      stop
-   end if
 
    ! Allocate temporary
    allocate (distance_matrix(natoms, natoms))
@@ -385,19 +353,17 @@ subroutine fgenerate_local_coulomb_matrix(central_atom_indices, central_natoms, 
 end subroutine fgenerate_local_coulomb_matrix
 
 subroutine fgenerate_atomic_coulomb_matrix(central_atom_indices, central_natoms, atomic_charges, &
-        & coordinates, natoms, nmax, cent_cutoff, cent_decay, int_cutoff, int_decay, cm)
-
+        & coordinates, natoms, nmax, cent_cutoff, cent_decay, int_cutoff, int_decay, cm) &
+        bind(C, name="fgenerate_atomic_coulomb_matrix")
+   use, intrinsic :: iso_c_binding
    implicit none
 
-   integer, dimension(:), intent(in) :: central_atom_indices
-   integer, intent(in) :: central_natoms
-   double precision, dimension(:), intent(in) :: atomic_charges
-   double precision, dimension(:, :), intent(in) :: coordinates
-   integer, intent(in) :: natoms
-   integer, intent(in) :: nmax
-   double precision, intent(inout) :: cent_cutoff, cent_decay, int_cutoff, int_decay
-
-   double precision, dimension(central_natoms, ((nmax + 1)*nmax)/2), intent(out):: cm
+   integer(c_int), value :: central_natoms, natoms, nmax
+   integer(c_int), intent(in) :: central_atom_indices(central_natoms)
+   real(c_double), intent(in) :: atomic_charges(natoms)
+   real(c_double), intent(in) :: coordinates(natoms, 3)
+   real(c_double), intent(inout) :: cent_cutoff, cent_decay, int_cutoff, int_decay
+   real(c_double), intent(out) :: cm(central_natoms, (nmax + 1)*nmax/2)
 
    integer :: idx
 
@@ -416,13 +382,6 @@ subroutine fgenerate_atomic_coulomb_matrix(central_atom_indices, central_natoms,
    integer i, j, m, n, k, l
 
    double precision, parameter :: pi = 4.0d0*atan(1.0d0)
-
-   if (size(coordinates, dim=1) /= size(atomic_charges, dim=1)) then
-      write (*, *) "ERROR: Coulomb matrix generation"
-      write (*, *) size(coordinates, dim=1), "coordinates, but", &
-          & size(atomic_charges, dim=1), "atom_types!"
-      stop
-   end if
 
    ! Allocate temporary
    allocate (distance_matrix(natoms, natoms))
@@ -568,16 +527,15 @@ subroutine fgenerate_atomic_coulomb_matrix(central_atom_indices, central_natoms,
 
 end subroutine fgenerate_atomic_coulomb_matrix
 
-subroutine fgenerate_eigenvalue_coulomb_matrix(atomic_charges, coordinates, nmax, sorted_eigenvalues)
-
+subroutine fgenerate_eigenvalue_coulomb_matrix(atomic_charges, coordinates, natoms, nmax, sorted_eigenvalues) &
+      bind(C, name="fgenerate_eigenvalue_coulomb_matrix")
+   use, intrinsic :: iso_c_binding
    implicit none
 
-   double precision, dimension(:), intent(in) :: atomic_charges
-   double precision, dimension(:, :), intent(in) :: coordinates
-
-   integer, intent(in) :: nmax
-
-   double precision, dimension(nmax), intent(out) :: sorted_eigenvalues
+   integer(c_int), value :: natoms, nmax
+   real(c_double), intent(in) :: atomic_charges(natoms)
+   real(c_double), intent(in) :: coordinates(natoms, 3)
+   real(c_double), intent(out) :: sorted_eigenvalues(nmax)
 
    double precision :: pair_norm
    double precision :: huge_double
@@ -588,16 +546,6 @@ subroutine fgenerate_eigenvalue_coulomb_matrix(atomic_charges, coordinates, nmax
    double precision, allocatable, dimension(:) :: eigenvalues
 
    integer :: i, j, info, lwork
-   integer :: natoms
-
-   if (size(coordinates, dim=1) /= size(atomic_charges, dim=1)) then
-      write (*, *) "ERROR: Coulomb matrix generation"
-      write (*, *) size(coordinates, dim=1), "coordinates, but", &
-          & size(atomic_charges, dim=1), "atom_types!"
-      stop
-   else
-      natoms = size(atomic_charges, dim=1)
-   end if
 
    ! Allocate temporary
    allocate (pair_distance_matrix(nmax, nmax))
@@ -650,22 +598,22 @@ subroutine fgenerate_eigenvalue_coulomb_matrix(atomic_charges, coordinates, nmax
 end subroutine fgenerate_eigenvalue_coulomb_matrix
 
 subroutine fgenerate_bob(atomic_charges, coordinates, nuclear_charges, id, &
-    & nmax, ncm, cm)
+    & nmax, nid, ncm, natoms, cm) bind(C, name="fgenerate_bob")
 
    use representations, only: get_indices
+   use, intrinsic :: iso_c_binding
    implicit none
 
-   double precision, dimension(:), intent(in) :: atomic_charges
-   double precision, dimension(:, :), intent(in) :: coordinates
-   integer, dimension(:), intent(in) :: nuclear_charges
-   integer, dimension(:), intent(in) :: id
-   integer, dimension(:), intent(in) :: nmax
-   integer, intent(in) :: ncm
+   integer(c_int), value :: nid, ncm, natoms
+   real(c_double), intent(in) :: atomic_charges(natoms)
+   real(c_double), intent(in) :: coordinates(natoms, 3)
+   integer(c_int), intent(in) :: nuclear_charges(natoms)
+   integer(c_int), intent(in) :: id(nid)
+   integer(c_int), intent(in) :: nmax(nid)
+   real(c_double), intent(out) :: cm(ncm)
 
-   double precision, dimension(ncm), intent(out):: cm
-
-   integer :: n, i, j, k, l, idx1, idx2, nid, nbag
-   integer :: natoms, natoms1, natoms2, type1, type2
+   integer :: n, i, j, k, l, idx1, idx2, nbag
+   integer :: natoms1, natoms2, type1, type2
 
    integer, allocatable, dimension(:) :: type1_indices
    integer, allocatable, dimension(:) :: type2_indices
@@ -676,29 +624,6 @@ subroutine fgenerate_bob(atomic_charges, coordinates, nuclear_charges, id, &
 
    double precision, allocatable, dimension(:) :: bag
    double precision, allocatable, dimension(:, :) :: pair_distance_matrix
-
-   if (size(coordinates, dim=1) /= size(atomic_charges, dim=1)) then
-      write (*, *) "ERROR: Bag of Bonds generation"
-      write (*, *) size(coordinates, dim=1), "coordinates, but", &
-          & size(atomic_charges, dim=1), "atom_types!"
-      stop
-   else if (size(coordinates, dim=1) /= size(nuclear_charges, dim=1)) then
-      write (*, *) "ERROR: Coulomb matrix generation"
-      write (*, *) size(coordinates, dim=1), "coordinates, but", &
-          & size(nuclear_charges, dim=1), "atom_types!"
-      stop
-   else
-      natoms = size(atomic_charges, dim=1)
-   end if
-
-   if (size(id, dim=1) /= size(nmax, dim=1)) then
-      write (*, *) "ERROR: Bag of Bonds generation"
-      write (*, *) size(id, dim=1), "unique atom types, but", &
-          & size(nmax, dim=1), "max size!"
-      stop
-   else
-      nid = size(id, dim=1)
-   end if
 
    n = 0
    !$OMP PARALLEL DO REDUCTION(+:n)
