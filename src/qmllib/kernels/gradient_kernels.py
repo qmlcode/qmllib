@@ -9,7 +9,8 @@ from qmllib.utils.environment_manipulation import (
     mkl_set_num_threads,
 )
 
-from .fgradient_kernels import (
+# Import from pybind11 module
+from qmllib._fgradient_kernels import (
     fatomic_local_gradient_kernel,
     fatomic_local_kernel,
     fgaussian_process_kernel,
@@ -62,10 +63,12 @@ def get_global_kernel(
     if not (N1.shape[0] == X1.shape[0]):
         raise ValueError("List of charges does not match shape of representations")
     if not (N2.shape[0] == X2.shape[0]):
-        raise ValueError("Error: List of charges does not match shape of representations")
+        raise ValueError(
+            "Error: List of charges does not match shape of representations"
+        )
 
-    Q1_input = np.zeros((max(N1), X1.shape[0]), dtype=np.int32)
-    Q2_input = np.zeros((max(N2), X2.shape[0]), dtype=np.int32)
+    Q1_input = np.zeros((X1.shape[1], X1.shape[0]), dtype=np.int32)
+    Q2_input = np.zeros((X2.shape[1], X2.shape[0]), dtype=np.int32)
 
     for i, q in enumerate(Q1):
         Q1_input[: len(q), i] = q
@@ -79,7 +82,11 @@ def get_global_kernel(
 
 
 def get_local_kernels(
-    X1: ndarray, X2: ndarray, Q1: List[List[int]], Q2: List[List[int]], SIGMAS: List[float]
+    X1: ndarray,
+    X2: ndarray,
+    Q1: List[List[int]],
+    Q2: List[List[int]],
+    SIGMAS: List[float],
 ) -> ndarray:
     """Calculates the Gaussian kernel matrix K with the local decomposition where :math:`K_{ij}`:
 
@@ -113,12 +120,16 @@ def get_local_kernels(
     N2 = np.array([len(Q) for Q in Q2], dtype=np.int32)
 
     if not (N1.shape[0] == X1.shape[0]):
-        raise ValueError("Error: List of charges does not match shape of representations")
+        raise ValueError(
+            "Error: List of charges does not match shape of representations"
+        )
     if not (N2.shape[0] == X2.shape[0]):
-        raise ValueError("Error: List of charges does not match shape of representations")
+        raise ValueError(
+            "Error: List of charges does not match shape of representations"
+        )
 
-    Q1_input = np.zeros((max(N1), X1.shape[0]), dtype=np.int32)
-    Q2_input = np.zeros((max(N2), X2.shape[0]), dtype=np.int32)
+    Q1_input = np.zeros((X1.shape[1], X1.shape[0]), dtype=np.int32)
+    Q2_input = np.zeros((X2.shape[1], X2.shape[0]), dtype=np.int32)
 
     sigmas_input = np.array(SIGMAS, dtype=np.float64)
     nsigmas = len(SIGMAS)
@@ -129,7 +140,9 @@ def get_local_kernels(
     for i, q in enumerate(Q2):
         Q2_input[: len(q), i] = q
 
-    K = flocal_kernels(X1, X2, Q1_input, Q2_input, N1, N2, len(N1), len(N2), sigmas_input, nsigmas)
+    K = flocal_kernels(
+        X1, X2, Q1_input, Q2_input, N1, N2, len(N1), len(N2), sigmas_input, nsigmas
+    )
 
     return K
 
@@ -177,8 +190,9 @@ def get_local_kernel(
     if not (N2.shape[0] == X2.shape[0]):
         raise ValueError("List of charges does not match shape of representations")
 
-    Q1_input = np.zeros((max(N1), X1.shape[0]), dtype=np.int32)
-    Q2_input = np.zeros((max(N2), X2.shape[0]), dtype=np.int32)
+    # CRITICAL: Q_input arrays must match X's padding size (X.shape[1]), not just max(N)
+    Q1_input = np.zeros((X1.shape[1], X1.shape[0]), dtype=np.int32)
+    Q2_input = np.zeros((X2.shape[1], X2.shape[0]), dtype=np.int32)
 
     for i, q in enumerate(Q1):
         Q1_input[: len(q), i] = q
@@ -186,12 +200,24 @@ def get_local_kernel(
     for i, q in enumerate(Q2):
         Q2_input[: len(q), i] = q
 
-    K = flocal_kernel(X1, X2, Q1_input, Q2_input, N1, N2, len(N1), len(N2), SIGMA)
+    # Convert to Fortran order for compatibility with Fortran routine
+    X1_f = np.asfortranarray(X1)
+    X2_f = np.asfortranarray(X2)
+    Q1_input_f = np.asfortranarray(Q1_input)
+    Q2_input_f = np.asfortranarray(Q2_input)
+    N1_f = np.asfortranarray(N1)
+    N2_f = np.asfortranarray(N2)
+
+    K = flocal_kernel(
+        X1_f, X2_f, Q1_input_f, Q2_input_f, N1_f, N2_f, len(N1), len(N2), SIGMA
+    )
 
     return K
 
 
-def get_local_symmetric_kernels(X1: ndarray, Q1: List[List[int]], SIGMAS: List[float]) -> ndarray:
+def get_local_symmetric_kernels(
+    X1: ndarray, Q1: List[List[int]], SIGMAS: List[float]
+) -> ndarray:
     """Calculates the Gaussian kernel matrix K with the local decomposition where :math:`K_{ij}`:
 
         :math:`K_{ij} = \\sum_{I\\in i} \\sum_{J\\in j}\\exp \\big( -\\frac{\\|X_I - X_J\\|_2^2}{2\\sigma^2} \\big)`
@@ -223,9 +249,11 @@ def get_local_symmetric_kernels(X1: ndarray, Q1: List[List[int]], SIGMAS: List[f
     N1 = np.array([len(Q) for Q in Q1], dtype=np.int32)
 
     if not (N1.shape[0] == X1.shape[0]):
-        raise ValueError("Error: List of charges does not match shape of representations")
+        raise ValueError(
+            "Error: List of charges does not match shape of representations"
+        )
 
-    Q1_input = np.zeros((max(N1), X1.shape[0]), dtype=np.int32)
+    Q1_input = np.zeros((X1.shape[1], X1.shape[0]), dtype=np.int32)
     for i, q in enumerate(Q1):
         Q1_input[: len(q), i] = q
 
@@ -269,13 +297,21 @@ def get_local_symmetric_kernel(
     N1 = np.array([len(Q) for Q in Q1], dtype=np.int32)
 
     if not (N1.shape[0] == X1.shape[0]):
-        raise ValueError("Error: List of charges does not match shape of representations")
+        raise ValueError(
+            "Error: List of charges does not match shape of representations"
+        )
 
-    Q1_input = np.zeros((max(N1), X1.shape[0]), dtype=np.int32)
+    # CRITICAL: Q1_input must match X1's padding size (X1.shape[1]), not just max(N1)
+    Q1_input = np.zeros((X1.shape[1], X1.shape[0]), dtype=np.int32)
     for i, q in enumerate(Q1):
         Q1_input[: len(q), i] = q
 
-    K = fsymmetric_local_kernel(X1, Q1_input, N1, len(N1), SIGMA)
+    # Convert to Fortran order for compatibility with Fortran routine
+    X1_f = np.asfortranarray(X1)
+    Q1_input_f = np.asfortranarray(Q1_input)
+    N1_f = np.asfortranarray(N1)
+
+    K = fsymmetric_local_kernel(X1_f, Q1_input_f, N1_f, len(N1), SIGMA)
 
     return K
 
@@ -326,8 +362,8 @@ def get_atomic_local_kernel(
     if not (N2.shape[0] == X2.shape[0]):
         raise ValueError("List of charges does not match shape of representations")
 
-    Q1_input = np.zeros((max(N1), X1.shape[0]), dtype=np.int32)
-    Q2_input = np.zeros((max(N2), X2.shape[0]), dtype=np.int32)
+    Q1_input = np.zeros((X1.shape[1], X1.shape[0]), dtype=np.int32)
+    Q2_input = np.zeros((X2.shape[1], X2.shape[0]), dtype=np.int32)
 
     for i, q in enumerate(Q1):
         Q1_input[: len(q), i] = q
@@ -389,8 +425,8 @@ def get_atomic_local_gradient_kernel(
     if not (N2.shape[0] == X2.shape[0]):
         raise ValueError("List of charges does not match shape of representations")
 
-    Q1_input = np.zeros((max(N1), X1.shape[0]), dtype=np.int32)
-    Q2_input = np.zeros((max(N2), X2.shape[0]), dtype=np.int32)
+    Q1_input = np.zeros((X1.shape[1], X1.shape[0]), dtype=np.int32)
+    Q2_input = np.zeros((X2.shape[1], X2.shape[0]), dtype=np.int32)
 
     for i, q in enumerate(Q1):
         Q1_input[: len(q), i] = q
@@ -427,7 +463,12 @@ def get_atomic_local_gradient_kernel(
 
 
 def get_local_gradient_kernel(
-    X1: ndarray, X2: ndarray, dX2: ndarray, Q1: List[List[int]], Q2: List[List[int]], SIGMA: float
+    X1: ndarray,
+    X2: ndarray,
+    dX2: ndarray,
+    Q1: List[List[int]],
+    Q2: List[List[int]],
+    SIGMA: float,
 ) -> ndarray:
     """Calculates the Gaussian kernel matrix K with the local decomposition where :math:`K_{ij}`:
 
@@ -468,8 +509,8 @@ def get_local_gradient_kernel(
     if not (N2.shape[0] == X2.shape[0]):
         raise ValueError("List of charges does not match shape of representations")
 
-    Q1_input = np.zeros((max(N1), X1.shape[0]), dtype=np.int32)
-    Q2_input = np.zeros((max(N2), X2.shape[0]), dtype=np.int32)
+    Q1_input = np.zeros((X1.shape[1], X1.shape[0]), dtype=np.int32)
+    Q2_input = np.zeros((X2.shape[1], X2.shape[0]), dtype=np.int32)
 
     for i, q in enumerate(Q1):
         Q1_input[: len(q), i] = q
@@ -543,8 +584,8 @@ def get_gdml_kernel(
     if not (N2.shape[0] == X2.shape[0]):
         raise ValueError("List of charges does not match shape of representations")
 
-    Q1_input = np.zeros((max(N1), X1.shape[0]), dtype=np.int32)
-    Q2_input = np.zeros((max(N2), X2.shape[0]), dtype=np.int32)
+    Q1_input = np.zeros((X1.shape[1], X1.shape[0]), dtype=np.int32)
+    Q2_input = np.zeros((X2.shape[1], X2.shape[0]), dtype=np.int32)
 
     for i, q in enumerate(Q1):
         Q1_input[: len(q), i] = q
@@ -614,7 +655,7 @@ def get_symmetric_gdml_kernel(
     if not (N1.shape[0] == X1.shape[0]):
         raise ValueError("List of charges does not match shape of representations")
 
-    Q1_input = np.zeros((max(N1), X1.shape[0]), dtype=np.int32)
+    Q1_input = np.zeros((X1.shape[1], X1.shape[0]), dtype=np.int32)
 
     for i, q in enumerate(Q1):
         Q1_input[: len(q), i] = q
@@ -680,8 +721,8 @@ def get_gp_kernel(
     if not (N2.shape[0] == X2.shape[0]):
         raise ValueError("List of charges does not match shape of representations")
 
-    Q1_input = np.zeros((max(N1), X1.shape[0]), dtype=np.int32)
-    Q2_input = np.zeros((max(N2), X2.shape[0]), dtype=np.int32)
+    Q1_input = np.zeros((X1.shape[1], X1.shape[0]), dtype=np.int32)
+    Q2_input = np.zeros((X2.shape[1], X2.shape[0]), dtype=np.int32)
 
     for i, q in enumerate(Q1):
         Q1_input[: len(q), i] = q
@@ -749,7 +790,7 @@ def get_symmetric_gp_kernel(
     if not (N1.shape[0] == X1.shape[0]):
         raise ValueError("List of charges does not match shape of representations")
 
-    Q1_input = np.zeros((max(N1), X1.shape[0]), dtype=np.int32)
+    Q1_input = np.zeros((X1.shape[1], X1.shape[0]), dtype=np.int32)
 
     for i, q in enumerate(Q1):
         Q1_input[: len(q), i] = q
@@ -758,7 +799,9 @@ def get_symmetric_gp_kernel(
     original_mkl_threads = mkl_get_num_threads()
     mkl_set_num_threads(1)
 
-    K = fsymmetric_gaussian_process_kernel(X1, dX1, Q1_input, N1, len(N1), np.sum(N1), SIGMA)
+    K = fsymmetric_gaussian_process_kernel(
+        X1, dX1, Q1_input, N1, len(N1), np.sum(N1), SIGMA
+    )
 
     # Reset MKL_NUM_THREADS back to its original value
     mkl_set_num_threads(original_mkl_threads)

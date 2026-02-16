@@ -6,13 +6,12 @@ from numpy import int64, ndarray
 
 from qmllib.constants.periodic_table import NUCLEAR_CHARGE
 
-# TODO: Convert facsf from f2py to pybind11
-# from .facsf import (
-#     fgenerate_acsf,
-#     fgenerate_acsf_and_gradients,
-#     fgenerate_fchl_acsf,
-#     fgenerate_fchl_acsf_and_gradients,
-# )
+from qmllib._facsf import (
+    fgenerate_acsf,
+    fgenerate_acsf_and_gradients,
+    fgenerate_fchl_acsf,
+    fgenerate_fchl_acsf_and_gradients,
+)
 from qmllib._representations import (
     fgenerate_atomic_coulomb_matrix,
     fgenerate_bob,

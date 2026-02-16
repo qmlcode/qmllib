@@ -78,26 +78,28 @@ end module acsf_utils
 
 
 subroutine fgenerate_acsf(coordinates, nuclear_charges, elements, &
-                          & Rs2, Rs3, Ts, eta2, eta3, zeta, rcut, acut, natoms, rep_size, rep)
+                          & Rs2, Rs3, Ts, eta2, eta3, zeta, rcut, acut, natoms, rep_size, rep, &
+                          & n_elements, n_Rs2, n_Rs3, n_Ts) bind(C, name="fgenerate_acsf")
 
+    use, intrinsic :: iso_c_binding
     use acsf_utils, only: decay, calc_angle
 
     implicit none
 
-    double precision, intent(in), dimension(:, :) :: coordinates
-    integer, intent(in), dimension(:) :: nuclear_charges
-    integer, intent(in), dimension(:) :: elements
-    double precision, intent(in), dimension(:) :: Rs2
-    double precision, intent(in), dimension(:) :: Rs3
-    double precision, intent(in), dimension(:) :: Ts
-    double precision, intent(in) :: eta2
-    double precision, intent(in) :: eta3
-    double precision, intent(in) :: zeta
-    double precision, intent(in) :: rcut
-    double precision, intent(in) :: acut
-    integer, intent(in) :: natoms
-    integer, intent(in) :: rep_size
-    double precision, intent(out), dimension(natoms, rep_size) :: rep
+    integer(c_int), intent(in), value :: natoms, rep_size, n_elements, n_Rs2, n_Rs3, n_Ts
+
+    double precision, dimension(natoms, 3), intent(in) :: coordinates
+    integer, dimension(natoms), intent(in) :: nuclear_charges
+    integer, dimension(n_elements), intent(in) :: elements
+    double precision, dimension(n_Rs2), intent(in) :: Rs2
+    double precision, dimension(n_Rs3), intent(in) :: Rs3
+    double precision, dimension(n_Ts), intent(in) :: Ts
+    double precision, intent(in), value :: eta2
+    double precision, intent(in), value :: eta3
+    double precision, intent(in), value :: zeta
+    double precision, intent(in), value :: rcut
+    double precision, intent(in), value :: acut
+    double precision, dimension(natoms, rep_size), intent(out) :: rep
 
     integer :: i, j, k, l, n, m, p, q, s, z, nelements, nbasis2, nbasis3, nabasis
     integer, allocatable, dimension(:) :: element_types
@@ -107,16 +109,8 @@ subroutine fgenerate_acsf(coordinates, nuclear_charges, elements, &
 
     double precision, parameter :: pi = 4.0d0 * atan(1.0d0)
 
-    if (natoms /= size(nuclear_charges, dim=1)) then
-        write(*,*) "ERROR: Atom Centered Symmetry Functions creation"
-        write(*,*) natoms, "coordinates, but", &
-            & size(nuclear_charges, dim=1), "atom_types!"
-        stop
-    endif
-
-
     ! number of element types
-    nelements = size(elements)
+    nelements = n_elements
     ! Allocate temporary
     allocate(element_types(natoms))
 
@@ -150,7 +144,7 @@ subroutine fgenerate_acsf(coordinates, nuclear_charges, elements, &
     !$OMP END PARALLEL DO
 
     ! number of basis functions in the two body term
-    nbasis2 = size(Rs2)
+    nbasis2 = n_Rs2
 
     ! Inverse of the two body cutoff
     invcut = 1.0d0 / rcut
@@ -189,9 +183,9 @@ subroutine fgenerate_acsf(coordinates, nuclear_charges, elements, &
     deallocate(rep_subset)
 
     ! number of radial basis functions in the three body term
-    nbasis3 = size(Rs3)
+    nbasis3 = n_Rs3
     ! number of radial basis functions in the three body term
-    nabasis = size(Ts)
+    nabasis = n_Ts
 
     ! Inverse of the three body cutoff
     invcut = 1.0d0 / acut
@@ -270,27 +264,29 @@ end subroutine fgenerate_acsf
 
 subroutine fgenerate_acsf_and_gradients(coordinates, nuclear_charges, elements, &
                           & Rs2, Rs3, Ts, eta2, eta3, zeta, rcut, acut, natoms, &
-                          & rep_size, rep, grad)
+                          & rep_size, rep, grad, n_elements, n_Rs2, n_Rs3, n_Ts) &
+                          & bind(C, name="fgenerate_acsf_and_gradients")
 
+    use, intrinsic :: iso_c_binding
     use acsf_utils, only: decay, calc_angle
 
     implicit none
 
-    double precision, intent(in), dimension(:, :) :: coordinates
-    integer, intent(in), dimension(:) :: nuclear_charges
-    integer, intent(in), dimension(:) :: elements
-    double precision, intent(in), dimension(:) :: Rs2
-    double precision, intent(in), dimension(:) :: Rs3
-    double precision, intent(in), dimension(:) :: Ts
-    double precision, intent(in) :: eta2
-    double precision, intent(in) :: eta3
-    double precision, intent(in) :: zeta
-    double precision, intent(in) :: rcut
-    double precision, intent(in) :: acut
-    integer, intent(in) :: natoms
-    integer, intent(in) :: rep_size
-    double precision, intent(out), dimension(natoms, rep_size) :: rep
-    double precision, intent(out), dimension(natoms, rep_size, natoms, 3) :: grad
+    integer(c_int), intent(in), value :: natoms, rep_size, n_elements, n_Rs2, n_Rs3, n_Ts
+
+    double precision, dimension(natoms, 3), intent(in) :: coordinates
+    integer, dimension(natoms), intent(in) :: nuclear_charges
+    integer, dimension(n_elements), intent(in) :: elements
+    double precision, dimension(n_Rs2), intent(in) :: Rs2
+    double precision, dimension(n_Rs3), intent(in) :: Rs3
+    double precision, dimension(n_Ts), intent(in) :: Ts
+    double precision, intent(in), value :: eta2
+    double precision, intent(in), value :: eta3
+    double precision, intent(in), value :: zeta
+    double precision, intent(in), value :: rcut
+    double precision, intent(in), value :: acut
+    double precision, dimension(natoms, rep_size), intent(out) :: rep
+    double precision, dimension(natoms, rep_size, natoms, 3), intent(out) :: grad
 
     integer :: i, j, k, l, n, m, p, q, s, t, z, nelements, nbasis2, nbasis3, nabasis, twobody_size
     integer, allocatable, dimension(:) :: element_types
@@ -308,16 +304,8 @@ subroutine fgenerate_acsf_and_gradients(coordinates, nuclear_charges, elements, 
 
     double precision, parameter :: pi = 4.0d0 * atan(1.0d0)
 
-    if (natoms /= size(nuclear_charges, dim=1)) then
-        write(*,*) "ERROR: Atom Centered Symmetry Functions creation"
-        write(*,*) natoms, "coordinates, but", &
-            & size(nuclear_charges, dim=1), "atom_types!"
-        stop
-    endif
-
-
     ! Number of unique elements
-    nelements = size(elements)
+    nelements = n_elements
     ! Allocate temporary
     allocate(element_types(natoms))
 
@@ -369,7 +357,7 @@ subroutine fgenerate_acsf_and_gradients(coordinates, nuclear_charges, elements, 
 
 
     ! Number of two body basis functions
-    nbasis2 = size(Rs2)
+    nbasis2 = n_Rs2
 
     ! Inverse of the two body cutoff distance
     invcut = 1.0d0 / rcut
@@ -438,9 +426,9 @@ subroutine fgenerate_acsf_and_gradients(coordinates, nuclear_charges, elements, 
 
 
     ! Number of radial basis functions in the three body term
-    nbasis3 = size(Rs3)
+    nbasis3 = n_Rs3
     ! Number of angular basis functions in the three body term
-    nabasis = size(Ts)
+    nabasis = n_Ts
     ! Size of two body terms
     twobody_size = nelements * nbasis2
 
@@ -613,30 +601,32 @@ end subroutine fgenerate_acsf_and_gradients
 
 subroutine fgenerate_fchl_acsf(coordinates, nuclear_charges, elements, &
                           & Rs2, Rs3, Ts, eta2, eta3, zeta, rcut, acut, natoms, rep_size, &
-                          & two_body_decay, three_body_decay, three_body_weight, rep)
+                          & two_body_decay, three_body_decay, three_body_weight, rep, &
+                          & n_elements, n_Rs2, n_Rs3, n_Ts) bind(C, name="fgenerate_fchl_acsf")
 
+    use, intrinsic :: iso_c_binding
     use acsf_utils, only: decay, calc_angle, calc_cos_angle
 
     implicit none
 
-    double precision, intent(in), dimension(:, :) :: coordinates
-    integer, intent(in), dimension(:) :: nuclear_charges
-    integer, intent(in), dimension(:) :: elements
-    double precision, intent(in), dimension(:) :: Rs2
-    double precision, intent(in), dimension(:) :: Rs3
-    double precision, intent(in), dimension(:) :: Ts
-    double precision, intent(in) :: eta2
-    double precision, intent(in) :: eta3
-    double precision, intent(in) :: zeta
-    double precision, intent(in) :: rcut
-    double precision, intent(in) :: acut
-    integer, intent(in) :: natoms
-    integer, intent(in) :: rep_size
-    double precision, intent(in) :: two_body_decay
-    double precision, intent(in) :: three_body_decay
-    double precision, intent(in) :: three_body_weight
+    integer(c_int), intent(in), value :: natoms, rep_size, n_elements, n_Rs2, n_Rs3, n_Ts
 
-    double precision, intent(out), dimension(natoms, rep_size) :: rep
+    double precision, dimension(natoms, 3), intent(in) :: coordinates
+    integer, dimension(natoms), intent(in) :: nuclear_charges
+    integer, dimension(n_elements), intent(in) :: elements
+    double precision, dimension(n_Rs2), intent(in) :: Rs2
+    double precision, dimension(n_Rs3), intent(in) :: Rs3
+    double precision, dimension(n_Ts), intent(in) :: Ts
+    double precision, intent(in), value :: eta2
+    double precision, intent(in), value :: eta3
+    double precision, intent(in), value :: zeta
+    double precision, intent(in), value :: rcut
+    double precision, intent(in), value :: acut
+    double precision, intent(in), value :: two_body_decay
+    double precision, intent(in), value :: three_body_decay
+    double precision, intent(in), value :: three_body_weight
+
+    double precision, dimension(natoms, rep_size), intent(out) :: rep
 
     integer :: i, j, k, l, n, m, o, p, q, s, z, nelements, nbasis2, nbasis3, nabasis
     integer, allocatable, dimension(:) :: element_types
@@ -650,16 +640,8 @@ subroutine fgenerate_fchl_acsf(coordinates, nuclear_charges, elements, &
     double precision, parameter :: pi = 4.0d0 * atan(1.0d0)
 
 
-    if (natoms /= size(nuclear_charges, dim=1)) then
-        write(*,*) "ERROR: Atom Centered Symmetry Functions creation"
-        write(*,*) natoms, "coordinates, but", &
-            & size(nuclear_charges, dim=1), "atom_types!"
-        stop
-    endif
-
-
     ! number of element types
-    nelements = size(elements)
+    nelements = n_elements
     ! Allocate temporary
     allocate(element_types(natoms))
 
@@ -693,7 +675,7 @@ subroutine fgenerate_fchl_acsf(coordinates, nuclear_charges, elements, &
     ! !$OMP END PARALLEL DO
 
     ! number of basis functions in the two body term
-    nbasis2 = size(Rs2)
+    nbasis2 = n_Rs2
 
     ! Inverse of the two body cutoff
     invcut = 1.0d0 / rcut
@@ -704,6 +686,7 @@ subroutine fgenerate_fchl_acsf(coordinates, nuclear_charges, elements, &
     ! Allocate temporary
     allocate(radial(nbasis2))
 
+    rep = 0.0d0
     radial = 0.0d0
     ! !$OMP PARALLEL DO PRIVATE(n,m,rij,radial) REDUCTION(+:rep)
     do i = 1, natoms
@@ -736,9 +719,9 @@ subroutine fgenerate_fchl_acsf(coordinates, nuclear_charges, elements, &
     deallocate(radial)
 
     ! number of radial basis functions in the three body term
-    nbasis3 = size(Rs3)
+    nbasis3 = n_Rs3
     ! number of radial basis functions in the three body term
-    nabasis = size(Ts)
+    nabasis = n_Ts
 
     ! Inverse of the three body cutoff
     invcut = 1.0d0 / acut
@@ -839,37 +822,39 @@ end subroutine fgenerate_fchl_acsf
 
 subroutine fgenerate_fchl_acsf_and_gradients(coordinates, nuclear_charges, elements, &
                     & Rs2, Rs3, Ts, eta2, eta3, zeta, rcut, acut, natoms, rep_size, &
-                    & two_body_decay, three_body_decay, three_body_weight, rep, grad)
+                    & two_body_decay, three_body_decay, three_body_weight, rep, grad, &
+                    & n_elements, n_Rs2, n_Rs3, n_Ts) bind(C, name="fgenerate_fchl_acsf_and_gradients")
 
+    use, intrinsic :: iso_c_binding
     use acsf_utils, only: decay, calc_angle, calc_cos_angle
 
     implicit none
 
-    double precision, intent(in), dimension(:, :) :: coordinates
-    integer, intent(in), dimension(:) :: nuclear_charges
-    integer, intent(in), dimension(:) :: elements
-    double precision, intent(in), dimension(:) :: Rs2
-    double precision, intent(in), dimension(:) :: Rs3
-    double precision, intent(in), dimension(:) :: Ts
-    double precision, intent(in) :: eta2
-    double precision, intent(in) :: eta3
-    double precision, intent(in) :: zeta
-    double precision, intent(in) :: rcut
-    double precision, intent(in) :: acut
+    integer(c_int), intent(in), value :: natoms, rep_size, n_elements, n_Rs2, n_Rs3, n_Ts
 
-    double precision, intent(in) :: two_body_decay
-    double precision, intent(in) :: three_body_decay
-    double precision, intent(in) :: three_body_weight
+    double precision, dimension(natoms, 3), intent(in) :: coordinates
+    integer, dimension(natoms), intent(in) :: nuclear_charges
+    integer, dimension(n_elements), intent(in) :: elements
+    double precision, dimension(n_Rs2), intent(in) :: Rs2
+    double precision, dimension(n_Rs3), intent(in) :: Rs3
+    double precision, dimension(n_Ts), intent(in) :: Ts
+    double precision, intent(in), value :: eta2
+    double precision, intent(in), value :: eta3
+    double precision, intent(in), value :: zeta
+    double precision, intent(in), value :: rcut
+    double precision, intent(in), value :: acut
+
+    double precision, intent(in), value :: two_body_decay
+    double precision, intent(in), value :: three_body_decay
+    double precision, intent(in), value :: three_body_weight
 
     double precision :: mu, sigma, dx, exp_s2, scaling, dscal, ddecay
     double precision :: cos_i, cos_j, cos_k
     double precision, allocatable, dimension(:) :: exp_ln
     double precision, allocatable, dimension(:) :: log_Rs2
 
-    integer, intent(in) :: natoms
-    integer, intent(in) :: rep_size
-    double precision, intent(out), dimension(natoms, rep_size) :: rep
-    double precision, intent(out), dimension(natoms, rep_size, natoms, 3) :: grad
+    double precision, dimension(natoms, rep_size), intent(out) :: rep
+    double precision, dimension(natoms, rep_size, natoms, 3), intent(out) :: grad
 
     integer :: i, j, k, l, m, n,  p, q, s, t, z, nelements, nbasis2, nbasis3, nabasis, twobody_size
     integer, allocatable, dimension(:) :: element_types
@@ -895,16 +880,8 @@ subroutine fgenerate_fchl_acsf_and_gradients(coordinates, nuclear_charges, eleme
 
     double precision, parameter :: pi = 4.0d0 * atan(1.0d0)
 
-    if (natoms /= size(nuclear_charges, dim=1)) then
-        write(*,*) "ERROR: Atom Centered Symmetry Functions creation"
-        write(*,*) natoms, "coordinates, but", &
-            & size(nuclear_charges, dim=1), "atom_types!"
-        stop
-    endif
-
-
     ! Number of unique elements
-    nelements = size(elements)
+    nelements = n_elements
     ! Allocate temporary
     allocate(element_types(natoms))
 
@@ -955,7 +932,7 @@ subroutine fgenerate_fchl_acsf_and_gradients(coordinates, nuclear_charges, eleme
 
 
     ! Number of two body basis functions
-    nbasis2 = size(Rs2)
+    nbasis2 = n_Rs2
 
     ! Inverse of the two body cutoff distance
     invcut = 1.0d0 / rcut
@@ -1038,9 +1015,9 @@ subroutine fgenerate_fchl_acsf_and_gradients(coordinates, nuclear_charges, eleme
 
 
     ! Number of radial basis functions in the three body term
-    nbasis3 = size(Rs3)
+    nbasis3 = n_Rs3
     ! Number of angular basis functions in the three body term
-    nabasis = size(Ts)
+    nabasis = n_Ts
     ! Size of two body terms
     twobody_size = nelements * nbasis2
 

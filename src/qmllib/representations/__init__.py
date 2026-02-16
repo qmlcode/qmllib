@@ -7,9 +7,9 @@
 #     generate_fchl18_electric_field,
 # )
 from qmllib.representations.representations import (  # noqa:F403
-    # TODO: Convert facsf and fslatm from f2py before enabling these
-    # generate_acsf,
-    # generate_fchl19,
+    generate_acsf,
+    generate_fchl19,
+    # TODO: Convert fslatm from f2py before enabling these
     # generate_slatm,
     # get_slatm_mbtypes,
     generate_bob,

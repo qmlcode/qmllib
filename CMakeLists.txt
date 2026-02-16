@@ -33,6 +33,14 @@ set_property(TARGET qmllib_fkernels PROPERTY POSITION_INDEPENDENT_CODE ON)
 add_library(qmllib_fdistance OBJECT src/qmllib/kernels/fdistance.f90)
 set_property(TARGET qmllib_fdistance PROPERTY POSITION_INDEPENDENT_CODE ON)
 
+# Fortran gradient kernels as an object library
+add_library(qmllib_fgradient_kernels OBJECT src/qmllib/kernels/fgradient_kernels.f90)
+set_property(TARGET qmllib_fgradient_kernels PROPERTY POSITION_INDEPENDENT_CODE ON)
+
+# Fortran ACSF/FCHL representations as an object library
+add_library(qmllib_facsf OBJECT src/qmllib/representations/facsf.f90)
+set_property(TARGET qmllib_facsf PROPERTY POSITION_INDEPENDENT_CODE ON)
+
 # Build the Python extension module for solvers
 pybind11_add_module(_solvers MODULE
     src/qmllib/solvers/bindings_solvers.cpp
@@ -73,6 +81,22 @@ pybind11_add_module(_fdistance MODULE
 
 set_target_properties(_fdistance PROPERTIES OUTPUT_NAME "_fdistance")
 
+# Build the Python extension module for gradient kernels
+pybind11_add_module(_fgradient_kernels MODULE
+    src/qmllib/kernels/bindings_fgradient_kernels.cpp
+    $<TARGET_OBJECTS:qmllib_fgradient_kernels>
+)
+
+set_target_properties(_fgradient_kernels PROPERTIES OUTPUT_NAME "_fgradient_kernels")
+
+# Build the Python extension module for ACSF/FCHL representations
+pybind11_add_module(_facsf MODULE
+    src/qmllib/representations/bindings_facsf.cpp
+    $<TARGET_OBJECTS:qmllib_facsf>
+)
+
+set_target_properties(_facsf PROPERTIES OUTPUT_NAME "_facsf")
+
 find_package(OpenMP)
 if (OpenMP_Fortran_FOUND)
   target_link_libraries(_solvers PRIVATE OpenMP::OpenMP_Fortran)
@@ -80,6 +104,8 @@ if (OpenMP_Fortran_FOUND)
   target_link_libraries(_utils PRIVATE OpenMP::OpenMP_Fortran)
   target_link_libraries(_fkernels PRIVATE OpenMP::OpenMP_Fortran)
   target_link_libraries(_fdistance PRIVATE OpenMP::OpenMP_Fortran)
+  target_link_libraries(_fgradient_kernels PRIVATE OpenMP::OpenMP_Fortran)
+  target_link_libraries(_facsf PRIVATE OpenMP::OpenMP_Fortran)
 endif()
 
 # Optional BLAS/LAPACK backends
@@ -122,6 +148,8 @@ if(FORTRAN_OPT_FLAGS)
   target_compile_options(qmllib_utils PRIVATE ${FORTRAN_OPT_FLAGS})
   target_compile_options(qmllib_fkernels PRIVATE ${FORTRAN_OPT_FLAGS})
   target_compile_options(qmllib_fdistance PRIVATE ${FORTRAN_OPT_FLAGS})
+  target_compile_options(qmllib_fgradient_kernels PRIVATE ${FORTRAN_OPT_FLAGS})
+  target_compile_options(qmllib_facsf PRIVATE ${FORTRAN_OPT_FLAGS})
 endif()
 
 # Apply optimization flags to C++ binding modules
@@ -131,10 +159,12 @@ if(CXX_OPT_FLAGS)
   target_compile_options(_utils PRIVATE ${CXX_OPT_FLAGS})
   target_compile_options(_fkernels PRIVATE ${CXX_OPT_FLAGS})
   target_compile_options(_fdistance PRIVATE ${CXX_OPT_FLAGS})
+  target_compile_options(_fgradient_kernels PRIVATE ${CXX_OPT_FLAGS})
+  target_compile_options(_facsf PRIVATE ${CXX_OPT_FLAGS})
 endif()
 
 # Install the compiled extension into the Python package and the Python shim
-install(TARGETS _solvers _representations _utils _fkernels _fdistance
+install(TARGETS _solvers _representations _utils _fkernels _fdistance _fgradient_kernels _facsf
   LIBRARY DESTINATION qmllib   # Linux/macOS
   RUNTIME DESTINATION qmllib   # Windows (.pyd)
 )
