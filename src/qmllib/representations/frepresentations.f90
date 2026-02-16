@@ -204,6 +204,24 @@ subroutine fgenerate_local_coulomb_matrix(central_atom_indices, central_natoms, 
 
    double precision, parameter :: pi = 4.0d0*atan(1.0d0)
 
+   ! Validate input dimensions
+   if (natoms > nmax) then
+      write (*, *) "ERROR: Local Coulomb matrix generation"
+      write (*, *) "natoms=", natoms, "but nmax=", nmax
+      write (*, *) "nmax must be >= natoms"
+      stop
+   end if
+
+   ! Validate central atom indices are in valid range [1, natoms]
+   do i = 1, central_natoms
+      if (central_atom_indices(i) < 1 .OR. central_atom_indices(i) > natoms) then
+         write (*, *) "ERROR: Local Coulomb matrix generation"
+         write (*, *) "central_atom_indices(", i, ")=", central_atom_indices(i)
+         write (*, *) "Valid range is [1,", natoms, "]"
+         stop
+      end if
+   end do
+
    ! Allocate temporary
    allocate (distance_matrix(natoms, natoms))
    allocate (cutoff_count(natoms))
@@ -398,6 +416,24 @@ subroutine fgenerate_atomic_coulomb_matrix(central_atom_indices, central_natoms,
    integer i, j, m, n, k, l
 
    double precision, parameter :: pi = 4.0d0*atan(1.0d0)
+
+   ! Validate input dimensions
+   if (natoms > nmax) then
+      write (*, *) "ERROR: Atomic Coulomb matrix generation"
+      write (*, *) "natoms=", natoms, "but nmax=", nmax
+      write (*, *) "nmax must be >= natoms"
+      stop
+   end if
+
+   ! Validate central atom indices are in valid range [1, natoms]
+   do i = 1, central_natoms
+      if (central_atom_indices(i) < 1 .OR. central_atom_indices(i) > natoms) then
+         write (*, *) "ERROR: Atomic Coulomb matrix generation"
+         write (*, *) "central_atom_indices(", i, ")=", central_atom_indices(i)
+         write (*, *) "Valid range is [1,", natoms, "]"
+         stop
+      end if
+   end do
 
    ! Allocate temporary
    allocate (distance_matrix(natoms, natoms))
@@ -648,6 +684,15 @@ subroutine fgenerate_bob(atomic_charges, coordinates, nuclear_charges, id, &
 
    double precision, allocatable, dimension(:) :: bag
    double precision, allocatable, dimension(:, :) :: pair_distance_matrix
+
+   ! Validate that atomic_charges, coordinates, and nuclear_charges have consistent dimensions
+   ! Note: In bind(C) we receive natoms explicitly, so we trust the caller passed consistent arrays
+   ! However we can add a basic sanity check that natoms > 0
+   if (natoms <= 0) then
+      write (*, *) "ERROR: Bag of Bonds generation"
+      write (*, *) "natoms=", natoms, "must be positive"
+      stop
+   end if
 
    n = 0
    !$OMP PARALLEL DO REDUCTION(+:n)
