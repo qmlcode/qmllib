@@ -6,10 +6,10 @@ namespace py = pybind11;
 
 // Declare C ABI Fortran functions
 extern "C" {
-    void c_fcho_solve(double* A, const double* y, double* x, int n);
-    void c_fcho_invert(double* A, int n);
-    void c_fbkf_invert(double* A, int n);
-    void c_fbkf_solve(double* A, const double* y, double* x, int n);
+    void fcho_solve(double* A, const double* y, double* x, int n);
+    void fcho_invert(double* A, int n);
+    void fbkf_invert(double* A, int n);
+    void fbkf_solve(double* A, const double* y, double* x, int n);
 }
 
 // Wrapper for fcho_solve
@@ -48,7 +48,7 @@ void fcho_solve_wrapper(
     const double* y_ptr = static_cast<const double*>(bufY.ptr);
     double* x_ptr = static_cast<double*>(bufX.ptr);
 
-    c_fcho_solve(A_ptr, y_ptr, x_ptr, n);
+    fcho_solve(A_ptr, y_ptr, x_ptr, n);
 }
 
 // Wrapper for fcho_invert
@@ -71,7 +71,7 @@ py::array_t<double> fcho_invert_wrapper(
 
     double* A_ptr = static_cast<double*>(bufA_inv.ptr);
     
-    c_fcho_invert(A_ptr, n);
+    fcho_invert(A_ptr, n);
 
     // Copy lower triangle to upper triangle
     // In Fortran column-major: A[i,j] accessed as data[i + j*n]
@@ -105,7 +105,7 @@ py::array_t<double> fbkf_invert_wrapper(
 
     double* A_ptr = static_cast<double*>(bufA_inv.ptr);
     
-    c_fbkf_invert(A_ptr, n);
+    fbkf_invert(A_ptr, n);
 
     // Copy lower triangle to upper triangle
     // In Fortran column-major: A[i,j] accessed as data[i + j*n]
@@ -155,7 +155,7 @@ void fbkf_solve_wrapper(
     const double* y_ptr = static_cast<const double*>(bufY.ptr);
     double* x_ptr = static_cast<double*>(bufX.ptr);
 
-    c_fbkf_solve(A_ptr, y_ptr, x_ptr, n);
+    fbkf_solve(A_ptr, y_ptr, x_ptr, n);
 }
 
 PYBIND11_MODULE(_solvers, m) {
