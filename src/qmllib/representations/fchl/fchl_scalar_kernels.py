@@ -8,13 +8,21 @@ from qmllib.utils.alchemy import get_alchemy
 from .fchl_kernel_functions import get_kernel_parameters
 from .ffchl_module import (
     fget_atomic_kernels_fchl,
-    fget_atomic_local_kernels_fchl,
+    # fget_atomic_local_kernels_fchl,
     fget_atomic_symmetric_kernels_fchl,
     fget_global_kernels_fchl,
     fget_global_symmetric_kernels_fchl,
     fget_kernels_fchl,
     fget_symmetric_kernels_fchl,
 )
+
+# Temporary stubs for functions not yet migrated
+
+
+def fget_atomic_local_kernels_fchl(*args, **kwargs):
+    raise NotImplementedError(
+        "fget_atomic_local_kernels_fchl not yet migrated to pybind11"
+    )
 
 
 def get_local_kernels(
@@ -120,7 +128,9 @@ def get_local_kernels(
         alchemy, emax=100, r_width=alchemy_group_width, c_width=alchemy_period_width
     )
 
-    kernel_idx, kernel_parameters, n_kernels = get_kernel_parameters(kernel, kernel_args)
+    kernel_idx, kernel_parameters, n_kernels = get_kernel_parameters(
+        kernel, kernel_args
+    )
 
     return fget_kernels_fchl(
         A,
@@ -165,7 +175,9 @@ def get_local_symmetric_kernels(
     alchemy_period_width: float = 1.6,
     alchemy_group_width: float = 1.6,
     kernel: str = "gaussian",
-    kernel_args: Optional[Union[Dict[str, List[List[float]]], Dict[str, List[float]]]] = None,
+    kernel_args: Optional[
+        Union[Dict[str, List[List[float]]], Dict[str, List[float]]]
+    ] = None,
 ) -> ndarray:
     """Calculates the Gaussian kernel matrix K, where :math:`K_{ij}`:
 
@@ -231,7 +243,9 @@ def get_local_symmetric_kernels(
     doalchemy, pd = get_alchemy(
         alchemy, emax=100, r_width=alchemy_group_width, c_width=alchemy_period_width
     )
-    kernel_idx, kernel_parameters, n_kernels = get_kernel_parameters(kernel, kernel_args)
+    kernel_idx, kernel_parameters, n_kernels = get_kernel_parameters(
+        kernel, kernel_args
+    )
 
     return fget_symmetric_kernels_fchl(
         A,
@@ -588,8 +602,6 @@ def get_atomic_kernels(
         verbose,
         neighbors1,
         neighbors2,
-        na1,
-        na2,
         nsigmas,
         three_body_width,
         two_body_width,
@@ -691,7 +703,6 @@ def get_atomic_symmetric_kernels(
         A,
         verbose,
         neighbors1,
-        na1,
         nsigmas,
         three_body_width,
         two_body_width,
