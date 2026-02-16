@@ -9,9 +9,8 @@
 from qmllib.representations.representations import (  # noqa:F403
     generate_acsf,
     generate_fchl19,
-    # TODO: Convert fslatm from f2py before enabling these
-    # generate_slatm,
-    # get_slatm_mbtypes,
+    generate_slatm,
+    get_slatm_mbtypes,
     generate_bob,
     generate_coulomb_matrix,
     generate_coulomb_matrix_atomic,

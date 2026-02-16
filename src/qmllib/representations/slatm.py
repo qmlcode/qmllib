@@ -3,7 +3,7 @@ from typing import List, Optional
 import numpy as np
 from numpy import int64, ndarray
 
-from .fslatm import fget_sbop, fget_sbop_local, fget_sbot, fget_sbot_local
+from qmllib._fslatm import fget_sbop, fget_sbop_local, fget_sbot, fget_sbot_local
 
 
 def update_m(obj, ia, rcut=9.0, pbc=None):
@@ -151,7 +151,9 @@ def get_sbop(
     coeff = 1 / np.sqrt(2 * sigma**2 * np.pi) if normalize else 1.0
 
     if iloc:
-        ys = fget_sbop_local(coords, zs, ia, z1, z2, rcut, nx, dgrid, sigma, coeff, rpower)
+        ys = fget_sbop_local(
+            coords, zs, ia, z1, z2, rcut, nx, dgrid, sigma, coeff, rpower
+        )
     else:
         ys = fget_sbop(coords, zs, z1, z2, rcut, nx, dgrid, sigma, coeff, rpower)
 

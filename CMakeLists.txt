@@ -41,6 +41,10 @@ set_property(TARGET qmllib_fgradient_kernels PROPERTY POSITION_INDEPENDENT_CODE 
 add_library(qmllib_facsf OBJECT src/qmllib/representations/facsf.f90)
 set_property(TARGET qmllib_facsf PROPERTY POSITION_INDEPENDENT_CODE ON)
 
+# Fortran SLATM representations as an object library
+add_library(qmllib_fslatm OBJECT src/qmllib/representations/fslatm.f90)
+set_property(TARGET qmllib_fslatm PROPERTY POSITION_INDEPENDENT_CODE ON)
+
 # Build the Python extension module for solvers
 pybind11_add_module(_solvers MODULE
     src/qmllib/solvers/bindings_solvers.cpp
@@ -97,6 +101,14 @@ pybind11_add_module(_facsf MODULE
 
 set_target_properties(_facsf PROPERTIES OUTPUT_NAME "_facsf")
 
+# Build the Python extension module for SLATM representations
+pybind11_add_module(_fslatm MODULE
+    src/qmllib/representations/bindings_fslatm.cpp
+    $<TARGET_OBJECTS:qmllib_fslatm>
+)
+
+set_target_properties(_fslatm PROPERTIES OUTPUT_NAME "_fslatm")
+
 find_package(OpenMP)
 if (OpenMP_Fortran_FOUND)
   target_link_libraries(_solvers PRIVATE OpenMP::OpenMP_Fortran)
@@ -106,6 +118,7 @@ if (OpenMP_Fortran_FOUND)
   target_link_libraries(_fdistance PRIVATE OpenMP::OpenMP_Fortran)
   target_link_libraries(_fgradient_kernels PRIVATE OpenMP::OpenMP_Fortran)
   target_link_libraries(_facsf PRIVATE OpenMP::OpenMP_Fortran)
+  target_link_libraries(_fslatm PRIVATE OpenMP::OpenMP_Fortran)
 endif()
 
 # Optional BLAS/LAPACK backends
@@ -150,6 +163,7 @@ if(FORTRAN_OPT_FLAGS)
   target_compile_options(qmllib_fdistance PRIVATE ${FORTRAN_OPT_FLAGS})
   target_compile_options(qmllib_fgradient_kernels PRIVATE ${FORTRAN_OPT_FLAGS})
   target_compile_options(qmllib_facsf PRIVATE ${FORTRAN_OPT_FLAGS})
+  target_compile_options(qmllib_fslatm PRIVATE ${FORTRAN_OPT_FLAGS})
 endif()
 
 # Apply optimization flags to C++ binding modules
@@ -161,10 +175,11 @@ if(CXX_OPT_FLAGS)
   target_compile_options(_fdistance PRIVATE ${CXX_OPT_FLAGS})
   target_compile_options(_fgradient_kernels PRIVATE ${CXX_OPT_FLAGS})
   target_compile_options(_facsf PRIVATE ${CXX_OPT_FLAGS})
+  target_compile_options(_fslatm PRIVATE ${CXX_OPT_FLAGS})
 endif()
 
 # Install the compiled extension into the Python package and the Python shim
-install(TARGETS _solvers _representations _utils _fkernels _fdistance _fgradient_kernels _facsf
+install(TARGETS _solvers _representations _utils _fkernels _fdistance _fgradient_kernels _facsf _fslatm
   LIBRARY DESTINATION qmllib   # Linux/macOS
   RUNTIME DESTINATION qmllib   # Windows (.pyd)
 )

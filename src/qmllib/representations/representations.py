@@ -20,8 +20,7 @@ from qmllib._representations import (
     fgenerate_local_coulomb_matrix,
     fgenerate_unsorted_coulomb_matrix,
 )
-# TODO: Convert fslatm from f2py to pybind11
-# from .slatm import get_boa, get_sbop, get_sbot
+from .slatm import get_boa, get_sbop, get_sbot
 
 
 def vector_to_matrix(v):
