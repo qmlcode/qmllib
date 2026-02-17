@@ -10,6 +10,7 @@ try:
         fbkf_solve as _fbkf_solve,
         fcho_invert as _fcho_invert,
         fcho_solve as _fcho_solve,
+        fsvd_solve,
     )
 
     _SOLVERS_AVAILABLE = True

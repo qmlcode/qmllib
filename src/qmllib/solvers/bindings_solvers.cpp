@@ -10,6 +10,7 @@ extern "C" {
     void fcho_invert(double* A, int n);
     void fbkf_invert(double* A, int n);
     void fbkf_solve(double* A, const double* y, double* x, int n);
+    void fsvd_solve(int m, int n, int la, double* A, double* y, double rcond, double* x);
 }
 
 // Wrapper for fcho_solve
@@ -158,6 +159,53 @@ void fbkf_solve_wrapper(
     fbkf_solve(A_ptr, y_ptr, x_ptr, n);
 }
 
+// Wrapper for fsvd_solve
+// Returns the solution vector x
+py::array_t<double> fsvd_solve_wrapper(
+    py::array_t<double, py::array::f_style | py::array::forcecast> A,
+    py::array_t<double, py::array::f_style | py::array::forcecast> y,
+    int la,
+    double rcond
+) {
+    auto bufA = A.request();
+    auto bufY = y.request();
+
+    if (bufA.ndim != 2) {
+        throw std::runtime_error("A must be a 2D array");
+    }
+    if (bufY.ndim != 1) {
+        throw std::runtime_error("y must be a 1D array");
+    }
+
+    int m = static_cast<int>(bufA.shape[0]);
+    int n = static_cast<int>(bufA.shape[1]);
+    
+    if (bufY.shape[0] != m) {
+        throw std::runtime_error("y must have length equal to A.shape[0]");
+    }
+
+    // Make copies since LAPACK modifies the arrays
+    py::array_t<double, py::array::f_style> A_copy({m, n});
+    auto bufA_copy = A_copy.request();
+    std::memcpy(bufA_copy.ptr, bufA.ptr, m * n * sizeof(double));
+
+    py::array_t<double, py::array::f_style> y_copy(m);
+    auto bufY_copy = y_copy.request();
+    std::memcpy(bufY_copy.ptr, bufY.ptr, m * sizeof(double));
+
+    // Allocate output array
+    py::array_t<double, py::array::f_style> x(la);
+    auto bufX = x.request();
+
+    double* A_ptr = static_cast<double*>(bufA_copy.ptr);
+    double* y_ptr = static_cast<double*>(bufY_copy.ptr);
+    double* x_ptr = static_cast<double*>(bufX.ptr);
+
+    fsvd_solve(m, n, la, A_ptr, y_ptr, rcond, x_ptr);
+
+    return x;
+}
+
 PYBIND11_MODULE(_solvers, m) {
     m.doc() = "qmllib: Fortran solver routines with pybind11 bindings";
     
@@ -176,4 +224,8 @@ PYBIND11_MODULE(_solvers, m) {
     m.def("fbkf_solve", &fbkf_solve_wrapper,
           py::arg("A"), py::arg("y"), py::arg("x"),
           "Solve Ax=y using Bunch-Kaufman decomposition (LAPACK dsytrf/dsytrs)");
+    
+    m.def("fsvd_solve", &fsvd_solve_wrapper,
+          py::arg("A"), py::arg("y"), py::arg("la"), py::arg("rcond"),
+          "Solve Ax=y using SVD decomposition (LAPACK dgelsd)");
 }

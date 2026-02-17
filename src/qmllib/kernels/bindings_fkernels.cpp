@@ -30,12 +30,12 @@ extern "C" {
                        int ng, int rep_size);
     
     // Local kernel functions (2D arrays with molecule counts)
-    void fget_local_kernels_gaussian(const double* q1, const double* q2,
+    void fget_local_kernels_gaussian(int rep_size, const double* q1, const double* q2,
                                     const int* n1, const int* n2,
                                     const double* sigmas,
                                     int nm1, int nm2, int nsigmas,
                                     int nq1, int nq2, double* kernels);
-    void fget_local_kernels_laplacian(const double* q1, const double* q2,
+    void fget_local_kernels_laplacian(int rep_size, const double* q1, const double* q2,
                                      const int* n1, const int* n2,
                                      const double* sigmas,
                                      int nm1, int nm2, int nsigmas,
@@ -414,6 +414,7 @@ py::array_t<double> get_local_kernels_gaussian_wrapper(
         throw std::runtime_error("N1, N2, and sigmas must be 1D arrays");
     }
     
+    int rep_size = static_cast<int>(bufQ1.shape[0]);
     int nq1 = static_cast<int>(bufQ1.shape[1]);
     int nq2 = static_cast<int>(bufQ2.shape[1]);
     int nm1 = static_cast<int>(bufN1.shape[0]);
@@ -427,6 +428,7 @@ py::array_t<double> get_local_kernels_gaussian_wrapper(
     auto bufK = kernels.request();
     
     fget_local_kernels_gaussian(
+        rep_size,
         static_cast<const double*>(bufQ1.ptr),
         static_cast<const double*>(bufQ2.ptr),
         static_cast<const int*>(bufN1.ptr),
@@ -461,6 +463,7 @@ py::array_t<double> get_local_kernels_laplacian_wrapper(
         throw std::runtime_error("N1, N2, and sigmas must be 1D arrays");
     }
     
+    int rep_size = static_cast<int>(bufQ1.shape[0]);
     int nq1 = static_cast<int>(bufQ1.shape[1]);
     int nq2 = static_cast<int>(bufQ2.shape[1]);
     int nm1 = static_cast<int>(bufN1.shape[0]);
@@ -474,6 +477,7 @@ py::array_t<double> get_local_kernels_laplacian_wrapper(
     auto bufK = kernels.request();
     
     fget_local_kernels_laplacian(
+        rep_size,
         static_cast<const double*>(bufQ1.ptr),
         static_cast<const double*>(bufQ2.ptr),
         static_cast<const int*>(bufN1.ptr),

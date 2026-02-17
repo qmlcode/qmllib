@@ -1,7 +1,13 @@
 import numpy as np
+import pytest
 from conftest import ASSETS, get_energies
 from scipy.stats import wasserstein_distance
-from sklearn.decomposition import KernelPCA
+
+# Skip if sklearn not installed
+try:
+    from sklearn.decomposition import KernelPCA
+except ImportError:
+    pytest.skip("sklearn not installed", allow_module_level=True)
 
 from qmllib.kernels import (
     gaussian_kernel,
@@ -19,7 +25,6 @@ from qmllib.utils.xyz_format import read_xyz
 
 
 def test_laplacian_kernel():
-
     np.random.seed(666)
 
     n_train = 25
@@ -54,7 +59,6 @@ def test_laplacian_kernel():
 
 
 def test_gaussian_kernel():
-
     np.random.seed(666)
 
     n_train = 25
@@ -89,7 +93,6 @@ def test_gaussian_kernel():
 
 
 def test_linear_kernel():
-
     np.random.seed(666)
 
     n_train = 25
@@ -119,7 +122,6 @@ def test_linear_kernel():
 
 
 def test_matern_kernel():
-
     np.random.seed(666)
 
     for metric in ("l1", "l2"):
@@ -128,7 +130,6 @@ def test_matern_kernel():
 
 
 def matern(metric, order):
-
     n_train = 25
     n_test = 20
 
@@ -142,7 +143,6 @@ def matern(metric, order):
 
     for i in range(n_train):
         for j in range(n_test):
-
             if metric == "l1":
                 d = np.sum(abs(X[i] - Xs[j]))
             else:
@@ -151,7 +151,9 @@ def matern(metric, order):
             if order == 0:
                 Ktest[i, j] = np.exp(-d / sigma)
             elif order == 1:
-                Ktest[i, j] = np.exp(-np.sqrt(3) * d / sigma) * (1 + np.sqrt(3) * d / sigma)
+                Ktest[i, j] = np.exp(-np.sqrt(3) * d / sigma) * (
+                    1 + np.sqrt(3) * d / sigma
+                )
             else:
                 Ktest[i, j] = np.exp(-np.sqrt(5) * d / sigma) * (
                     1 + np.sqrt(5) * d / sigma + 5.0 / 3 * d**2 / sigma**2
@@ -169,7 +171,6 @@ def matern(metric, order):
 
 
 def test_sargan_kernel():
-
     np.random.seed(666)
 
     for ngamma in (0, 1, 2):
@@ -177,7 +178,6 @@ def test_sargan_kernel():
 
 
 def sargan(ngamma):
-
     n_train = 25
     n_test = 20
 
@@ -219,7 +219,6 @@ def array_nan_close(a, b):
 
 
 def test_kpca():
-
     # Parse file containing PBE0/def2-TZVP heats of formation and xyz filenam
     data = get_energies(ASSETS / "hof_qm7.txt")
 
@@ -233,7 +232,6 @@ def test_kpca():
     representations = []
 
     for xyz_file in keys[:n_mols]:
-
         filename = ASSETS / "qm7" / xyz_file
         coordinates, atoms = read_xyz(filename)
 
@@ -248,15 +246,16 @@ def test_kpca():
     pcas_qml = kpca(K, n=10)
 
     # Calculate with sklearn
-    pcas_sklearn = KernelPCA(10, eigen_solver="dense", kernel="precomputed").fit_transform(K)
+    pcas_sklearn = KernelPCA(
+        10, eigen_solver="dense", kernel="precomputed"
+    ).fit_transform(K)
 
-    assert array_nan_close(
-        np.abs(pcas_sklearn.T), np.abs(pcas_qml)
-    ), "Error in Kernel PCA decomposition."
+    assert array_nan_close(np.abs(pcas_sklearn.T), np.abs(pcas_qml)), (
+        "Error in Kernel PCA decomposition."
+    )
 
 
 def test_wasserstein_kernel():
-
     np.random.seed(666)
 
     n_train = 5
