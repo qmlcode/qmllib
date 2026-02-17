@@ -1,11 +1,11 @@
 # TODO: Convert these modules from f2py to pybind11
 # from qmllib.representations.arad import generate_arad  # noqa:403
-# from qmllib.representations.fchl import (  # noqa:F403
-#     generate_fchl18,
-#     generate_fchl18_displaced,
-#     generate_fchl18_displaced_5point,
-#     generate_fchl18_electric_field,
-# )
+from qmllib.representations.fchl import (  # noqa:F403
+    generate_fchl18,
+    generate_fchl18_displaced,
+    generate_fchl18_displaced_5point,
+    generate_fchl18_electric_field,
+)
 from qmllib.representations.representations import (  # noqa:F403
     generate_acsf,
     generate_fchl19,

@@ -358,12 +358,16 @@ subroutine fget_gaussian_process_kernels_fchl(x1, x2, verbose, n1, n2, nneigh1, 
 
 end subroutine fget_gaussian_process_kernels_fchl
 
-subroutine fget_local_gradient_kernels_fchl(x1, x2, verbose, n1, n2, nneigh1, nneigh2, &
-       & nm1, nm2, naq2, nsigmas, &
+subroutine fget_local_gradient_kernels_fchl(nm1, na1, nf1, nn1, nm2, nxyz2, npm2, na2i, na2j, nf2, nn2, &
+       & np1, np2, nngh1_1, nngh1_2, nngh2_1, nngh2_2, nngh2_3, nngh2_4, nngh2_5, &
+       & npd1, npd2, npar1, npar2, &
+       & x1, x2, verbose, n1, n2, nneigh1, nneigh2, &
+       & naq2, nsigmas, &
        & t_width, d_width, cut_start, cut_distance, order, pd, &
        & distance_scale, angular_scale, alchemy, two_body_power, three_body_power, dx, &
-       & kernel_idx, parameters, kernels)
+       & kernel_idx, parameters, kernels) bind(C, name="fget_local_gradient_kernels_fchl")
 
+   use iso_c_binding
    use ffchl_module, only: scalar, get_angular_norm2, &
        & get_pmax, get_ksi, init_cosp_sinp, get_selfscalar, &
        & get_pmax_displaced, get_ksi_displaced, init_cosp_sinp_displaced, get_selfscalar_displaced
@@ -372,73 +376,65 @@ subroutine fget_local_gradient_kernels_fchl(x1, x2, verbose, n1, n2, nneigh1, nn
 
    implicit none
 
+   ! Dimensions (must come first for bind(C))
+   integer(c_int), intent(in), value :: nm1, na1, nf1, nn1      ! x1 dimensions: nmol, natoms, nfeatures, nneigh
+   integer(c_int), intent(in), value :: nm2, nxyz2, npm2, na2i, na2j, nf2, nn2  ! x2 dimensions: nmol, 3, 2, natoms_i, natoms_j, nfeatures, nneigh
+   integer(c_int), intent(in), value :: np1, np2                 ! n1, n2 dimensions
+   integer(c_int), intent(in), value :: nngh1_1, nngh1_2         ! nneigh1 dimensions
+   integer(c_int), intent(in), value :: nngh2_1, nngh2_2, nngh2_3, nngh2_4, nngh2_5  ! nneigh2 dimensions (5D)
+   integer(c_int), intent(in), value :: npd1, npd2               ! pd dimensions
+   integer(c_int), intent(in), value :: npar1, npar2             ! parameters dimensions
+   integer(c_int), intent(in), value :: naq2                     ! Total number of force components
+   integer(c_int), intent(in), value :: nsigmas                  ! Number of kernels
+   integer(c_int), intent(in), value :: order                    ! Truncation order
+   integer(c_int), intent(in), value :: kernel_idx               ! Kernel ID
+
    ! fchl descriptors for the training set, format (nm1,maxatoms,5,maxneighbors)
-   double precision, dimension(:, :, :, :), intent(in) :: x1
+   real(c_double), dimension(nm1, na1, nf1, nn1), intent(in) :: x1
 
    ! fchl descriptors for the training set, format (nm2,3,2,maxatoms,maxatoms,5,maxneighbors)
-   double precision, dimension(:, :, :, :, :, :, :), intent(in) :: x2
+   real(c_double), dimension(nm2, nxyz2, npm2, na2i, na2j, nf2, nn2), intent(in) :: x2
 
    ! Whether to be verbose with output
-   logical, intent(in) :: verbose
+   integer(c_int), intent(in), value :: verbose
 
    ! List of numbers of atoms in each molecule
-   integer, dimension(:), intent(in) :: n1
-   integer, dimension(:), intent(in) :: n2
+   integer(c_int), dimension(np1), intent(in) :: n1
+   integer(c_int), dimension(np2), intent(in) :: n2
 
    ! Number of neighbors for each atom in each compound
-   integer, dimension(:, :), intent(in) :: nneigh1
-   integer, dimension(:, :, :, :, :), intent(in) :: nneigh2
+   integer(c_int), dimension(nngh1_1, nngh1_2), intent(in) :: nneigh1
+   integer(c_int), dimension(nngh2_1, nngh2_2, nngh2_3, nngh2_4, nngh2_5), intent(in) :: nneigh2
 
-   ! Number of molecules
-   integer, intent(in) :: nm1
-   integer, intent(in) :: nm2
-
-   ! Total number of force components
-   integer, intent(in) :: naq2
-
-   ! Number of kernels
-   integer, intent(in) :: nsigmas
-
-   double precision, intent(in) :: t_width
-
-   ! Distance Gaussian width
-   double precision, intent(in) :: d_width
-
-   ! Fraction of cut_distance at which cut-off starts
-   double precision, intent(in) :: cut_start
-   double precision, intent(in) :: cut_distance
-
-   ! Truncation order for Fourier terms
-   integer, intent(in) :: order
-
-   ! Periodic table distance matrix
-   double precision, dimension(:, :), intent(in) :: pd
-
-   ! Scaling for angular and distance terms
-   double precision, intent(in) :: distance_scale
-   double precision, intent(in) :: angular_scale
+   real(c_double), intent(in), value :: t_width
+   real(c_double), intent(in), value :: d_width
+   real(c_double), intent(in), value :: cut_start
+   real(c_double), intent(in), value :: cut_distance
+   real(c_double), intent(in), value :: distance_scale
+   real(c_double), intent(in), value :: angular_scale
+   real(c_double), intent(in), value :: two_body_power
+   real(c_double), intent(in), value :: three_body_power
+   real(c_double), intent(in), value :: dx
 
    ! Switch alchemy on or off
-   logical, intent(in) :: alchemy
+   integer(c_int), intent(in), value :: alchemy
 
-   ! Decaying power laws for two- and three-body terms
-   double precision, intent(in) :: two_body_power
-   double precision, intent(in) :: three_body_power
+   ! Periodic table distance matrix
+   real(c_double), dimension(npd1, npd2), intent(in) :: pd
 
-   ! Displacement for numerical differentiation
-   double precision, intent(in) :: dx
+   ! Kernel parameters
+   real(c_double), dimension(npar1, npar2), intent(in) :: parameters
 
-   ! Kernel ID and corresponding parameters
-   integer, intent(in) :: kernel_idx
-   double precision, dimension(:, :), intent(in) :: parameters
-
-   ! Resulting alpha vector
-   double precision, dimension(nsigmas, nm1, naq2), intent(out) :: kernels
+   ! Resulting kernel matrix
+   real(c_double), dimension(nsigmas, nm1, naq2), intent(out) :: kernels
 
    ! Internal counters
    integer :: i2, j1, j2
    integer :: na, nb
    integer :: a, b
+
+   ! Convert C int to Fortran logical
+   logical :: verbose_logical, alchemy_logical
 
    ! Temporary variables necessary for parallelization
    double precision :: s12
@@ -496,8 +492,8 @@ subroutine fget_local_gradient_kernels_fchl(x1, x2, verbose, n1, n2, nneigh1, nn
    allocate (ksi1(size(x1, dim=1), maxval(n1), maxval(nneigh1)))
    allocate (ksi2(size(x2, dim=1), 3, size(x2, dim=3), maxval(n2), maxval(n2), maxval(nneigh2)))
 
-   call get_ksi(x1, n1, nneigh1, two_body_power, cut_start, cut_distance, verbose, ksi1)
-   call get_ksi_displaced(x2, n2, nneigh2, two_body_power, cut_start, cut_distance, verbose, ksi2)
+   call get_ksi(x1, n1, nneigh1, two_body_power, cut_start, cut_distance, verbose_logical, ksi1)
+   call get_ksi_displaced(x2, n2, nneigh2, two_body_power, cut_start, cut_distance, verbose_logical, ksi2)
 
    ! ksi1 = get_ksi(x1, n1, nneigh1, two_body_power, cut_start, cut_distance, verbose)
    ! ksi2 = get_ksi_displaced(x2, n2, nneigh2, two_body_power, cut_start, cut_distance, verbose)
@@ -508,7 +504,7 @@ subroutine fget_local_gradient_kernels_fchl(x1, x2, verbose, n1, n2, nneigh1, nn
 
    ! Initialize and pre-calculate three-body Fourier terms
    call init_cosp_sinp(x1, n1, nneigh1, three_body_power, order, cut_start, cut_distance, &
-       & cosp1, sinp1, verbose)
+       & cosp1, sinp1, verbose_logical)
 
    ! Allocate three-body Fourier terms
    allocate (cosp2(nm2, 3*2, maxval(n2), maxval(n2), pmax2, order, maxneigh2))
@@ -516,15 +512,15 @@ subroutine fget_local_gradient_kernels_fchl(x1, x2, verbose, n1, n2, nneigh1, nn
 
    ! Initialize and pre-calculate three-body Fourier terms
    call init_cosp_sinp_displaced(x2, n2, nneigh2, three_body_power, order, cut_start, &
-       & cut_distance, cosp2, sinp2, verbose)
+       & cut_distance, cosp2, sinp2, verbose_logical)
 
    ! Pre-calculate self-scalar terms
    allocate (self_scalar1(nm1, maxval(n1)))
    allocate (self_scalar2(nm2, 3, size(x2, dim=3), maxval(n2), maxval(n2)))
    call get_selfscalar(x1, nm1, n1, nneigh1, ksi1, sinp1, cosp1, t_width, d_width, &
-        & cut_distance, order, pd, ang_norm2, distance_scale, angular_scale, alchemy, verbose, self_scalar1)
+        & cut_distance, order, pd, ang_norm2, distance_scale, angular_scale, alchemy_logical, verbose_logical, self_scalar1)
    call get_selfscalar_displaced(x2, nm2, n2, nneigh2, ksi2, sinp2, cosp2, t_width, &
-   & d_width, cut_distance, order, pd, ang_norm2, distance_scale, angular_scale, alchemy, verbose, self_scalar2)
+   & d_width, cut_distance, order, pd, ang_norm2, distance_scale, angular_scale, alchemy_logical, verbose_logical, self_scalar2)
 
    ! Pre-calculate self-scalar terms
    ! self_scalar2 = get_selfscalar_displaced(x2, nm2, n2, nneigh2, ksi2, sinp2, cosp2, t_width, &
@@ -554,7 +550,7 @@ subroutine fget_local_gradient_kernels_fchl(x1, x2, verbose, n1, n2, nneigh1, nn
                          & sinp1(a, j1, :, :, :), sinp2(b, xyz_pm2, i2, j2, :, :, :), &
                          & cosp1(a, j1, :, :, :), cosp2(b, xyz_pm2, i2, j2, :, :, :), &
                          & t_width, d_width, cut_distance, order, &
-                         & pd, ang_norm2, distance_scale, angular_scale, alchemy)
+                         & pd, ang_norm2, distance_scale, angular_scale, alchemy_logical)
 
                      ktmp = 0.0d0
                      call kernel(self_scalar1(a, j1), self_scalar2(b, xyz2, pm2, i2, j2), s12, &
@@ -719,17 +715,17 @@ subroutine fget_local_hessian_kernels_fchl(x1, x2, verbose, n1, n2, nneigh1, nne
    double precision, allocatable, dimension(:) :: ktmp
    allocate (ktmp(size(parameters, dim=1)))
 
+   kernels = 0.0d0
+
    ! Angular normalization constant
    ang_norm2 = get_angular_norm2(t_width)
-
-   kernels = 0.0d0
 
    ! Max number of neighbors in the representations
    maxneigh1 = maxval(nneigh1)
    maxneigh2 = maxval(nneigh2)
 
    ! pmax = max nuclear charge
-   pmax1 = get_pmax_displaced(x1, n1)
+   pmax1 = get_pmax(x1, n1)
    pmax2 = get_pmax_displaced(x2, n2)
 
    ! Get two-body weight function
@@ -1154,9 +1150,9 @@ subroutine fget_force_alphas_fchl(x1, x2, verbose, forces, energies, n1, n2, &
    double precision, dimension(nsigmas, na1), intent(out) :: alphas
 
    ! Internal counters
-   integer :: i, j, k, i2, j1, j2
+   integer :: i, j, i2, j1, j2
    integer :: na, nb, ni, nj
-   integer :: a, b
+   integer :: a, b, k
 
    ! Temporary variables necessary for parallelization
    double precision :: s12
@@ -1216,7 +1212,7 @@ subroutine fget_force_alphas_fchl(x1, x2, verbose, forces, energies, n1, n2, &
    double precision, allocatable, dimension(:) :: ktmp
    allocate (ktmp(size(parameters, dim=1)))
 
-   inv_2dx = 1.0d0/(2.0d0*dx)
+   alphas = 0.0d0
 
    ! Angular normalization constant
    ang_norm2 = get_angular_norm2(t_width)

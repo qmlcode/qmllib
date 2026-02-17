@@ -58,6 +58,116 @@ extern "C" {
         int order, const double* pd, double distance_scale, double angular_scale,
         int alchemy, double two_body_power, double three_body_power,
         int kernel_idx, const double* parameters, double* kernels);
+    
+    void fget_local_gradient_kernels_fchl(
+        int nm1, int na1, int nf1, int nn1, int nm2, int nxyz2, int npm2, int na2i, int na2j, int nf2, int nn2,
+        int np1, int np2, int nngh1_1, int nngh1_2, int nngh2_1, int nngh2_2, int nngh2_3, int nngh2_4, int nngh2_5,
+        int npd1, int npd2, int npar1, int npar2,
+        const double* x1, const double* x2, int verbose, const int* n1, const int* n2,
+        const int* nneigh1, const int* nneigh2,
+        int naq2, int nsigmas,
+        double t_width, double d_width, double cut_start, double cut_distance,
+        int order, const double* pd, double distance_scale, double angular_scale,
+        int alchemy, double two_body_power, double three_body_power, double dx,
+        int kernel_idx, const double* parameters, double* kernels);
+    
+    void fget_local_symmetric_hessian_kernels_fchl(
+        int nm1, int nxyz1, int npm1, int na1i, int na1j, int nf1, int nn1,
+        int np1, int nngh1_1, int nngh1_2, int nngh1_3, int nngh1_4, int nngh1_5,
+        int npd1, int npd2, int npar1, int npar2,
+        const double* x1, int verbose, const int* n1, const int* nneigh1,
+        int naq1, int nsigmas,
+        double t_width, double d_width, double cut_start, double cut_distance,
+        int order, const double* pd, double distance_scale, double angular_scale,
+        int alchemy, double two_body_power, double three_body_power, double dx,
+        int kernel_idx, const double* parameters, double* kernels);
+    
+    void fget_local_hessian_kernels_fchl(
+        int nm1, int nxyz1, int npm1, int na1i, int na1j, int nf1, int nn1,
+        int nm2, int nxyz2, int npm2, int na2i, int na2j, int nf2, int nn2,
+        int np1, int np2, int nngh1_1, int nngh1_2, int nngh1_3, int nngh1_4, int nngh1_5,
+        int nngh2_1, int nngh2_2, int nngh2_3, int nngh2_4, int nngh2_5,
+        int npd1, int npd2, int npar1, int npar2,
+        const double* x1, const double* x2, int verbose, const int* n1, const int* n2,
+        const int* nneigh1, const int* nneigh2,
+        int naq1, int naq2, int nsigmas,
+        double t_width, double d_width, double cut_start, double cut_distance,
+        int order, const double* pd, double distance_scale, double angular_scale,
+        int alchemy, double two_body_power, double three_body_power, double dx,
+        int kernel_idx, const double* parameters, double* kernels);
+    
+    void fget_gaussian_process_kernels_fchl(
+        int nm1, int na1, int nf1, int nn1,
+        int nm2, int nxyz2, int npm2, int na2i, int na2j, int nf2, int nn2,
+        int np1, int np2, int nngh1_1, int nngh1_2,
+        int nngh2_1, int nngh2_2, int nngh2_3, int nngh2_4, int nngh2_5,
+        int npd1, int npd2, int npar1, int npar2,
+        const double* x1, const double* x2, int verbose, const int* n1, const int* n2,
+        const int* nneigh1, const int* nneigh2,
+        int naq2, int nsigmas,
+        double t_width, double d_width, double cut_start, double cut_distance,
+        int order, const double* pd, double distance_scale, double angular_scale,
+        int alchemy, double two_body_power, double three_body_power, double dx,
+        int kernel_idx, const double* parameters, double* kernels);
+    
+    void fget_atomic_local_kernels_fchl(
+        int nm1, int nm2, int na1, int nsigmas, int n1_size, int n2_size,
+        int nneigh1_size1, int nneigh1_size2, int nneigh2_size1, int nneigh2_size2,
+        int x1_size1, int x1_size2, int x1_size3, int x1_size4,
+        int x2_size1, int x2_size2, int x2_size3, int x2_size4,
+        int pd_size1, int pd_size2, int parameters_size1, int parameters_size2,
+        const double* x1, const double* x2, int verbose, const int* n1, const int* n2,
+        const int* nneigh1, const int* nneigh2,
+        double t_width, double d_width, double cut_start, double cut_distance,
+        int order, const double* pd, double distance_scale, double angular_scale,
+        int alchemy, double two_body_power, double three_body_power,
+        int kernel_idx, const double* parameters, double* kernels);
+    
+    void fget_atomic_local_gradient_kernels_fchl(
+        int nm1, int nm2, int na1, int naq2, int nsigmas,
+        int n1_size, int n2_size,
+        int nneigh1_size1, int nneigh1_size2,
+        int nneigh2_size1, int nneigh2_size2, int nneigh2_size3, int nneigh2_size4, int nneigh2_size5,
+        int x1_size1, int x1_size2, int x1_size3, int x1_size4,
+        int x2_size1, int x2_size2, int x2_size3, int x2_size4, int x2_size5, int x2_size6, int x2_size7,
+        int pd_size1, int pd_size2, int parameters_size1, int parameters_size2,
+        const double* x1, const double* x2, int verbose, const int* n1, const int* n2,
+        const int* nneigh1, const int* nneigh2,
+        double t_width, double d_width, double cut_start, double cut_distance,
+        int order, const double* pd, double distance_scale, double angular_scale,
+        int alchemy, double two_body_power, double three_body_power, double dx,
+        int kernel_idx, const double* parameters, double* kernels);
+    
+    void fget_atomic_local_gradient_5point_kernels_fchl(
+        int nm1, int nm2, int na1, int naq2, int nsigmas,
+        int n1_size, int n2_size,
+        int nneigh1_size1, int nneigh1_size2,
+        int nneigh2_size1, int nneigh2_size2, int nneigh2_size3, int nneigh2_size4, int nneigh2_size5,
+        int x1_size1, int x1_size2, int x1_size3, int x1_size4,
+        int x2_size1, int x2_size2, int x2_size3, int x2_size4, int x2_size5, int x2_size6, int x2_size7,
+        int pd_size1, int pd_size2, int parameters_size1, int parameters_size2,
+        const double* x1, const double* x2, int verbose, const int* n1, const int* n2,
+        const int* nneigh1, const int* nneigh2,
+        double t_width, double d_width, double cut_start, double cut_distance,
+        int order, const double* pd, double distance_scale, double angular_scale,
+        int alchemy, double two_body_power, double three_body_power, double dx,
+        int kernel_idx, const double* parameters, double* kernels);
+    
+    void fget_force_alphas_fchl(
+        int nm1, int nm2, int na1, int nsigmas,
+        int n1_size, int n2_size,
+        int nneigh1_size1, int nneigh1_size2,
+        int nneigh2_size1, int nneigh2_size2, int nneigh2_size3, int nneigh2_size4, int nneigh2_size5,
+        int x1_size1, int x1_size2, int x1_size3, int x1_size4,
+        int x2_size1, int x2_size2, int x2_size3, int x2_size4, int x2_size5, int x2_size6, int x2_size7,
+        int forces_size1, int forces_size2, int energies_size,
+        int pd_size1, int pd_size2, int parameters_size1, int parameters_size2,
+        const double* x1, const double* x2, int verbose, const double* forces, const double* energies,
+        const int* n1, const int* n2, const int* nneigh1, const int* nneigh2,
+        double t_width, double d_width, double cut_start, double cut_distance,
+        int order, const double* pd, double distance_scale, double angular_scale,
+        int alchemy, double two_body_power, double three_body_power, double dx,
+        int kernel_idx, const double* parameters, double llambda, double* alphas);
 }
 
 py::array_t<double> fget_kernels_fchl_py(
@@ -365,6 +475,480 @@ py::array_t<double> fget_atomic_symmetric_kernels_fchl_py(
     return result;
 }
 
+py::array_t<double> fget_local_gradient_kernels_fchl_py(
+    py::array_t<double, py::array::f_style | py::array::forcecast> x1_in,
+    py::array_t<double, py::array::f_style | py::array::forcecast> x2_in,
+    bool verbose,
+    py::array_t<int, py::array::f_style | py::array::forcecast> n1_in,
+    py::array_t<int, py::array::f_style | py::array::forcecast> n2_in,
+    py::array_t<int, py::array::f_style | py::array::forcecast> nneigh1_in,
+    py::array_t<int, py::array::f_style | py::array::forcecast> nneigh2_in,
+    int nm1, int nm2, int naq2, int nsigmas,
+    double t_width, double d_width, double cut_start, double cut_distance,
+    int order, py::array_t<double, py::array::f_style | py::array::forcecast> pd_in,
+    double distance_scale, double angular_scale, bool alchemy,
+    double two_body_power, double three_body_power, double dx,
+    int kernel_idx, py::array_t<double, py::array::f_style | py::array::forcecast> parameters_in) {
+    
+    // Ensure Fortran-style arrays
+    auto x1 = py::array_t<double, py::array::f_style | py::array::forcecast>(x1_in);
+    auto x2 = py::array_t<double, py::array::f_style | py::array::forcecast>(x2_in);
+    auto n1 = py::array_t<int, py::array::f_style | py::array::forcecast>(n1_in);
+    auto n2 = py::array_t<int, py::array::f_style | py::array::forcecast>(n2_in);
+    auto nneigh1 = py::array_t<int, py::array::f_style | py::array::forcecast>(nneigh1_in);
+    auto nneigh2 = py::array_t<int, py::array::f_style | py::array::forcecast>(nneigh2_in);
+    auto pd = py::array_t<double, py::array::f_style | py::array::forcecast>(pd_in);
+    auto parameters = py::array_t<double, py::array::f_style | py::array::forcecast>(parameters_in);
+    
+    auto b1 = x1.request(), b2 = x2.request();
+    auto bn1 = n1.request(), bn2 = n2.request();
+    auto bnn1 = nneigh1.request(), bnn2 = nneigh2.request();
+    auto bpd = pd.request(), bpar = parameters.request();
+    
+    int v = verbose ? 1 : 0, a = alchemy ? 1 : 0;
+    
+    // Create output array - Fortran-style (nsigmas, nm1, naq2)
+    std::vector<ssize_t> shape = {nsigmas, nm1, naq2};
+    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * nsigmas, sizeof(double) * nsigmas * nm1};
+    auto result = py::array_t<double>(shape, strides);
+    auto br = result.request();
+    
+    fget_local_gradient_kernels_fchl(
+        nm1, (int)b1.shape[1], (int)b1.shape[2], (int)b1.shape[3],  // nm1, na1, nf1, nn1
+        nm2, (int)b2.shape[1], (int)b2.shape[2], (int)b2.shape[3], (int)b2.shape[4], (int)b2.shape[5], (int)b2.shape[6],  // nm2, nxyz2, npm2, na2i, na2j, nf2, nn2
+        (int)bn1.shape[0], (int)bn2.shape[0],                        // np1, np2
+        (int)bnn1.shape[0], (int)bnn1.shape[1],                      // nngh1_1, nngh1_2
+        (int)bnn2.shape[0], (int)bnn2.shape[1], (int)bnn2.shape[2], (int)bnn2.shape[3], (int)bnn2.shape[4],  // nngh2_1 through nngh2_5
+        (int)bpd.shape[0], (int)bpd.shape[1],                        // npd1, npd2
+        (int)bpar.shape[0], (int)bpar.shape[1],                      // npar1, npar2
+        (double*)b1.ptr, (double*)b2.ptr, v,
+        (int*)bn1.ptr, (int*)bn2.ptr,
+        (int*)bnn1.ptr, (int*)bnn2.ptr,
+        naq2, nsigmas,
+        t_width, d_width, cut_start, cut_distance, order,
+        (double*)bpd.ptr, distance_scale, angular_scale, a,
+        two_body_power, three_body_power, dx, kernel_idx,
+        (double*)bpar.ptr, (double*)br.ptr);
+    
+    return result;
+}
+
+py::array_t<double> fget_local_symmetric_hessian_kernels_fchl_py(
+    py::array_t<double, py::array::f_style | py::array::forcecast> x1_in,
+    bool verbose,
+    py::array_t<int, py::array::f_style | py::array::forcecast> n1_in,
+    py::array_t<int, py::array::f_style | py::array::forcecast> nneigh1_in,
+    int nm1, int naq1, int nsigmas,
+    double t_width, double d_width, double cut_start, double cut_distance,
+    int order, py::array_t<double, py::array::f_style | py::array::forcecast> pd_in,
+    double distance_scale, double angular_scale, bool alchemy,
+    double two_body_power, double three_body_power, double dx,
+    int kernel_idx, py::array_t<double, py::array::f_style | py::array::forcecast> parameters_in) {
+    
+    // Ensure Fortran-style arrays
+    auto x1 = py::array_t<double, py::array::f_style | py::array::forcecast>(x1_in);
+    auto n1 = py::array_t<int, py::array::f_style | py::array::forcecast>(n1_in);
+    auto nneigh1 = py::array_t<int, py::array::f_style | py::array::forcecast>(nneigh1_in);
+    auto pd = py::array_t<double, py::array::f_style | py::array::forcecast>(pd_in);
+    auto parameters = py::array_t<double, py::array::f_style | py::array::forcecast>(parameters_in);
+    
+    auto b1 = x1.request();
+    auto bn1 = n1.request();
+    auto bnn1 = nneigh1.request();
+    auto bpd = pd.request(), bpar = parameters.request();
+    
+    int v = verbose ? 1 : 0, a = alchemy ? 1 : 0;
+    
+    // Create output array - Fortran-style (nsigmas, naq1, naq1)
+    std::vector<ssize_t> shape = {nsigmas, naq1, naq1};
+    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * nsigmas, sizeof(double) * nsigmas * naq1};
+    auto result = py::array_t<double>(shape, strides);
+    auto br = result.request();
+    
+    fget_local_symmetric_hessian_kernels_fchl(
+        nm1, (int)b1.shape[1], (int)b1.shape[2], (int)b1.shape[3], (int)b1.shape[4], (int)b1.shape[5], (int)b1.shape[6],  // nm1, nxyz1, npm1, na1i, na1j, nf1, nn1
+        (int)bn1.shape[0],                                                                                                  // np1
+        (int)bnn1.shape[0], (int)bnn1.shape[1], (int)bnn1.shape[2], (int)bnn1.shape[3], (int)bnn1.shape[4],               // nngh1_1 through nngh1_5
+        (int)bpd.shape[0], (int)bpd.shape[1],                                                                               // npd1, npd2
+        (int)bpar.shape[0], (int)bpar.shape[1],                                                                             // npar1, npar2
+        (double*)b1.ptr, v, (int*)bn1.ptr, (int*)bnn1.ptr,
+        naq1, nsigmas,
+        t_width, d_width, cut_start, cut_distance, order,
+        (double*)bpd.ptr, distance_scale, angular_scale, a,
+        two_body_power, three_body_power, dx, kernel_idx,
+        (double*)bpar.ptr, (double*)br.ptr);
+    
+    return result;
+}
+
+py::array_t<double> fget_local_hessian_kernels_fchl_py(
+    py::array_t<double, py::array::f_style | py::array::forcecast> x1_in,
+    py::array_t<double, py::array::f_style | py::array::forcecast> x2_in,
+    bool verbose,
+    py::array_t<int, py::array::f_style | py::array::forcecast> n1_in,
+    py::array_t<int, py::array::f_style | py::array::forcecast> n2_in,
+    py::array_t<int, py::array::f_style | py::array::forcecast> nneigh1_in,
+    py::array_t<int, py::array::f_style | py::array::forcecast> nneigh2_in,
+    int nm1, int nm2, int naq1, int naq2, int nsigmas,
+    double t_width, double d_width, double cut_start, double cut_distance,
+    int order, py::array_t<double, py::array::f_style | py::array::forcecast> pd_in,
+    double distance_scale, double angular_scale, bool alchemy,
+    double two_body_power, double three_body_power, double dx,
+    int kernel_idx, py::array_t<double, py::array::f_style | py::array::forcecast> parameters_in) {
+    
+    // Ensure Fortran-style arrays
+    auto x1 = py::array_t<double, py::array::f_style | py::array::forcecast>(x1_in);
+    auto x2 = py::array_t<double, py::array::f_style | py::array::forcecast>(x2_in);
+    auto n1 = py::array_t<int, py::array::f_style | py::array::forcecast>(n1_in);
+    auto n2 = py::array_t<int, py::array::f_style | py::array::forcecast>(n2_in);
+    auto nneigh1 = py::array_t<int, py::array::f_style | py::array::forcecast>(nneigh1_in);
+    auto nneigh2 = py::array_t<int, py::array::f_style | py::array::forcecast>(nneigh2_in);
+    auto pd = py::array_t<double, py::array::f_style | py::array::forcecast>(pd_in);
+    auto parameters = py::array_t<double, py::array::f_style | py::array::forcecast>(parameters_in);
+    
+    auto b1 = x1.request();
+    auto b2 = x2.request();
+    auto bn1 = n1.request();
+    auto bn2 = n2.request();
+    auto bnn1 = nneigh1.request();
+    auto bnn2 = nneigh2.request();
+    auto bpd = pd.request(), bpar = parameters.request();
+    
+    int v = verbose ? 1 : 0, a = alchemy ? 1 : 0;
+    
+    // Create output array - Fortran-style (nsigmas, naq1, naq2)
+    std::vector<ssize_t> shape = {nsigmas, naq1, naq2};
+    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * nsigmas, sizeof(double) * nsigmas * naq1};
+    auto result = py::array_t<double>(shape, strides);
+    auto br = result.request();
+    
+    fget_local_hessian_kernels_fchl(
+        nm1, (int)b1.shape[1], (int)b1.shape[2], (int)b1.shape[3], (int)b1.shape[4], (int)b1.shape[5], (int)b1.shape[6],  // nm1, nxyz1, npm1, na1i, na1j, nf1, nn1
+        nm2, (int)b2.shape[1], (int)b2.shape[2], (int)b2.shape[3], (int)b2.shape[4], (int)b2.shape[5], (int)b2.shape[6],  // nm2, nxyz2, npm2, na2i, na2j, nf2, nn2
+        (int)bn1.shape[0], (int)bn2.shape[0],                                                                              // np1, np2
+        (int)bnn1.shape[0], (int)bnn1.shape[1], (int)bnn1.shape[2], (int)bnn1.shape[3], (int)bnn1.shape[4],              // nngh1_1 through nngh1_5
+        (int)bnn2.shape[0], (int)bnn2.shape[1], (int)bnn2.shape[2], (int)bnn2.shape[3], (int)bnn2.shape[4],              // nngh2_1 through nngh2_5
+        (int)bpd.shape[0], (int)bpd.shape[1],                                                                              // npd1, npd2
+        (int)bpar.shape[0], (int)bpar.shape[1],                                                                            // npar1, npar2
+        (double*)b1.ptr, (double*)b2.ptr, v, (int*)bn1.ptr, (int*)bn2.ptr,
+        (int*)bnn1.ptr, (int*)bnn2.ptr,
+        naq1, naq2, nsigmas,
+        t_width, d_width, cut_start, cut_distance, order,
+        (double*)bpd.ptr, distance_scale, angular_scale, a,
+        two_body_power, three_body_power, dx, kernel_idx,
+        (double*)bpar.ptr, (double*)br.ptr);
+    
+    return result;
+}
+
+py::array_t<double> fget_gaussian_process_kernels_fchl_py(
+    py::array_t<double, py::array::f_style | py::array::forcecast> x1_in,
+    py::array_t<double, py::array::f_style | py::array::forcecast> x2_in,
+    bool verbose,
+    py::array_t<int, py::array::f_style | py::array::forcecast> n1_in,
+    py::array_t<int, py::array::f_style | py::array::forcecast> n2_in,
+    py::array_t<int, py::array::f_style | py::array::forcecast> nneigh1_in,
+    py::array_t<int, py::array::f_style | py::array::forcecast> nneigh2_in,
+    int nm1, int nm2, int naq2, int nsigmas,
+    double t_width, double d_width, double cut_start, double cut_distance,
+    int order, py::array_t<double, py::array::f_style | py::array::forcecast> pd_in,
+    double distance_scale, double angular_scale, bool alchemy,
+    double two_body_power, double three_body_power, double dx,
+    int kernel_idx, py::array_t<double, py::array::f_style | py::array::forcecast> parameters_in) {
+    
+    // Ensure Fortran-style arrays
+    auto x1 = py::array_t<double, py::array::f_style | py::array::forcecast>(x1_in);
+    auto x2 = py::array_t<double, py::array::f_style | py::array::forcecast>(x2_in);
+    auto n1 = py::array_t<int, py::array::f_style | py::array::forcecast>(n1_in);
+    auto n2 = py::array_t<int, py::array::f_style | py::array::forcecast>(n2_in);
+    auto nneigh1 = py::array_t<int, py::array::f_style | py::array::forcecast>(nneigh1_in);
+    auto nneigh2 = py::array_t<int, py::array::f_style | py::array::forcecast>(nneigh2_in);
+    auto pd = py::array_t<double, py::array::f_style | py::array::forcecast>(pd_in);
+    auto parameters = py::array_t<double, py::array::f_style | py::array::forcecast>(parameters_in);
+    
+    auto b1 = x1.request();
+    auto b2 = x2.request();
+    auto bn1 = n1.request();
+    auto bn2 = n2.request();
+    auto bnn1 = nneigh1.request();
+    auto bnn2 = nneigh2.request();
+    auto bpd = pd.request(), bpar = parameters.request();
+    
+    int v = verbose ? 1 : 0, a = alchemy ? 1 : 0;
+    
+    // Create output array - Fortran-style (nsigmas, nm1+naq2, nm1+naq2)
+    std::vector<ssize_t> shape = {nsigmas, nm1 + naq2, nm1 + naq2};
+    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * nsigmas, sizeof(double) * nsigmas * (nm1 + naq2)};
+    auto result = py::array_t<double>(shape, strides);
+    auto br = result.request();
+    
+    fget_gaussian_process_kernels_fchl(
+        nm1, (int)b1.shape[1], (int)b1.shape[2], (int)b1.shape[3],                                             // nm1, na1, nf1, nn1
+        nm2, (int)b2.shape[1], (int)b2.shape[2], (int)b2.shape[3], (int)b2.shape[4], (int)b2.shape[5], (int)b2.shape[6],  // nm2, nxyz2, npm2, na2i, na2j, nf2, nn2
+        (int)bn1.shape[0], (int)bn2.shape[0],                                                                   // np1, np2
+        (int)bnn1.shape[0], (int)bnn1.shape[1],                                                                 // nngh1_1, nngh1_2
+        (int)bnn2.shape[0], (int)bnn2.shape[1], (int)bnn2.shape[2], (int)bnn2.shape[3], (int)bnn2.shape[4],   // nngh2_1 through nngh2_5
+        (int)bpd.shape[0], (int)bpd.shape[1],                                                                   // npd1, npd2
+        (int)bpar.shape[0], (int)bpar.shape[1],                                                                 // npar1, npar2
+        (double*)b1.ptr, (double*)b2.ptr, v, (int*)bn1.ptr, (int*)bn2.ptr,
+        (int*)bnn1.ptr, (int*)bnn2.ptr,
+        naq2, nsigmas,
+        t_width, d_width, cut_start, cut_distance, order,
+        (double*)bpd.ptr, distance_scale, angular_scale, a,
+        two_body_power, three_body_power, dx, kernel_idx,
+        (double*)bpar.ptr, (double*)br.ptr);
+    
+    return result;
+}
+
+py::array_t<double> fget_atomic_local_kernels_fchl_py(
+    py::array_t<double, py::array::f_style | py::array::forcecast> x1_in,
+    py::array_t<double, py::array::f_style | py::array::forcecast> x2_in,
+    bool verbose,
+    py::array_t<int, py::array::f_style | py::array::forcecast> n1_in,
+    py::array_t<int, py::array::f_style | py::array::forcecast> n2_in,
+    py::array_t<int, py::array::f_style | py::array::forcecast> nneigh1_in,
+    py::array_t<int, py::array::f_style | py::array::forcecast> nneigh2_in,
+    int nm1, int nm2, int na1, int nsigmas,
+    double t_width, double d_width, double cut_start, double cut_distance,
+    int order, py::array_t<double, py::array::f_style | py::array::forcecast> pd_in,
+    double distance_scale, double angular_scale, bool alchemy,
+    double two_body_power, double three_body_power,
+    int kernel_idx, py::array_t<double, py::array::f_style | py::array::forcecast> parameters_in) {
+    
+    // Ensure Fortran-style arrays
+    auto x1 = py::array_t<double, py::array::f_style | py::array::forcecast>(x1_in);
+    auto x2 = py::array_t<double, py::array::f_style | py::array::forcecast>(x2_in);
+    auto n1 = py::array_t<int, py::array::f_style | py::array::forcecast>(n1_in);
+    auto n2 = py::array_t<int, py::array::f_style | py::array::forcecast>(n2_in);
+    auto nneigh1 = py::array_t<int, py::array::f_style | py::array::forcecast>(nneigh1_in);
+    auto nneigh2 = py::array_t<int, py::array::f_style | py::array::forcecast>(nneigh2_in);
+    auto pd = py::array_t<double, py::array::f_style | py::array::forcecast>(pd_in);
+    auto parameters = py::array_t<double, py::array::f_style | py::array::forcecast>(parameters_in);
+    
+    auto b1 = x1.request();
+    auto b2 = x2.request();
+    auto bn1 = n1.request();
+    auto bn2 = n2.request();
+    auto bnn1 = nneigh1.request();
+    auto bnn2 = nneigh2.request();
+    auto bpd = pd.request(), bpar = parameters.request();
+    
+    int v = verbose ? 1 : 0, a = alchemy ? 1 : 0;
+    
+    // Create output array - Fortran-style (nsigmas, na1, nm2)
+    std::vector<ssize_t> shape = {nsigmas, na1, nm2};
+    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * nsigmas, sizeof(double) * nsigmas * na1};
+    auto result = py::array_t<double>(shape, strides);
+    auto br = result.request();
+    
+    fget_atomic_local_kernels_fchl(
+        nm1, nm2, na1, nsigmas,
+        (int)bn1.shape[0], (int)bn2.shape[0],                                      // n1_size, n2_size
+        (int)bnn1.shape[0], (int)bnn1.shape[1],                                    // nneigh1_size1, nneigh1_size2
+        (int)bnn2.shape[0], (int)bnn2.shape[1],                                    // nneigh2_size1, nneigh2_size2
+        (int)b1.shape[0], (int)b1.shape[1], (int)b1.shape[2], (int)b1.shape[3],   // x1 dimensions
+        (int)b2.shape[0], (int)b2.shape[1], (int)b2.shape[2], (int)b2.shape[3],   // x2 dimensions
+        (int)bpd.shape[0], (int)bpd.shape[1],                                      // pd dimensions
+        (int)bpar.shape[0], (int)bpar.shape[1],                                    // parameters dimensions
+        (double*)b1.ptr, (double*)b2.ptr, v, (int*)bn1.ptr, (int*)bn2.ptr,
+        (int*)bnn1.ptr, (int*)bnn2.ptr,
+        t_width, d_width, cut_start, cut_distance, order,
+        (double*)bpd.ptr, distance_scale, angular_scale, a,
+        two_body_power, three_body_power, kernel_idx,
+        (double*)bpar.ptr, (double*)br.ptr);
+    
+    return result;
+}
+
+py::array_t<double> fget_atomic_local_gradient_kernels_fchl_py(
+    py::array_t<double, py::array::f_style | py::array::forcecast> x1_in,
+    py::array_t<double, py::array::f_style | py::array::forcecast> x2_in,
+    bool verbose,
+    py::array_t<int, py::array::f_style | py::array::forcecast> n1_in,
+    py::array_t<int, py::array::f_style | py::array::forcecast> n2_in,
+    py::array_t<int, py::array::f_style | py::array::forcecast> nneigh1_in,
+    py::array_t<int, py::array::f_style | py::array::forcecast> nneigh2_in,
+    int nm1, int nm2, int na1, int naq2, int nsigmas,
+    double t_width, double d_width, double cut_start, double cut_distance,
+    int order, py::array_t<double, py::array::f_style | py::array::forcecast> pd_in,
+    double distance_scale, double angular_scale, bool alchemy,
+    double two_body_power, double three_body_power, double dx,
+    int kernel_idx, py::array_t<double, py::array::f_style | py::array::forcecast> parameters_in) {
+    
+    // Ensure Fortran-style arrays
+    auto x1 = py::array_t<double, py::array::f_style | py::array::forcecast>(x1_in);
+    auto x2 = py::array_t<double, py::array::f_style | py::array::forcecast>(x2_in);
+    auto n1 = py::array_t<int, py::array::f_style | py::array::forcecast>(n1_in);
+    auto n2 = py::array_t<int, py::array::f_style | py::array::forcecast>(n2_in);
+    auto nneigh1 = py::array_t<int, py::array::f_style | py::array::forcecast>(nneigh1_in);
+    auto nneigh2 = py::array_t<int, py::array::f_style | py::array::forcecast>(nneigh2_in);
+    auto pd = py::array_t<double, py::array::f_style | py::array::forcecast>(pd_in);
+    auto parameters = py::array_t<double, py::array::f_style | py::array::forcecast>(parameters_in);
+    
+    auto b1 = x1.request();
+    auto b2 = x2.request();
+    auto bn1 = n1.request();
+    auto bn2 = n2.request();
+    auto bnn1 = nneigh1.request();
+    auto bnn2 = nneigh2.request();
+    auto bpd = pd.request(), bpar = parameters.request();
+    
+    int v = verbose ? 1 : 0, a = alchemy ? 1 : 0;
+    
+    // Create output array - Fortran-style (nsigmas, na1, naq2)
+    std::vector<ssize_t> shape = {nsigmas, na1, naq2};
+    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * nsigmas, sizeof(double) * nsigmas * na1};
+    auto result = py::array_t<double>(shape, strides);
+    auto br = result.request();
+    
+    fget_atomic_local_gradient_kernels_fchl(
+        nm1, nm2, na1, naq2, nsigmas,
+        (int)bn1.shape[0], (int)bn2.shape[0],                                      // n1_size, n2_size
+        (int)bnn1.shape[0], (int)bnn1.shape[1],                                    // nneigh1_size1, nneigh1_size2
+        (int)bnn2.shape[0], (int)bnn2.shape[1], (int)bnn2.shape[2], (int)bnn2.shape[3], (int)bnn2.shape[4],  // nneigh2 dimensions
+        (int)b1.shape[0], (int)b1.shape[1], (int)b1.shape[2], (int)b1.shape[3],   // x1 dimensions
+        (int)b2.shape[0], (int)b2.shape[1], (int)b2.shape[2], (int)b2.shape[3], (int)b2.shape[4], (int)b2.shape[5], (int)b2.shape[6],  // x2 dimensions
+        (int)bpd.shape[0], (int)bpd.shape[1],                                      // pd dimensions
+        (int)bpar.shape[0], (int)bpar.shape[1],                                    // parameters dimensions
+        (double*)b1.ptr, (double*)b2.ptr, v, (int*)bn1.ptr, (int*)bn2.ptr,
+        (int*)bnn1.ptr, (int*)bnn2.ptr,
+        t_width, d_width, cut_start, cut_distance, order,
+        (double*)bpd.ptr, distance_scale, angular_scale, a,
+        two_body_power, three_body_power, dx, kernel_idx,
+        (double*)bpar.ptr, (double*)br.ptr);
+    
+    return result;
+}
+
+py::array_t<double> fget_atomic_local_gradient_5point_kernels_fchl_py(
+    py::array_t<double, py::array::f_style | py::array::forcecast> x1_in,
+    py::array_t<double, py::array::f_style | py::array::forcecast> x2_in,
+    bool verbose,
+    py::array_t<int, py::array::f_style | py::array::forcecast> n1_in,
+    py::array_t<int, py::array::f_style | py::array::forcecast> n2_in,
+    py::array_t<int, py::array::f_style | py::array::forcecast> nneigh1_in,
+    py::array_t<int, py::array::f_style | py::array::forcecast> nneigh2_in,
+    int nm1, int nm2, int na1, int naq2, int nsigmas,
+    double t_width, double d_width, double cut_start, double cut_distance,
+    int order, py::array_t<double, py::array::f_style | py::array::forcecast> pd_in,
+    double distance_scale, double angular_scale, bool alchemy,
+    double two_body_power, double three_body_power, double dx,
+    int kernel_idx, py::array_t<double, py::array::f_style | py::array::forcecast> parameters_in) {
+    
+    // Ensure Fortran-style arrays
+    auto x1 = py::array_t<double, py::array::f_style | py::array::forcecast>(x1_in);
+    auto x2 = py::array_t<double, py::array::f_style | py::array::forcecast>(x2_in);
+    auto n1 = py::array_t<int, py::array::f_style | py::array::forcecast>(n1_in);
+    auto n2 = py::array_t<int, py::array::f_style | py::array::forcecast>(n2_in);
+    auto nneigh1 = py::array_t<int, py::array::f_style | py::array::forcecast>(nneigh1_in);
+    auto nneigh2 = py::array_t<int, py::array::f_style | py::array::forcecast>(nneigh2_in);
+    auto pd = py::array_t<double, py::array::f_style | py::array::forcecast>(pd_in);
+    auto parameters = py::array_t<double, py::array::f_style | py::array::forcecast>(parameters_in);
+    
+    auto b1 = x1.request();
+    auto b2 = x2.request();
+    auto bn1 = n1.request();
+    auto bn2 = n2.request();
+    auto bnn1 = nneigh1.request();
+    auto bnn2 = nneigh2.request();
+    auto bpd = pd.request(), bpar = parameters.request();
+    
+    int v = verbose ? 1 : 0, a = alchemy ? 1 : 0;
+    
+    // Create output array - Fortran-style (nsigmas, na1, naq2)
+    std::vector<ssize_t> shape = {nsigmas, na1, naq2};
+    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * nsigmas, sizeof(double) * nsigmas * na1};
+    auto result = py::array_t<double>(shape, strides);
+    auto br = result.request();
+    
+    fget_atomic_local_gradient_5point_kernels_fchl(
+        nm1, nm2, na1, naq2, nsigmas,
+        (int)bn1.shape[0], (int)bn2.shape[0],                                      // n1_size, n2_size
+        (int)bnn1.shape[0], (int)bnn1.shape[1],                                    // nneigh1_size1, nneigh1_size2
+        (int)bnn2.shape[0], (int)bnn2.shape[1], (int)bnn2.shape[2], (int)bnn2.shape[3], (int)bnn2.shape[4],  // nneigh2 dimensions
+        (int)b1.shape[0], (int)b1.shape[1], (int)b1.shape[2], (int)b1.shape[3],   // x1 dimensions
+        (int)b2.shape[0], (int)b2.shape[1], (int)b2.shape[2], (int)b2.shape[3], (int)b2.shape[4], (int)b2.shape[5], (int)b2.shape[6],  // x2 dimensions
+        (int)bpd.shape[0], (int)bpd.shape[1],                                      // pd dimensions
+        (int)bpar.shape[0], (int)bpar.shape[1],                                    // parameters dimensions
+        (double*)b1.ptr, (double*)b2.ptr, v, (int*)bn1.ptr, (int*)bn2.ptr,
+        (int*)bnn1.ptr, (int*)bnn2.ptr,
+        t_width, d_width, cut_start, cut_distance, order,
+        (double*)bpd.ptr, distance_scale, angular_scale, a,
+        two_body_power, three_body_power, dx, kernel_idx,
+        (double*)bpar.ptr, (double*)br.ptr);
+    
+    return result;
+}
+
+py::array_t<double> fget_force_alphas_fchl_py(
+    py::array_t<double, py::array::f_style | py::array::forcecast> x1_in,
+    py::array_t<double, py::array::f_style | py::array::forcecast> x2_in,
+    bool verbose,
+    py::array_t<double, py::array::f_style | py::array::forcecast> forces_in,
+    py::array_t<double, py::array::f_style | py::array::forcecast> energies_in,
+    py::array_t<int, py::array::f_style | py::array::forcecast> n1_in,
+    py::array_t<int, py::array::f_style | py::array::forcecast> n2_in,
+    py::array_t<int, py::array::f_style | py::array::forcecast> nneigh1_in,
+    py::array_t<int, py::array::f_style | py::array::forcecast> nneigh2_in,
+    int nm1, int nm2, int na1, int nsigmas,
+    double t_width, double d_width, double cut_start, double cut_distance,
+    int order, py::array_t<double, py::array::f_style | py::array::forcecast> pd_in,
+    double distance_scale, double angular_scale, bool alchemy,
+    double two_body_power, double three_body_power, double dx,
+    int kernel_idx, py::array_t<double, py::array::f_style | py::array::forcecast> parameters_in,
+    double llambda) {
+    
+    // Ensure Fortran-style arrays
+    auto x1 = py::array_t<double, py::array::f_style | py::array::forcecast>(x1_in);
+    auto x2 = py::array_t<double, py::array::f_style | py::array::forcecast>(x2_in);
+    auto forces = py::array_t<double, py::array::f_style | py::array::forcecast>(forces_in);
+    auto energies = py::array_t<double, py::array::f_style | py::array::forcecast>(energies_in);
+    auto n1 = py::array_t<int, py::array::f_style | py::array::forcecast>(n1_in);
+    auto n2 = py::array_t<int, py::array::f_style | py::array::forcecast>(n2_in);
+    auto nneigh1 = py::array_t<int, py::array::f_style | py::array::forcecast>(nneigh1_in);
+    auto nneigh2 = py::array_t<int, py::array::f_style | py::array::forcecast>(nneigh2_in);
+    auto pd = py::array_t<double, py::array::f_style | py::array::forcecast>(pd_in);
+    auto parameters = py::array_t<double, py::array::f_style | py::array::forcecast>(parameters_in);
+    
+    auto b1 = x1.request();
+    auto b2 = x2.request();
+    auto bforces = forces.request();
+    auto benergies = energies.request();
+    auto bn1 = n1.request();
+    auto bn2 = n2.request();
+    auto bnn1 = nneigh1.request();
+    auto bnn2 = nneigh2.request();
+    auto bpd = pd.request(), bpar = parameters.request();
+    
+    int v = verbose ? 1 : 0, a = alchemy ? 1 : 0;
+    
+    // Create output array - Fortran-style (nsigmas, na1)
+    std::vector<ssize_t> shape = {nsigmas, na1};
+    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * nsigmas};
+    auto result = py::array_t<double>(shape, strides);
+    auto br = result.request();
+    
+    fget_force_alphas_fchl(
+        nm1, nm2, na1, nsigmas,
+        (int)bn1.shape[0], (int)bn2.shape[0],                                      // n1_size, n2_size
+        (int)bnn1.shape[0], (int)bnn1.shape[1],                                    // nneigh1_size1, nneigh1_size2
+        (int)bnn2.shape[0], (int)bnn2.shape[1], (int)bnn2.shape[2], (int)bnn2.shape[3], (int)bnn2.shape[4],  // nneigh2 dimensions
+        (int)b1.shape[0], (int)b1.shape[1], (int)b1.shape[2], (int)b1.shape[3],   // x1 dimensions
+        (int)b2.shape[0], (int)b2.shape[1], (int)b2.shape[2], (int)b2.shape[3], (int)b2.shape[4], (int)b2.shape[5], (int)b2.shape[6],  // x2 dimensions
+        (int)bforces.shape[0], (int)bforces.shape[1], (int)benergies.shape[0],   // forces and energies dimensions
+        (int)bpd.shape[0], (int)bpd.shape[1],                                      // pd dimensions
+        (int)bpar.shape[0], (int)bpar.shape[1],                                    // parameters dimensions
+        (double*)b1.ptr, (double*)b2.ptr, v, (double*)bforces.ptr, (double*)benergies.ptr,
+        (int*)bn1.ptr, (int*)bn2.ptr, (int*)bnn1.ptr, (int*)bnn2.ptr,
+        t_width, d_width, cut_start, cut_distance, order,
+        (double*)bpd.ptr, distance_scale, angular_scale, a,
+        two_body_power, three_body_power, dx, kernel_idx,
+        (double*)bpar.ptr, llambda, (double*)br.ptr);
+    
+    return result;
+}
+
 PYBIND11_MODULE(ffchl_module, m) {
     m.doc() = "QMLlib FCHL representation functions (simplified)";
 
@@ -442,4 +1026,76 @@ PYBIND11_MODULE(ffchl_module, m) {
         py::arg("order"), py::arg("pd"), py::arg("distance_scale"), py::arg("angular_scale"),
         py::arg("alchemy"), py::arg("two_body_power"), py::arg("three_body_power"),
         py::arg("kernel_idx"), py::arg("parameters"));
+    
+    m.def("fget_local_gradient_kernels_fchl", &fget_local_gradient_kernels_fchl_py,
+        py::arg("x1"), py::arg("x2"), py::arg("verbose"),
+        py::arg("n1"), py::arg("n2"), py::arg("nneigh1"), py::arg("nneigh2"),
+        py::arg("nm1"), py::arg("nm2"), py::arg("naq2"), py::arg("nsigmas"),
+        py::arg("t_width"), py::arg("d_width"), py::arg("cut_start"), py::arg("cut_distance"),
+        py::arg("order"), py::arg("pd"), py::arg("distance_scale"), py::arg("angular_scale"),
+        py::arg("alchemy"), py::arg("two_body_power"), py::arg("three_body_power"), py::arg("dx"),
+        py::arg("kernel_idx"), py::arg("parameters"));
+    
+    m.def("fget_local_symmetric_hessian_kernels_fchl", &fget_local_symmetric_hessian_kernels_fchl_py,
+        py::arg("x1"), py::arg("verbose"), py::arg("n1"), py::arg("nneigh1"),
+        py::arg("nm1"), py::arg("naq1"), py::arg("nsigmas"),
+        py::arg("t_width"), py::arg("d_width"), py::arg("cut_start"), py::arg("cut_distance"),
+        py::arg("order"), py::arg("pd"), py::arg("distance_scale"), py::arg("angular_scale"),
+        py::arg("alchemy"), py::arg("two_body_power"), py::arg("three_body_power"), py::arg("dx"),
+        py::arg("kernel_idx"), py::arg("parameters"));
+    
+    m.def("fget_local_hessian_kernels_fchl", &fget_local_hessian_kernels_fchl_py,
+        py::arg("x1"), py::arg("x2"), py::arg("verbose"), py::arg("n1"), py::arg("n2"),
+        py::arg("nneigh1"), py::arg("nneigh2"),
+        py::arg("nm1"), py::arg("nm2"), py::arg("naq1"), py::arg("naq2"), py::arg("nsigmas"),
+        py::arg("t_width"), py::arg("d_width"), py::arg("cut_start"), py::arg("cut_distance"),
+        py::arg("order"), py::arg("pd"), py::arg("distance_scale"), py::arg("angular_scale"),
+        py::arg("alchemy"), py::arg("two_body_power"), py::arg("three_body_power"), py::arg("dx"),
+        py::arg("kernel_idx"), py::arg("parameters"));
+    
+    m.def("fget_gaussian_process_kernels_fchl", &fget_gaussian_process_kernels_fchl_py,
+        py::arg("x1"), py::arg("x2"), py::arg("verbose"), py::arg("n1"), py::arg("n2"),
+        py::arg("nneigh1"), py::arg("nneigh2"),
+        py::arg("nm1"), py::arg("nm2"), py::arg("naq2"), py::arg("nsigmas"),
+        py::arg("t_width"), py::arg("d_width"), py::arg("cut_start"), py::arg("cut_distance"),
+        py::arg("order"), py::arg("pd"), py::arg("distance_scale"), py::arg("angular_scale"),
+        py::arg("alchemy"), py::arg("two_body_power"), py::arg("three_body_power"), py::arg("dx"),
+        py::arg("kernel_idx"), py::arg("parameters"));
+    
+    m.def("fget_atomic_local_kernels_fchl", &fget_atomic_local_kernels_fchl_py,
+        py::arg("x1"), py::arg("x2"), py::arg("verbose"), py::arg("n1"), py::arg("n2"),
+        py::arg("nneigh1"), py::arg("nneigh2"),
+        py::arg("nm1"), py::arg("nm2"), py::arg("na1"), py::arg("nsigmas"),
+        py::arg("t_width"), py::arg("d_width"), py::arg("cut_start"), py::arg("cut_distance"),
+        py::arg("order"), py::arg("pd"), py::arg("distance_scale"), py::arg("angular_scale"),
+        py::arg("alchemy"), py::arg("two_body_power"), py::arg("three_body_power"),
+        py::arg("kernel_idx"), py::arg("parameters"));
+    
+    m.def("fget_atomic_local_gradient_kernels_fchl", &fget_atomic_local_gradient_kernels_fchl_py,
+        py::arg("x1"), py::arg("x2"), py::arg("verbose"), py::arg("n1"), py::arg("n2"),
+        py::arg("nneigh1"), py::arg("nneigh2"),
+        py::arg("nm1"), py::arg("nm2"), py::arg("na1"), py::arg("naq2"), py::arg("nsigmas"),
+        py::arg("t_width"), py::arg("d_width"), py::arg("cut_start"), py::arg("cut_distance"),
+        py::arg("order"), py::arg("pd"), py::arg("distance_scale"), py::arg("angular_scale"),
+        py::arg("alchemy"), py::arg("two_body_power"), py::arg("three_body_power"), py::arg("dx"),
+        py::arg("kernel_idx"), py::arg("parameters"));
+    
+    m.def("fget_atomic_local_gradient_5point_kernels_fchl", &fget_atomic_local_gradient_5point_kernels_fchl_py,
+        py::arg("x1"), py::arg("x2"), py::arg("verbose"), py::arg("n1"), py::arg("n2"),
+        py::arg("nneigh1"), py::arg("nneigh2"),
+        py::arg("nm1"), py::arg("nm2"), py::arg("na1"), py::arg("naq2"), py::arg("nsigmas"),
+        py::arg("t_width"), py::arg("d_width"), py::arg("cut_start"), py::arg("cut_distance"),
+        py::arg("order"), py::arg("pd"), py::arg("distance_scale"), py::arg("angular_scale"),
+        py::arg("alchemy"), py::arg("two_body_power"), py::arg("three_body_power"), py::arg("dx"),
+        py::arg("kernel_idx"), py::arg("parameters"));
+    
+    m.def("fget_force_alphas_fchl", &fget_force_alphas_fchl_py,
+        py::arg("x1"), py::arg("x2"), py::arg("verbose"),
+        py::arg("forces"), py::arg("energies"),
+        py::arg("n1"), py::arg("n2"), py::arg("nneigh1"), py::arg("nneigh2"),
+        py::arg("nm1"), py::arg("nm2"), py::arg("na1"), py::arg("nsigmas"),
+        py::arg("t_width"), py::arg("d_width"), py::arg("cut_start"), py::arg("cut_distance"),
+        py::arg("order"), py::arg("pd"), py::arg("distance_scale"), py::arg("angular_scale"),
+        py::arg("alchemy"), py::arg("two_body_power"), py::arg("three_body_power"), py::arg("dx"),
+        py::arg("kernel_idx"), py::arg("parameters"), py::arg("llambda"));
 }
