@@ -36,12 +36,8 @@ def manhattan_distance(A: ndarray, B: ndarray) -> ndarray:
     if B.shape[1] != A.shape[1]:
         raise ValueError("expected matrices containing vectors of same size")
 
-    na = A.shape[0]
-    nb = B.shape[0]
-
-    D = np.empty((na, nb), order="F")
-
-    fmanhattan_distance(A.T, B.T, D)
+    # Call the pybind11 function which returns the result
+    D = fmanhattan_distance(A.T, B.T)
 
     return D
 
@@ -70,12 +66,8 @@ def l2_distance(A: ndarray, B: ndarray) -> ndarray:
     if B.shape[1] != A.shape[1]:
         raise ValueError("expected matrices containing vectors of same size")
 
-    na = A.shape[0]
-    nb = B.shape[0]
-
-    D = np.empty((na, nb), order="F")
-
-    fl2_distance(A.T, B.T, D)
+    # Call the pybind11 function which returns the result
+    D = fl2_distance(A.T, B.T)
 
     return D
 
@@ -108,27 +100,23 @@ def p_distance(A: ndarray, B: ndarray, p: Union[int, float] = 2) -> ndarray:
     if B.shape[1] != A.shape[1]:
         raise ValueError("expected matrices containing vectors of same size")
 
-    na = A.shape[0]
-    nb = B.shape[0]
-
-    D = np.empty((na, nb), order="F")
-
+    # Call the pybind11 function which returns the result
     if isinstance(p, int):
         if p == 2:
-            fl2_distance(A, B, D)
+            D = fl2_distance(A.T, B.T)
         else:
-            fp_distance_integer(A.T, B.T, D, p)
+            D = fp_distance_integer(A.T, B.T, p)
 
     elif isinstance(p, float):
         if p.is_integer():
             p = int(p)
             if p == 2:
-                fl2_distance(A, B, D)
+                D = fl2_distance(A.T, B.T)
             else:
-                fp_distance_integer(A.T, B.T, D, p)
+                D = fp_distance_integer(A.T, B.T, p)
 
         else:
-            fp_distance_double(A.T, B.T, D, p)
+            D = fp_distance_double(A.T, B.T, p)
     else:
         raise ValueError("expected exponent of integer or float type")
 
