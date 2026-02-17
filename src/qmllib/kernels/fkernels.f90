@@ -1,18 +1,19 @@
-subroutine fget_local_kernels_gaussian(q1, q2, n1, n2, sigmas, &
+subroutine fget_local_kernels_gaussian(rep_size, q1, q2, n1, n2, sigmas, &
         & nm1, nm2, nsigmas, nq1, nq2, kernels) bind(C, name="fget_local_kernels_gaussian")
 
    use, intrinsic :: iso_c_binding
    implicit none
 
-   ! Array dimensions
-   integer(c_int), intent(in), value :: nq1  ! Size of q1 dimension 2
-   integer(c_int), intent(in), value :: nq2  ! Size of q2 dimension 2
+   ! Array dimensions (rep_size must come first for bind(C))
+   integer(c_int), intent(in), value :: rep_size  ! Representation vector size
+   integer(c_int), intent(in), value :: nq1  ! Number of atoms in q1
+   integer(c_int), intent(in), value :: nq2  ! Number of atoms in q2
    integer(c_int), intent(in), value :: nm1
    integer(c_int), intent(in), value :: nm2
    integer(c_int), intent(in), value :: nsigmas
 
-   double precision, dimension(3, nq1), intent(in) :: q1
-   double precision, dimension(3, nq2), intent(in) :: q2
+   double precision, dimension(rep_size, nq1), intent(in) :: q1
+   double precision, dimension(rep_size, nq2), intent(in) :: q2
 
    ! List of numbers of atoms in each molecule
    integer, dimension(nm1), intent(in) :: n1
@@ -86,21 +87,22 @@ subroutine fget_local_kernels_gaussian(q1, q2, n1, n2, sigmas, &
 
 end subroutine fget_local_kernels_gaussian
 
-subroutine fget_local_kernels_laplacian(q1, q2, n1, n2, sigmas, &
+subroutine fget_local_kernels_laplacian(rep_size, q1, q2, n1, n2, sigmas, &
         & nm1, nm2, nsigmas, nq1, nq2, kernels) bind(C, name="fget_local_kernels_laplacian")
 
    use, intrinsic :: iso_c_binding
    implicit none
 
-   ! Array dimensions
-   integer(c_int), intent(in), value :: nq1
-   integer(c_int), intent(in), value :: nq2
+   ! Array dimensions (rep_size must come first for bind(C))
+   integer(c_int), intent(in), value :: rep_size  ! Representation vector size
+   integer(c_int), intent(in), value :: nq1  ! Number of atoms in q1
+   integer(c_int), intent(in), value :: nq2  ! Number of atoms in q2
    integer(c_int), intent(in), value :: nm1
    integer(c_int), intent(in), value :: nm2
    integer(c_int), intent(in), value :: nsigmas
 
-   double precision, dimension(3, nq1), intent(in) :: q1
-   double precision, dimension(3, nq2), intent(in) :: q2
+   double precision, dimension(rep_size, nq1), intent(in) :: q1
+   double precision, dimension(rep_size, nq2), intent(in) :: q2
 
    ! List of numbers of atoms in each molecule
    integer, dimension(nm1), intent(in) :: n1
