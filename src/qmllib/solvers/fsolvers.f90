@@ -159,19 +159,24 @@ subroutine fqrlq_solve(A, y, la, x)
 
 end subroutine fqrlq_solve
 
-subroutine fsvd_solve(A, y, la, rcond, x)
-
+subroutine fsvd_solve(m, n, la, A, y, rcond, x) bind(C, name="fsvd_solve")
+   use, intrinsic :: iso_c_binding
    implicit none
 
-   double precision, dimension(:, :), intent(inout) :: A
-   double precision, dimension(:), intent(inout):: y
-   integer, intent(in):: la
-   double precision, intent(in) :: rcond
+   ! Dimension parameters must come first for bind(C)
+   integer(c_int), intent(in), value :: m
+   integer(c_int), intent(in), value :: n
+   integer(c_int), intent(in), value :: la
+   
+   ! Arrays with explicit dimensions
+   real(c_double), intent(inout) :: A(m, n)
+   real(c_double), intent(inout) :: y(m)
+   real(c_double), intent(in), value :: rcond
+   real(c_double), intent(out) :: x(la)
 
    double precision, allocatable, dimension(:, :) :: b
-   double precision, dimension(la), intent(out) :: x
 
-   integer :: m, n, nrhs, lda, ldb, info
+   integer :: nrhs, lda, ldb, info
 
    integer :: lwork
    integer :: liwork
@@ -181,9 +186,6 @@ subroutine fsvd_solve(A, y, la, rcond, x)
 
    double precision, dimension(:), allocatable :: s
    integer :: rank
-
-   m = size(A, dim=1)
-   n = size(A, dim=2)
 
    nrhs = 1
    lda = m
