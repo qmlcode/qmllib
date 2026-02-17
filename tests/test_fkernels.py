@@ -1,7 +1,13 @@
 import numpy as np
+import pytest
 from conftest import ASSETS, get_energies
 from scipy.stats import wasserstein_distance
-from sklearn.decomposition import KernelPCA
+
+# Skip if sklearn not installed
+try:
+    from sklearn.decomposition import KernelPCA
+except ImportError:
+    pytest.skip("sklearn not installed", allow_module_level=True)
 
 from qmllib._fkernels import fkpca, fwasserstein_kernel
 from qmllib.representations import generate_bob

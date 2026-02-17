@@ -2,7 +2,14 @@ import ast
 from copy import deepcopy
 
 import numpy as np
-import pandas as pd
+import pytest
+
+# Skip if pandas not installed
+try:
+    import pandas as pd
+except ImportError:
+    pytest.skip("pandas not installed", allow_module_level=True)
+
 from conftest import ASSETS
 from scipy.stats import linregress
 
@@ -39,7 +46,6 @@ np.random.seed(666)
 
 
 def get_reps(df):
-
     x = []
     f = []
     e = []
@@ -49,9 +55,10 @@ def get_reps(df):
     max_atoms = 27
 
     for i in range(len(df)):
-
         coordinates = np.array(ast.literal_eval(df["coordinates"][i]))
-        nuclear_charges = np.array(ast.literal_eval(df["nuclear_charges"][i]), dtype=np.int32)
+        nuclear_charges = np.array(
+            ast.literal_eval(df["nuclear_charges"][i]), dtype=np.int32
+        )
         # UNUSED atomtypes = df["atomtypes"][i]
 
         force = np.array(ast.literal_eval(df["forces"][i]))
@@ -59,7 +66,9 @@ def get_reps(df):
 
         energy = float(df["atomization_energy"][i])
 
-        (x1, dx1) = generate_fchl19(nuclear_charges, coordinates, gradients=True, pad=max_atoms)
+        (x1, dx1) = generate_fchl19(
+            nuclear_charges, coordinates, gradients=True, pad=max_atoms
+        )
 
         x.append(x1)
         f.append(force)
@@ -81,7 +90,6 @@ def get_reps(df):
 
 
 def test_fchl_acsf_operator():
-
     print("Representations ...")
     X, F, E, dX, Q = get_reps(DF_TRAIN)
     Xs, Fs, Es, dXs, Qs = get_reps(DF_TEST)
@@ -138,25 +146,33 @@ def test_fchl_acsf_operator():
         % (np.mean(np.abs(F.flatten() - fYt.flatten())), slope, intercept, r_value)
     )
 
-    slope, intercept, r_value, p_value, std_err = linregress(Es.flatten(), eYs.flatten())
+    slope, intercept, r_value, p_value, std_err = linregress(
+        Es.flatten(), eYs.flatten()
+    )
     print(
         "TEST     ENERGY   MAE = %10.4f  slope = %10.4f  intercept = %10.4f  r^2 = %9.6f"
         % (np.mean(np.abs(Es - eYs)), slope, intercept, r_value)
     )
 
-    slope, intercept, r_value, p_value, std_err = linregress(Fs.flatten(), fYs.flatten())
+    slope, intercept, r_value, p_value, std_err = linregress(
+        Fs.flatten(), fYs.flatten()
+    )
     print(
         "TEST     FORCE    MAE = %10.4f  slope = %10.4f  intercept = %10.4f  r^2 = %9.6f"
         % (np.mean(np.abs(Fs.flatten() - fYs.flatten())), slope, intercept, r_value)
     )
 
-    slope, intercept, r_value, p_value, std_err = linregress(Ev.flatten(), eYv.flatten())
+    slope, intercept, r_value, p_value, std_err = linregress(
+        Ev.flatten(), eYv.flatten()
+    )
     print(
         "VALID    ENERGY   MAE = %10.4f  slope = %10.4f  intercept = %10.4f  r^2 = %9.6f"
         % (np.mean(np.abs(Ev - eYv)), slope, intercept, r_value)
     )
 
-    slope, intercept, r_value, p_value, std_err = linregress(Fv.flatten(), fYv.flatten())
+    slope, intercept, r_value, p_value, std_err = linregress(
+        Fv.flatten(), fYv.flatten()
+    )
     print(
         "VALID    FORCE    MAE = %10.4f  slope = %10.4f  intercept = %10.4f  r^2 = %9.6f"
         % (np.mean(np.abs(Fv.flatten() - fYv.flatten())), slope, intercept, r_value)
@@ -164,7 +180,6 @@ def test_fchl_acsf_operator():
 
 
 def test_fchl_acsf_gaussian_process():
-
     print("Representations ...")
     X, F, E, dX, Q = get_reps(DF_TRAIN)
     Xs, Fs, Es, dXs, Qs = get_reps(DF_TEST)
@@ -226,25 +241,33 @@ def test_fchl_acsf_gaussian_process():
         % (np.mean(np.abs(F.flatten() - fYt.flatten())), slope, intercept, r_value)
     )
 
-    slope, intercept, r_value, p_value, std_err = linregress(Es.flatten(), eYs.flatten())
+    slope, intercept, r_value, p_value, std_err = linregress(
+        Es.flatten(), eYs.flatten()
+    )
     print(
         "TEST     ENERGY   MAE = %10.4f  slope = %10.4f  intercept = %10.4f  r^2 = %9.6f"
         % (np.mean(np.abs(Es - eYs)), slope, intercept, r_value)
     )
 
-    slope, intercept, r_value, p_value, std_err = linregress(Fs.flatten(), fYs.flatten())
+    slope, intercept, r_value, p_value, std_err = linregress(
+        Fs.flatten(), fYs.flatten()
+    )
     print(
         "TEST     FORCE    MAE = %10.4f  slope = %10.4f  intercept = %10.4f  r^2 = %9.6f"
         % (np.mean(np.abs(Fs.flatten() - fYs.flatten())), slope, intercept, r_value)
     )
 
-    slope, intercept, r_value, p_value, std_err = linregress(Ev.flatten(), eYv.flatten())
+    slope, intercept, r_value, p_value, std_err = linregress(
+        Ev.flatten(), eYv.flatten()
+    )
     print(
         "VALID    ENERGY   MAE = %10.4f  slope = %10.4f  intercept = %10.4f  r^2 = %9.6f"
         % (np.mean(np.abs(Ev - eYv)), slope, intercept, r_value)
     )
 
-    slope, intercept, r_value, p_value, std_err = linregress(Fv.flatten(), fYv.flatten())
+    slope, intercept, r_value, p_value, std_err = linregress(
+        Fv.flatten(), fYv.flatten()
+    )
     print(
         "VALID    FORCE    MAE = %10.4f  slope = %10.4f  intercept = %10.4f  r^2 = %9.6f"
         % (np.mean(np.abs(Fv.flatten() - fYv.flatten())), slope, intercept, r_value)
@@ -252,6 +275,5 @@ def test_fchl_acsf_gaussian_process():
 
 
 if __name__ == "__main__":
-
     test_fchl_acsf_operator()
     test_fchl_acsf_gaussian_process()
