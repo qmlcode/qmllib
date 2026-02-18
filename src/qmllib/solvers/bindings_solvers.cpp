@@ -11,6 +11,9 @@ extern "C" {
     void fbkf_invert(double* A, int n);
     void fbkf_solve(double* A, const double* y, double* x, int n);
     void fsvd_solve(int m, int n, int la, double* A, double* y, double rcond, double* x);
+    void fqrlq_solve_c(int m, int n, int la, double* A, double* y, double* x);
+    void fcond_c(double* A, int n, double* rcond_out);
+    void fcond_ge_c(const double* K, int m, int n, double* rcond_out);
 }
 
 // Wrapper for fcho_solve
@@ -206,6 +209,100 @@ py::array_t<double> fsvd_solve_wrapper(
     return x;
 }
 
+// Wrapper for fqrlq_solve
+// Returns the solution vector x
+py::array_t<double> fqrlq_solve_wrapper(
+    py::array_t<double, py::array::f_style | py::array::forcecast> A,
+    py::array_t<double, py::array::f_style | py::array::forcecast> y,
+    int la
+) {
+    auto bufA = A.request();
+    auto bufY = y.request();
+
+    if (bufA.ndim != 2) {
+        throw std::runtime_error("A must be a 2D array");
+    }
+    if (bufY.ndim != 1) {
+        throw std::runtime_error("y must be a 1D array");
+    }
+
+    int m = static_cast<int>(bufA.shape[0]);
+    int n = static_cast<int>(bufA.shape[1]);
+    
+    if (bufY.shape[0] != m) {
+        throw std::runtime_error("y must have length equal to A.shape[0]");
+    }
+
+    // Make copies since LAPACK modifies the arrays
+    py::array_t<double, py::array::f_style> A_copy({m, n});
+    auto bufA_copy = A_copy.request();
+    std::memcpy(bufA_copy.ptr, bufA.ptr, m * n * sizeof(double));
+
+    py::array_t<double, py::array::f_style> y_copy(m);
+    auto bufY_copy = y_copy.request();
+    std::memcpy(bufY_copy.ptr, bufY.ptr, m * sizeof(double));
+
+    // Allocate output array
+    py::array_t<double, py::array::f_style> x(la);
+    auto bufX = x.request();
+
+    double* A_ptr = static_cast<double*>(bufA_copy.ptr);
+    double* y_ptr = static_cast<double*>(bufY_copy.ptr);
+    double* x_ptr = static_cast<double*>(bufX.ptr);
+
+    fqrlq_solve_c(m, n, la, A_ptr, y_ptr, x_ptr);
+
+    return x;
+}
+
+// Wrapper for fcond
+// Returns the condition number
+double fcond_wrapper(
+    py::array_t<double, py::array::f_style | py::array::forcecast> A
+) {
+    auto bufA = A.request();
+
+    if (bufA.ndim != 2 || bufA.shape[0] != bufA.shape[1]) {
+        throw std::runtime_error("A must be a square 2D array");
+    }
+
+    int n = static_cast<int>(bufA.shape[0]);
+
+    // Make a copy since LAPACK modifies the array
+    py::array_t<double, py::array::f_style> A_copy({n, n});
+    auto bufA_copy = A_copy.request();
+    std::memcpy(bufA_copy.ptr, bufA.ptr, n * n * sizeof(double));
+
+    double* A_ptr = static_cast<double*>(bufA_copy.ptr);
+    double rcond;
+
+    fcond_c(A_ptr, n, &rcond);
+
+    return rcond;
+}
+
+// Wrapper for fcond_ge
+// Returns the condition number
+double fcond_ge_wrapper(
+    py::array_t<double, py::array::f_style | py::array::forcecast> K
+) {
+    auto bufK = K.request();
+
+    if (bufK.ndim != 2) {
+        throw std::runtime_error("K must be a 2D array");
+    }
+
+    int m = static_cast<int>(bufK.shape[0]);
+    int n = static_cast<int>(bufK.shape[1]);
+
+    const double* K_ptr = static_cast<const double*>(bufK.ptr);
+    double rcond;
+
+    fcond_ge_c(K_ptr, m, n, &rcond);
+
+    return rcond;
+}
+
 PYBIND11_MODULE(_solvers, m) {
     m.doc() = "qmllib: Fortran solver routines with pybind11 bindings";
     
@@ -228,4 +325,16 @@ PYBIND11_MODULE(_solvers, m) {
     m.def("fsvd_solve", &fsvd_solve_wrapper,
           py::arg("A"), py::arg("y"), py::arg("la"), py::arg("rcond"),
           "Solve Ax=y using SVD decomposition (LAPACK dgelsd)");
+    
+    m.def("fqrlq_solve", &fqrlq_solve_wrapper,
+          py::arg("A"), py::arg("y"), py::arg("la"),
+          "Solve Ax=y using QR/LQ decomposition (LAPACK dgels)");
+    
+    m.def("fcond", &fcond_wrapper,
+          py::arg("A"),
+          "Compute condition number using Cholesky decomposition (LAPACK dpotrf/dpocon)");
+    
+    m.def("fcond_ge", &fcond_ge_wrapper,
+          py::arg("K"),
+          "Compute condition number using LU decomposition (LAPACK dgetrf/dgecon)");
 }

@@ -25,3 +25,14 @@ def fsvd_solve(
     la: typing.SupportsInt,
     rcond: typing.SupportsFloat,
 ) -> numpy.typing.NDArray[numpy.float64]: ...
+def fqrlq_solve(
+    A: typing.Annotated[numpy.typing.ArrayLike, numpy.float64],
+    y: typing.Annotated[numpy.typing.ArrayLike, numpy.float64],
+    la: typing.SupportsInt,
+) -> numpy.typing.NDArray[numpy.float64]: ...
+def fcond(
+    A: typing.Annotated[numpy.typing.ArrayLike, numpy.float64],
+) -> float: ...
+def fcond_ge(
+    A: typing.Annotated[numpy.typing.ArrayLike, numpy.float64],
+) -> float: ...

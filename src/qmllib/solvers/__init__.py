@@ -1,33 +1,17 @@
-import contextlib
-
 import numpy as np
 from numpy import ndarray
 
 # Import pybind11-based solvers
 from qmllib._solvers import (
-    fbkf_invert as _fbkf_invert,
-)
-from qmllib._solvers import (
-    fbkf_solve as _fbkf_solve,
-)
-from qmllib._solvers import (
-    fcho_invert as _fcho_invert,
-)
-from qmllib._solvers import (
-    fcho_solve as _fcho_solve,
-)
-from qmllib._solvers import (
+    fbkf_invert,
+    fbkf_solve,
+    fcho_invert,
+    fcho_solve,
+    fcond,
+    fcond_ge,
+    fqrlq_solve,
     fsvd_solve,
 )
-
-# These are not yet migrated to pybind11, keep using f2py if available
-with contextlib.suppress(ImportError):
-    from .fsolvers import (  # type: ignore
-        fcond,
-        fcond_ge,
-        fqrlq_solve,
-        fsvd_solve,
-    )
 
 
 def cho_invert(A: ndarray) -> ndarray:
@@ -47,7 +31,7 @@ def cho_invert(A: ndarray) -> ndarray:
     matrix = np.asfortranarray(A)
 
     # The pybind11 function already returns the inverted matrix with triangles copied
-    matrix = _fcho_invert(matrix)
+    matrix = fcho_invert(matrix)
 
     return matrix
 
@@ -88,7 +72,7 @@ def cho_solve(A: ndarray, y: ndarray, l2reg: float = 0.0, destructive: bool = Fa
         A[i, i] += l2reg
 
     x = np.zeros(n)
-    _fcho_solve(A, y, x)
+    fcho_solve(A, y, x)
 
     # Reset diagonal after Cholesky-decomposition
     A[np.diag_indices_from(A)] = A_diag
@@ -118,7 +102,7 @@ def bkf_invert(A: ndarray) -> ndarray:
     matrix = np.asfortranarray(A)
 
     # The pybind11 function already returns the inverted matrix with triangles copied
-    matrix = _fbkf_invert(matrix)
+    matrix = fbkf_invert(matrix)
 
     return matrix
 
@@ -151,7 +135,7 @@ def bkf_solve(A: ndarray, y: ndarray) -> ndarray:
     A_diag = A[np.diag_indices_from(A)]
 
     x = np.zeros(n)
-    _fbkf_solve(A, y, x)
+    fbkf_solve(A, y, x)
 
     # Reset diagonal after decomposition
     A[np.diag_indices_from(A)] = A_diag
@@ -201,7 +185,7 @@ def qrlq_solve(A, y):
         :math:`A x = y`
 
     for x using a QR or LQ decomposition (depending on matrix dimensions)
-    via calls to LAPACK DGELSD in the F2PY module. Preserves the input matrix A.
+    via calls to LAPACK DGELS. Preserves the input matrix A.
 
     :param A: Matrix (symmetric and positive definite, left-hand side).
     :type A: numpy array

@@ -159,6 +159,49 @@ subroutine fqrlq_solve(A, y, la, x)
 
 end subroutine fqrlq_solve
 
+! C-compatible wrapper for fqrlq_solve (for pybind11)
+subroutine fqrlq_solve_c(m, n, la, A, y, x) bind(C, name="fqrlq_solve_c")
+   use, intrinsic :: iso_c_binding
+   implicit none
+
+   integer(c_int), value :: m, n, la
+   real(c_double), intent(inout) :: A(m, n)
+   real(c_double), intent(inout) :: y(m)
+   real(c_double), intent(out) :: x(la)
+
+   double precision, allocatable, dimension(:, :) :: b
+   integer :: nrhs, lda, ldb, info
+   integer :: lwork
+   double precision, dimension(:), allocatable :: work
+
+   nrhs = 1
+   lda = m
+   ldb = max(m, n)
+
+   allocate (b(ldb, 1))
+   b = 0.0d0
+   b(:m, 1) = y(:m)
+
+   lwork = (min(m, n) + max(m, n))*10
+   allocate (work(lwork))
+
+   call dgels("N", m, n, nrhs, a, lda, b, ldb, work, lwork, info)
+
+   if (info < 0) then
+      write (*, *) "QML WARNING: Could not perform QRLQ solver DGELS: info =", info
+   else if (info > 0) then
+      write (*, *) "QML WARNING: QRLQ solver (DGELS) the", -info, "th"
+      write (*, *) "diagonal element of the triangular factor of A is zero,"
+      write (*, *) "so that A does not have full rank; the least squares"
+      write (*, *) "solution could not be computed."
+   end if
+
+   x(:n) = b(:n, 1)
+
+   deallocate (b, work)
+
+end subroutine fqrlq_solve_c
+
 subroutine fsvd_solve(m, n, la, A, y, rcond, x) bind(C, name="fsvd_solve")
    use, intrinsic :: iso_c_binding
    implicit none
@@ -295,6 +338,72 @@ subroutine fcond(A, rcond)
 
 end subroutine fcond
 
+! C-compatible wrapper for fcond (for pybind11)
+subroutine fcond_c(A, n, rcond_out) bind(C, name="fcond_c")
+   use, intrinsic :: iso_c_binding
+   implicit none
+
+   integer(c_int), value :: n
+   real(c_double), intent(inout) :: A(n, n)
+   real(c_double), intent(out) :: rcond_out
+
+   double precision :: anorm, rcond
+   character, parameter :: norm = "1"
+   character, parameter :: uplo = "U"
+
+   double precision, allocatable, dimension(:) :: work
+   integer, allocatable, dimension(:) :: iwork
+   double precision, allocatable, dimension(:) :: A_diag
+
+   integer :: info, lda
+   integer :: i
+
+   double precision :: dlansy
+
+   lda = n
+
+   ! Save diagonal
+   allocate (a_diag(n))
+   do i = 1, n
+      a_diag(i) = a(i, i)
+   end do
+
+   allocate (work(n))
+   anorm = dlansy(norm, uplo, n, a, lda, work)
+   deallocate (work)
+
+   ! Cholesky factorization
+   call dpotrf("U", n, A, lda, info)
+   if (info > 0) then
+      write (*, *) "WARNING: Cholesky decompositon failed because A is not positive definite. info = ", info
+   else if (info < 0) then
+      write (*, *) "WARNING: Cholesky decompositon DPOTRF() failed. info = ", info
+   end if
+
+   ! Condition number from Cholesky factorization
+   allocate (work(n*3))
+   allocate (iwork(n))
+
+   call dpocon(uplo, n, a, lda, anorm, rcond, work, iwork, info)
+   if (info < 0) then
+      write (*, *) "WARNING: Calculating condition number DPOCON() failed. info = ", info
+   end if
+
+   deallocate (work)
+   deallocate (iwork)
+
+   ! Restore lower triangle and diagonal
+   do i = 1, n
+      a(i, i) = a_diag(i)
+      a(i, i + 1:) = a(i + 1:, i)
+   end do
+
+   deallocate (a_diag)
+
+   rcond_out = 1.0d0/rcond
+
+end subroutine fcond_c
+
 subroutine fcond_ge(K, rcond)
 
    implicit none
@@ -354,3 +463,59 @@ subroutine fcond_ge(K, rcond)
    rcond = 1.0d0/rcond
 
 end subroutine fcond_ge
+
+! C-compatible wrapper for fcond_ge (for pybind11)
+subroutine fcond_ge_c(K, m, n, rcond_out) bind(C, name="fcond_ge_c")
+   use, intrinsic :: iso_c_binding
+   implicit none
+
+   integer(c_int), value :: m, n
+   real(c_double), intent(in) :: K(m, n)
+   real(c_double), intent(out) :: rcond_out
+
+   double precision :: anorm, rcond
+   character, parameter :: norm = "1"
+
+   double precision, allocatable, dimension(:) :: work
+   double precision, allocatable, dimension(:, :) :: A
+   integer, allocatable, dimension(:) :: iwork
+   integer, allocatable, dimension(:) :: ipiv
+
+   integer :: info, lda
+
+   double precision :: dlange
+
+   lda = n
+
+   allocate (A(m, n))
+   A(:, :) = K(:, :)
+
+   allocate (work(max(m, n)))
+   anorm = dlange(norm, m, n, a, lda, work)
+   deallocate (work)
+
+   allocate (ipiv(min(m, n)))
+   call dgetrf(m, n, a, lda, ipiv, info)
+   deallocate (ipiv)
+
+   if (info > 0) then
+      write (*, *) "WARNING: LU-decompositon failed because A is exactly singular. info = ", info
+   else if (info < 0) then
+      write (*, *) "WARNING: LU-decompositon DGETRF() failed. info = ", info
+   end if
+
+   allocate (work(n*4))
+   allocate (iwork(n))
+   call dgecon(norm, n, a, lda, anorm, rcond, work, iwork, info)
+
+   if (info < 0) then
+      write (*, *) "WARNING: Calculating condition number DGECON() failed. info = ", info
+   end if
+
+   deallocate (work)
+   deallocate (iwork)
+   deallocate (a)
+
+   rcond_out = 1.0d0/rcond
+
+end subroutine fcond_ge_c
