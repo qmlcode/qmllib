@@ -30,7 +30,7 @@ dependencies = [
 test = ["pytest>=8", "pytest-xdist", "pytest-cov", "pytest-timeout"]
 dev = [
     "ruff>=0.8.0",
-    "mypy>=1.9.0",
+    "ty>=0.0.1",
     "pre-commit>=3.6.0",
 ]
 
@@ -80,32 +80,15 @@ known-first-party = ["qmllib"]
 "src/qmllib/representations/*" = ["N803", "N806", "E501", "B008", "E741"]
 "src/qmllib/solvers/*" = ["N803", "N806", "E501"]
 "src/qmllib/utils/alchemy.py" = ["N802"]  # QNum_distance follows domain naming convention
+# Auto-generated type stub files - ignore all style issues
+"**/*.pyi" = ["E501", "N803", "N806", "I001"]
 
-[tool.mypy]
-python_version = "3.10"
-warn_unused_configs = true
-# Note: Strict mode disabled due to heavy use of Fortran extensions without type stubs
-# This codebase interfaces extensively with Fortran/C code which lacks type information
-# Mypy is configured to catch obvious errors without being overly strict
-warn_redundant_casts = true
-no_implicit_optional = false  # Allow None defaults without Optional[]
-# Disabled checks due to Fortran/C extensions:
-# - check_untyped_defs: Fortran interop makes full typing impractical
-# - disallow_untyped_defs: Many Fortran functions lack types
-# - warn_return_any: Fortran functions return Any
+[tool.ty]
+# Type checking with ty (Astral's extremely fast Python type checker)
+# All Fortran/pybind11 modules have .pyi stub files for proper type checking
 
-# Disable specific error codes that are impractical for scientific code with Fortran
-# TODO: Incrementally fix these by improving type annotations
-disable_error_code = [
-    "import-untyped",      # Fortran modules lack stubs
-    "import-not-found",    # Optional dependencies
-    "attr-defined",        # Dynamic attributes from Fortran
-    "assignment",          # Type mismatches (many from numpy/list confusion)
-    "arg-type",            # Argument type issues (complex union types)
-    "list-item",           # List item type mismatches
-]
+[tool.ty.environment]
+root = ["src"]
 
-# Exclude tests from type checking
-[[tool.mypy.overrides]]
-module = "tests.*"
-ignore_errors = true
+[tool.ty.src]
+exclude = ["src/qmllib/representations/fchl/fchl_electric_field_kernels.py"]

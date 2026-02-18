@@ -114,7 +114,7 @@ def generate_coulomb_matrix_atomic(
     central_decay: float | int = -1,
     interaction_cutoff: float = 1e6,
     interaction_decay: float | int = -1,
-    indices: list[int] | None = None,
+    indices: ndarray | list[int] | str | None = None,
 ) -> ndarray:
     """ Creates a Coulomb Matrix representation of the local environment of a central atom.
         For each central atom :math:`k`, a matrix :math:`M` is constructed with elements
@@ -279,7 +279,7 @@ def generate_bob(
     coordinates: ndarray,
     atomtypes: ndarray,
     size: int = 23,
-    asize: dict[str, int64 | int] = None,
+    asize: dict[str, int64 | int] | None = None,
 ) -> ndarray:
     """Creates a Bag of Bonds (BOB) representation of a molecule.
     The representation expands on the coulomb matrix representation.
@@ -319,7 +319,7 @@ def generate_bob(
     if asize is None:
         asize = {"O": 3, "C": 7, "N": 3, "H": 16, "S": 1}
     n = 0
-    atoms = sorted(asize, key=asize.get)
+    atoms = sorted(asize, key=lambda x: int(asize.get(x, 0)))
     nmax = np.array([asize[key] for key in atoms], dtype=np.int32)
     ids = np.zeros(len(nmax), dtype=np.int32)
     for i, (key, value) in enumerate(zip(atoms, nmax, strict=False)):
@@ -406,8 +406,8 @@ def generate_slatm(
     mbtypes: list[list[int64]],
     unit_cell: None = None,
     local: bool = False,
-    sigmas: list[float] = None,
-    dgrids: list[float] = None,
+    sigmas: list[float] | None = None,
+    dgrids: list[float] | None = None,
     rcut: float = 4.8,
     alchemy: bool = False,
     pbc: str = "000",
@@ -627,7 +627,7 @@ def generate_slatm(
 def generate_acsf(
     nuclear_charges: list[int],
     coordinates: ndarray,
-    elements: list[int] = None,
+    elements: list[int] | None = None,
     nRs2: int = 3,
     nRs3: int = 3,
     nTs: int = 3,
@@ -743,7 +743,7 @@ def generate_acsf(
 def generate_fchl19(
     nuclear_charges: ndarray,
     coordinates: ndarray,
-    elements: list[int] = None,
+    elements: list[int] | None = None,
     nRs2: int = 24,
     nRs3: int = 20,
     nFourier: int = 1,

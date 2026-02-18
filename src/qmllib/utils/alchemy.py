@@ -260,7 +260,7 @@ def get_alchemy(
     emax: int = 100,
     r_width: float = 0.001,
     c_width: float = 0.001,
-    elemental_vectors: dict[Any, Any] = None,
+    elemental_vectors: dict[Any, Any] | None = None,
     n_width: float = 0.001,
     m_width: float = 0.001,
     l_width: float = 0.001,

@@ -4,46 +4,25 @@ import numpy as np
 from numpy import ndarray
 
 # Import pybind11-based solvers
-try:
-    from qmllib._solvers import (
-        fbkf_invert as _fbkf_invert,
-    )
-    from qmllib._solvers import (
-        fbkf_solve as _fbkf_solve,
-    )
-    from qmllib._solvers import (
-        fcho_invert as _fcho_invert,
-    )
-    from qmllib._solvers import (
-        fcho_solve as _fcho_solve,
-    )
-    from qmllib._solvers import (
-        fsvd_solve,
-    )
-
-    _SOLVERS_AVAILABLE = True
-except ImportError:
-    _SOLVERS_AVAILABLE = False
-    # Fallback to f2py if available
-    try:
-        from .fsolvers import (
-            fbkf_invert as _fbkf_invert,
-        )
-        from .fsolvers import (
-            fbkf_solve as _fbkf_solve,
-        )
-        from .fsolvers import (
-            fcho_invert as _fcho_invert,
-        )
-        from .fsolvers import (
-            fcho_solve as _fcho_solve,
-        )
-    except ImportError:
-        pass
+from qmllib._solvers import (
+    fbkf_invert as _fbkf_invert,
+)
+from qmllib._solvers import (
+    fbkf_solve as _fbkf_solve,
+)
+from qmllib._solvers import (
+    fcho_invert as _fcho_invert,
+)
+from qmllib._solvers import (
+    fcho_solve as _fcho_solve,
+)
+from qmllib._solvers import (
+    fsvd_solve,
+)
 
 # These are not yet migrated to pybind11, keep using f2py if available
 with contextlib.suppress(ImportError):
-    from .fsolvers import (
+    from .fsolvers import (  # type: ignore
         fcond,
         fcond_ge,
         fqrlq_solve,

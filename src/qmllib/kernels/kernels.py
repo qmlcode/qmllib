@@ -265,7 +265,7 @@ def matern_kernel(
 
 
 def get_local_kernels_gaussian(
-    A: ndarray, B: ndarray, na: ndarray, nb: ndarray, sigmas: list[float]
+    A: ndarray, B: ndarray, na: ndarray, nb: ndarray, sigmas: ndarray | list[float]
 ) -> ndarray:
     """Calculates the Gaussian kernel matrix K, for a local representation where :math:`K_{ij}`:
 
@@ -315,7 +315,7 @@ def get_local_kernels_gaussian(
 
 
 def get_local_kernels_laplacian(
-    A: ndarray, B: ndarray, na: ndarray, nb: ndarray, sigmas: list[float]
+    A: ndarray, B: ndarray, na: ndarray, nb: ndarray, sigmas: ndarray | list[float]
 ) -> ndarray:
     """Calculates the Local Laplacian kernel matrix K, for a local representation where :math:`K_{ij}`:
 

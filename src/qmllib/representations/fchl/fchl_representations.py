@@ -184,7 +184,7 @@ def generate_fchl18_displaced_5point(
 def generate_fchl18_electric_field(
     nuclear_charges: ndarray,
     coordinates: ndarray,
-    fictitious_charges: ndarray | list[float] = "gasteiger",
+    fictitious_charges: ndarray | list[float] | str = "gasteiger",
     max_size: int = 23,
     neighbors: int = 23,
     cut_distance: float = 5.0,
