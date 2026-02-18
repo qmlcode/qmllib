@@ -194,7 +194,9 @@ subroutine fget_kernels_fchl(nm1, nm2, na1, nf1, nn1, na2, nf2, nn2, &
                ktmp = 0.0d0
                call kernel(self_scalar1(a, i), self_scalar2(b, j), s12, &
                & kernel_idx, parameters, ktmp)
+               !$OMP CRITICAL
                kernels(:, a, b) = kernels(:, a, b) + ktmp
+               !$OMP END CRITICAL
 
             end do
          end do
@@ -346,12 +348,14 @@ subroutine fget_symmetric_kernels_fchl(nm1, na1, nf1, nn1, np1, npd1, npd2, npar
                call kernel(self_scalar1(a, i), self_scalar1(b, j), s12, &
                    & kernel_idx, parameters, ktmp)
 
+               !$OMP CRITICAL
                kernels(:, a, b) = kernels(:, a, b) + ktmp
                !kernels(:, a, b) = kernels(:, a, b) &
                !    & + kernel(self_scalar1(a, i), self_scalar1(b, j), s12, &
                !    & kernel_idx, parameters)
 
                kernels(:, b, a) = kernels(:, a, b)
+               !$OMP END CRITICAL
 
             end do
          end do
@@ -1227,10 +1231,12 @@ subroutine fget_atomic_local_kernels_fchl(x1, x2, verbose, n1, n2, nneigh1, nnei
                    & t_width, d_width, cut_distance, order, &
                    & pd, ang_norm2, distance_scale, angular_scale, alchemy)
 
-               ktmp = 0.0d0
-               call kernel(self_scalar1(a, i), self_scalar2(b, j), s12, &
-                   & kernel_idx, parameters, ktmp)
-               kernels(:, idx1, b) = kernels(:, idx1, b) + ktmp
+                ktmp = 0.0d0
+                call kernel(self_scalar1(a, i), self_scalar2(b, j), s12, &
+                    & kernel_idx, parameters, ktmp)
+                !$OMP CRITICAL
+                kernels(:, idx1, b) = kernels(:, idx1, b) + ktmp
+                !$OMP END CRITICAL
 
                !kernels(:, idx1, b) = kernels(:, idx1, b) &
                !    & + kernel(self_scalar1(a, i), self_scalar2(b, j), s12, &

@@ -166,7 +166,9 @@ subroutine fget_atomic_local_kernels_fchl(nm1, nm2, na1, nsigmas, n1_size, n2_si
                ktmp = 0.0d0
                call kernel(self_scalar1(a, i), self_scalar2(b, j), s12, &
                    & kernel_idx, parameters, ktmp)
+               !$OMP CRITICAL
                kernels(:, idx1, b) = kernels(:, idx1, b) + ktmp
+               !$OMP END CRITICAL
 
             end do
          end do
@@ -379,11 +381,13 @@ subroutine fget_atomic_local_gradient_kernels_fchl(nm1, nm2, na1, naq2, nsigmas,
                      call kernel(self_scalar1(a, j1), self_scalar2(b, xyz2, pm2, i2, j2), s12,&
                            & kernel_idx, parameters, ktmp)
 
+                     !$OMP CRITICAL
                      if (pm2 == 2) then
                         kernels(:, idx1, idx2) = kernels(:, idx1, idx2) + ktmp
                      else
                         kernels(:, idx1, idx2) = kernels(:, idx1, idx2) - ktmp
                      end if
+                     !$OMP END CRITICAL
 
                   end do
                end do
@@ -606,7 +610,9 @@ subroutine fget_atomic_local_gradient_5point_kernels_fchl(nm1, nm2, na1, naq2, n
                         call kernel(self_scalar1(a, j1), self_scalar2(b, xyz2, pm2, i2, j2), s12,&
                         & kernel_idx, parameters, ktmp)
 
+                        !$OMP CRITICAL
                         kernels(:, idx1, idx2) = kernels(:, idx1, idx2) + ktmp*fact(pm2)
+                        !$OMP END CRITICAL
 
                      end do
                   end do

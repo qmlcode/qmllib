@@ -168,8 +168,8 @@ subroutine fget_local_gradient_kernels_fchl(nm1, na1, nf1, nn1, nm2, nxyz2, npm2
    ! self_scalar1 = get_selfscalar(x1, nm1, n1, nneigh1, ksi1, sinp1, cosp1, t_width, d_width, &
    !      & cut_distance, order, pd, ang_norm2, distance_scale, angular_scale, alchemy, verbose)
 
-   !$OMP PARALLEL DO schedule(dynamic) PRIVATE(na,nb,xyz_pm2,s12),&
-   !$OMP& PRIVATE(idx1,idx2)
+    !$OMP PARALLEL DO schedule(dynamic) PRIVATE(na,nb,xyz_pm2,s12,ktmp,j1,j2,i2,a,b),&
+    !$OMP& PRIVATE(idx1,idx2,xyz2,pm2)
    do a = 1, nm1
       na = n1(a)
       idx1 = a
@@ -196,6 +196,7 @@ subroutine fget_local_gradient_kernels_fchl(nm1, na1, nf1, nn1, nm2, nxyz2, npm2
                      call kernel(self_scalar1(a, j1), self_scalar2(b, xyz2, pm2, i2, j2), s12, &
                      & kernel_idx, parameters, ktmp)
 
+                     !$OMP CRITICAL
                      if (pm2 == 2) then
 
                         kernels(:, idx1, idx2) = kernels(:, idx1, idx2) + ktmp
@@ -210,6 +211,7 @@ subroutine fget_local_gradient_kernels_fchl(nm1, na1, nf1, nn1, nm2, nxyz2, npm2
                         !     & - kernel(self_scalar1(a, j1), self_scalar2(b, xyz2, pm2, i2, j2), s12, &
                         !     & kernel_idx, parameters)
                      end if
+                     !$OMP END CRITICAL
 
                   end do
                end do

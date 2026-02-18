@@ -194,7 +194,9 @@ subroutine fget_gaussian_process_kernels_fchl(nm1, na1, nf1, nn1, &
                call kernel(self_scalar1(a, j1), self_scalar1(b, j2), s12, &
                & kernel_idx, parameters, ktmp)
 
+               !$OMP CRITICAL
                kernels(:, a, b) = kernels(:, a, b) + ktmp
+               !$OMP END CRITICAL
 
             end do
          end do
@@ -230,6 +232,7 @@ subroutine fget_gaussian_process_kernels_fchl(nm1, na1, nf1, nn1, &
                      call kernel(self_scalar1(a, j1), self_scalar2(b, xyz2, pm2, i2, j2), s12, &
                              & kernel_idx, parameters, ktmp)
 
+                     !$OMP CRITICAL
                      if (pm2 == 2) then
                         kernels(:, idx1, idx2) = kernels(:, idx1, idx2) + ktmp
                         kernels(:, idx2, idx1) = kernels(:, idx1, idx2)
@@ -237,6 +240,7 @@ subroutine fget_gaussian_process_kernels_fchl(nm1, na1, nf1, nn1, &
                         kernels(:, idx1, idx2) = kernels(:, idx1, idx2) - ktmp
                         kernels(:, idx2, idx1) = kernels(:, idx1, idx2)
                      end if
+                     !$OMP END CRITICAL
 
                   end do
                end do
@@ -282,6 +286,7 @@ subroutine fget_gaussian_process_kernels_fchl(nm1, na1, nf1, nn1, &
                            call kernel(self_scalar2(a, xyz1, pm1, i1, j1), self_scalar2(b, xyz2, pm2, i2, j2), s12,&
                                  & kernel_idx, parameters, ktmp)
 
+                           !$OMP CRITICAL
                            if (pm1 == pm2) then
                               kernels(:, idx1, idx2) = kernels(:, idx1, idx2) + ktmp
                               if (a /= b) then
@@ -293,6 +298,7 @@ subroutine fget_gaussian_process_kernels_fchl(nm1, na1, nf1, nn1, &
                                  kernels(:, idx2, idx1) = kernels(:, idx2, idx1) - ktmp
                               end if
                            end if
+                           !$OMP END CRITICAL
 
                         end do
                      end do
