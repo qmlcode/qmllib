@@ -104,13 +104,11 @@ subroutine fget_atomic_local_kernels_fchl(nm1, nm2, na1, nsigmas, n1_size, n2_si
    ! Work kernel
    double precision, allocatable, dimension(:) :: ktmp
 
-   ! Convert C integers to Fortran logicals
-   verbose_logical = (verbose /= 0)
-   alchemy_logical = (alchemy /= 0)
+    ! Convert C integers to Fortran logicals
+    verbose_logical = (verbose /= 0)
+    alchemy_logical = (alchemy /= 0)
 
-   allocate (ktmp(size(parameters, dim=1)))
-
-   maxneigh1 = maxval(nneigh1)
+    maxneigh1 = maxval(nneigh1)
    maxneigh2 = maxval(nneigh2)
 
    ang_norm2 = get_angular_norm2(t_width)
@@ -145,10 +143,11 @@ subroutine fget_atomic_local_kernels_fchl(nm1, nm2, na1, nsigmas, n1_size, n2_si
 
    kernels(:, :, :) = 0.0d0
 
-   !$OMP PARALLEL DO schedule(dynamic) PRIVATE(ni,nj,idx1,s12,ktmp)
-   do a = 1, nm1
-      ni = n1(a)
-      do i = 1, ni
+    !$OMP PARALLEL DO schedule(dynamic) PRIVATE(ni,nj,idx1,s12,ktmp)
+    do a = 1, nm1
+       allocate (ktmp(size(parameters, dim=1)))
+       ni = n1(a)
+       do i = 1, ni
 
          idx1 = sum(n1(:a)) - ni + i
 
@@ -173,12 +172,12 @@ subroutine fget_atomic_local_kernels_fchl(nm1, nm2, na1, nsigmas, n1_size, n2_si
             end do
          end do
 
-      end do
-   end do
-   !$OMP END PARALLEL DO
+       end do
+       deallocate (ktmp)
+    end do
+    !$OMP END PARALLEL DO
 
-   deallocate (ktmp)
-   deallocate (self_scalar1)
+    deallocate (self_scalar1)
    deallocate (self_scalar2)
    deallocate (ksi1)
    deallocate (ksi2)
@@ -287,31 +286,29 @@ subroutine fget_atomic_local_gradient_kernels_fchl(nm1, nm2, na1, naq2, nsigmas,
    ! Angular normalization constant
    double precision :: ang_norm2
 
-   ! Max number of neighbors
-   integer :: maxneigh1
-   integer :: maxneigh2
+    ! Max number of neighbors
+    integer :: maxneigh1
+    integer :: maxneigh2
 
-   ! Work kernel
-   double precision, allocatable, dimension(:) :: ktmp
+    ! Work kernel
+    double precision, allocatable, dimension(:) :: ktmp
 
-   ! Convert C integers to Fortran logicals
-   verbose_logical = (verbose /= 0)
-   alchemy_logical = (alchemy /= 0)
+    ! Convert C integers to Fortran logicals
+    verbose_logical = (verbose /= 0)
+    alchemy_logical = (alchemy /= 0)
 
-   allocate (ktmp(size(parameters, dim=1)))
+    kernels = 0.0d0
 
-   kernels = 0.0d0
+    ! Angular normalization constant
+    ang_norm2 = get_angular_norm2(t_width)
 
-   ! Angular normalization constant
-   ang_norm2 = get_angular_norm2(t_width)
+    ! Max number of neighbors in the representations
+    maxneigh1 = maxval(nneigh1)
+    maxneigh2 = maxval(nneigh2)
 
-   ! Max number of neighbors in the representations
-   maxneigh1 = maxval(nneigh1)
-   maxneigh2 = maxval(nneigh2)
-
-   ! pmax = max nuclear charge
-   pmax1 = get_pmax(x1, n1)
-   pmax2 = get_pmax_displaced(x2, n2)
+    ! pmax = max nuclear charge
+    pmax1 = get_pmax(x1, n1)
+    pmax2 = get_pmax_displaced(x2, n2)
 
    ! Get two-body weight function
    allocate (ksi1(size(x1, dim=1), maxval(n1), maxval(nneigh1)))
@@ -338,30 +335,31 @@ subroutine fget_atomic_local_gradient_kernels_fchl(nm1, nm2, na1, naq2, nsigmas,
    ! Pre-calculate self-scalar terms
    allocate (self_scalar1(nm1, maxval(n1)))
    allocate (self_scalar2(nm2, 3, size(x2, dim=3), maxval(n2), maxval(n2)))
-   call get_selfscalar(x1, nm1, n1, nneigh1, ksi1, sinp1, cosp1, t_width, d_width, &
-        & cut_distance, order, pd, ang_norm2, distance_scale, angular_scale, alchemy_logical, verbose_logical, self_scalar1)
-   call get_selfscalar_displaced(x2, nm2, n2, nneigh2, ksi2, sinp2, cosp2, t_width, &
-   & d_width, cut_distance, order, pd, ang_norm2, distance_scale, angular_scale, alchemy_logical, verbose_logical, self_scalar2)
+    call get_selfscalar(x1, nm1, n1, nneigh1, ksi1, sinp1, cosp1, t_width, d_width, &
+         & cut_distance, order, pd, ang_norm2, distance_scale, angular_scale, alchemy_logical, verbose_logical, self_scalar1)
+    call get_selfscalar_displaced(x2, nm2, n2, nneigh2, ksi2, sinp2, cosp2, t_width, &
+    & d_width, cut_distance, order, pd, ang_norm2, distance_scale, angular_scale, alchemy_logical, verbose_logical, self_scalar2)
 
-   !$OMP PARALLEL DO schedule(dynamic) PRIVATE(na,nb,xyz_pm2,s12),&
-   !$OMP& PRIVATE(idx1,idx2,idx1_start,idx1_end,idx2_start,idx2_end)
-   do a = 1, nm1
-      na = n1(a)
+    !$OMP PARALLEL DO schedule(dynamic) PRIVATE(na,nb,xyz_pm2,s12,ktmp),&
+    !$OMP& PRIVATE(idx1,idx2,idx1_start,idx1_end,idx2_start,idx2_end)
+    do a = 1, nm1
+       allocate (ktmp(size(parameters, dim=1)))
+       na = n1(a)
 
-      idx1_end = sum(n1(:a))
-      idx1_start = idx1_end - na + 1
+       idx1_end = sum(n1(:a))
+       idx1_start = idx1_end - na + 1
 
-      do j1 = 1, na
-         idx1 = idx1_start - 1 + j1
+       do j1 = 1, na
+          idx1 = idx1_start - 1 + j1
 
-         do b = 1, nm2
-            nb = n2(b)
+          do b = 1, nm2
+             nb = n2(b)
 
-            idx2_end = sum(n2(:b))
-            idx2_start = idx2_end - nb + 1
+             idx2_end = sum(n2(:b))
+             idx2_start = idx2_end - nb + 1
 
-            do xyz2 = 1, 3
-            do pm2 = 1, 2
+             do xyz2 = 1, 3
+             do pm2 = 1, 2
                xyz_pm2 = 2*xyz2 + pm2 - 2
                do i2 = 1, nb
 
@@ -392,16 +390,16 @@ subroutine fget_atomic_local_gradient_kernels_fchl(nm1, nm2, na1, naq2, nsigmas,
                   end do
                end do
             end do
-            end do
-         end do
-      end do
-   end do
-   !$OMP END PARALLEL do
+             end do
+          end do
+       end do
+       deallocate (ktmp)
+    end do
+    !$OMP END PARALLEL do
 
-   kernels = kernels/(2*dx)
+    kernels = kernels/(2*dx)
 
-   deallocate (ktmp)
-   deallocate (ksi1)
+    deallocate (ksi1)
    deallocate (ksi2)
    deallocate (cosp1)
    deallocate (sinp1)
@@ -514,19 +512,17 @@ subroutine fget_atomic_local_gradient_5point_kernels_fchl(nm1, nm2, na1, naq2, n
    integer :: maxneigh1
    integer :: maxneigh2
 
-   ! For numerical differentiation (5-point stencil)
-   double precision, parameter, dimension(5) :: fact = (/1.0d0, -8.0d0, 0.0d0, 8.0d0, -1.0d0/)
+    ! For numerical differentiation (5-point stencil)
+    double precision, parameter, dimension(5) :: fact = (/1.0d0, -8.0d0, 0.0d0, 8.0d0, -1.0d0/)
 
-   ! Work kernel
-   double precision, allocatable, dimension(:) :: ktmp
+    ! Work kernel
+    double precision, allocatable, dimension(:) :: ktmp
 
-   ! Convert C integers to Fortran logicals
-   verbose_logical = (verbose /= 0)
-   alchemy_logical = (alchemy /= 0)
+    ! Convert C integers to Fortran logicals
+    verbose_logical = (verbose /= 0)
+    alchemy_logical = (alchemy /= 0)
 
-   allocate (ktmp(size(parameters, dim=1)))
-
-   kernels = 0.0d0
+    kernels = 0.0d0
 
    ! Angular normalization constant
    ang_norm2 = get_angular_norm2(t_width)
@@ -553,26 +549,27 @@ subroutine fget_atomic_local_gradient_5point_kernels_fchl(nm1, nm2, na1, naq2, n
    call init_cosp_sinp(x1, n1, nneigh1, three_body_power, order, cut_start, cut_distance, &
        & cosp1, sinp1, verbose_logical)
 
-   ! Allocate three-body Fourier terms (3*5 for 5-point stencil)
-   allocate (cosp2(nm2, 3*5, maxval(n2), maxval(n2), pmax2, order, maxneigh2))
-   allocate (sinp2(nm2, 3*5, maxval(n2), maxval(n2), pmax2, order, maxneigh2))
+    ! Allocate three-body Fourier terms (3*5 for 5-point stencil)
+    allocate (cosp2(nm2, 3*5, maxval(n2), maxval(n2), pmax2, order, maxneigh2))
+    allocate (sinp2(nm2, 3*5, maxval(n2), maxval(n2), pmax2, order, maxneigh2))
 
-   ! Initialize and pre-calculate three-body Fourier terms
-   call init_cosp_sinp_displaced(x2, n2, nneigh2, three_body_power, order, cut_start, &
-       & cut_distance, cosp2, sinp2, verbose_logical)
+    ! Initialize and pre-calculate three-body Fourier terms
+    call init_cosp_sinp_displaced(x2, n2, nneigh2, three_body_power, order, cut_start, &
+        & cut_distance, cosp2, sinp2, verbose_logical)
 
-   ! Pre-calculate self-scalar terms
-   allocate (self_scalar1(nm1, maxval(n1)))
-   allocate (self_scalar2(nm2, 3, size(x2, dim=3), maxval(n2), maxval(n2)))
-   call get_selfscalar(x1, nm1, n1, nneigh1, ksi1, sinp1, cosp1, t_width, d_width, &
-        & cut_distance, order, pd, ang_norm2, distance_scale, angular_scale, alchemy_logical, verbose_logical, self_scalar1)
-   call get_selfscalar_displaced(x2, nm2, n2, nneigh2, ksi2, sinp2, cosp2, t_width, &
-   & d_width, cut_distance, order, pd, ang_norm2, distance_scale, angular_scale, alchemy_logical, verbose_logical, self_scalar2)
+    ! Pre-calculate self-scalar terms
+    allocate (self_scalar1(nm1, maxval(n1)))
+    allocate (self_scalar2(nm2, 3, size(x2, dim=3), maxval(n2), maxval(n2)))
+    call get_selfscalar(x1, nm1, n1, nneigh1, ksi1, sinp1, cosp1, t_width, d_width, &
+         & cut_distance, order, pd, ang_norm2, distance_scale, angular_scale, alchemy_logical, verbose_logical, self_scalar1)
+    call get_selfscalar_displaced(x2, nm2, n2, nneigh2, ksi2, sinp2, cosp2, t_width, &
+    & d_width, cut_distance, order, pd, ang_norm2, distance_scale, angular_scale, alchemy_logical, verbose_logical, self_scalar2)
 
-   !$OMP PARALLEL DO schedule(dynamic) PRIVATE(na,nb,xyz_pm2,s12),&
-   !$OMP& PRIVATE(idx1,idx2,idx1_start,idx1_end,idx2_start,idx2_end)
-   do a = 1, nm1
-      na = n1(a)
+    !$OMP PARALLEL DO schedule(dynamic) PRIVATE(na,nb,xyz_pm2,s12,ktmp),&
+    !$OMP& PRIVATE(idx1,idx2,idx1_start,idx1_end,idx2_start,idx2_end)
+    do a = 1, nm1
+       allocate (ktmp(size(parameters, dim=1)))
+       na = n1(a)
 
       idx1_end = sum(n1(:a))
       idx1_start = idx1_end - na + 1
@@ -619,17 +616,17 @@ subroutine fget_atomic_local_gradient_5point_kernels_fchl(nm1, nm2, na1, naq2, n
 
                end if
 
-            end do
-            end do
-         end do
-      end do
-   end do
-   !$OMP END PARALLEL do
+             end do
+             end do
+          end do
+       end do
+       deallocate (ktmp)
+    end do
+    !$OMP END PARALLEL do
 
-   kernels = kernels/(12*dx)
+    kernels = kernels/(12*dx)
 
-   deallocate (ktmp)
-   deallocate (ksi1)
+    deallocate (ksi1)
    deallocate (ksi2)
    deallocate (cosp1)
    deallocate (sinp1)

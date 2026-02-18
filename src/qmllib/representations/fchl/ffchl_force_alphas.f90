@@ -126,13 +126,11 @@ subroutine fget_force_alphas_fchl(nm1, nm2, na1, nsigmas, &
    ! Work kernel
    double precision, allocatable, dimension(:) :: ktmp
 
-   ! Convert C integers to Fortran logicals
-   verbose_logical = (verbose /= 0)
-   alchemy_logical = (alchemy /= 0)
+    ! Convert C integers to Fortran logicals
+    verbose_logical = (verbose /= 0)
+    alchemy_logical = (alchemy /= 0)
 
-   allocate (ktmp(size(parameters, dim=1)))
-
-   alphas = 0.0d0
+    alphas = 0.0d0
    inv_2dx = 1.0d0/(2.0d0*dx)
 
    ! Angular normalization constant
@@ -186,14 +184,15 @@ subroutine fget_force_alphas_fchl(nm1, nm2, na1, nsigmas, &
    ! Calculate kernel derivatives and add to kernel matrix
    do xyz2 = 1, 3
 
-      kernel_delta = 0.0d0
+       kernel_delta = 0.0d0
 
-      !$OMP PARALLEL DO schedule(dynamic) PRIVATE(na,nb,xyz_pm2,s12), &
-      !$OMP& PRIVATE(idx1,idx2,idx1_start,idx2_start)
-      do a = 1, nm1
-         na = n1(a)
-         idx1_start = sum(n1(:a)) - na
-         do j1 = 1, na
+       !$OMP PARALLEL DO schedule(dynamic) PRIVATE(na,nb,xyz_pm2,s12,ktmp), &
+       !$OMP& PRIVATE(idx1,idx2,idx1_start,idx2_start)
+       do a = 1, nm1
+          allocate (ktmp(size(parameters, dim=1)))
+          na = n1(a)
+          idx1_start = sum(n1(:a)) - na
+          do j1 = 1, na
             idx1 = idx1_start + j1
 
             do b = 1, nm2
@@ -218,21 +217,24 @@ subroutine fget_force_alphas_fchl(nm1, nm2, na1, nsigmas, &
                         call kernel(self_scalar1(a, j1), self_scalar2(b, xyz2, pm2, i2, j2), s12, &
                                     kernel_idx, parameters, ktmp)
 
+                        !$OMP CRITICAL
                         if (pm2 == 2) then
                            kernel_delta(idx1, idx2, :) = kernel_delta(idx1, idx2, :) + ktmp*inv_2dx
                         else
                            kernel_delta(idx1, idx2, :) = kernel_delta(idx1, idx2, :) - ktmp*inv_2dx
                         end if
+                        !$OMP END CRITICAL
 
                      end do
                   end do
                end do
-            end do
-         end do
-      end do
-      !$OMP END PARALLEL do
+             end do
+          end do
+          deallocate (ktmp)
+       end do
+       !$OMP END PARALLEL do
 
-      do k = 1, nsigmas
+       do k = 1, nsigmas
          call dsyrk("U", "N", na1, na1, 1.0d0, kernel_delta(1, 1, k), na1, &
             & 1.0d0, kernel_scratch(1, 1, k), na1)
 
@@ -248,14 +250,15 @@ subroutine fget_force_alphas_fchl(nm1, nm2, na1, nsigmas, &
    deallocate (cosp2)
    deallocate (sinp2)
 
-   allocate (kernel_MA(nm1, na1, nsigmas))
-   kernel_MA = 0.0d0
+    allocate (kernel_MA(nm1, na1, nsigmas))
+    kernel_MA = 0.0d0
 
-   !$OMP PARALLEL DO schedule(dynamic) PRIVATE(ni,nj,idx1,s12,idx1_start)
-   do a = 1, nm1
-      ni = n1(a)
-      idx1_start = sum(n1(:a)) - ni
-      do i = 1, ni
+    !$OMP PARALLEL DO schedule(dynamic) PRIVATE(ni,nj,idx1,s12,ktmp,idx1_start)
+    do a = 1, nm1
+       allocate (ktmp(size(parameters, dim=1)))
+       ni = n1(a)
+       idx1_start = sum(n1(:a)) - ni
+       do i = 1, ni
 
          idx1 = idx1_start + i
 
@@ -270,20 +273,23 @@ subroutine fget_force_alphas_fchl(nm1, nm2, na1, nsigmas, &
                    & t_width, d_width, cut_distance, order, &
                    & pd, ang_norm2, distance_scale, angular_scale, alchemy_logical)
 
-               ktmp = 0.0d0
-               call kernel(self_scalar1(a, i), self_scalar1(b, j), s12, &
-                           kernel_idx, parameters, ktmp)
+                ktmp = 0.0d0
+                call kernel(self_scalar1(a, i), self_scalar1(b, j), s12, &
+                            kernel_idx, parameters, ktmp)
 
-               kernel_MA(b, idx1, :) = kernel_MA(b, idx1, :) + ktmp
+                !$OMP CRITICAL
+                kernel_MA(b, idx1, :) = kernel_MA(b, idx1, :) + ktmp
+                !$OMP END CRITICAL
 
             end do
-         end do
+          end do
 
-      end do
-   end do
-   !$OMP END PARALLEL DO
+       end do
+       deallocate (ktmp)
+    end do
+    !$OMP END PARALLEL DO
 
-   deallocate (self_scalar1)
+    deallocate (self_scalar1)
    deallocate (ksi1)
    deallocate (cosp1)
    deallocate (sinp1)
@@ -327,8 +333,7 @@ subroutine fget_force_alphas_fchl(nm1, nm2, na1, nsigmas, &
       alphas(k, :) = y(:, k)
    end do
 
-   deallocate (y)
-   deallocate (kernel_scratch)
-   deallocate (ktmp)
+    deallocate (y)
+    deallocate (kernel_scratch)
 
 end subroutine fget_force_alphas_fchl
