@@ -20,7 +20,6 @@ def test_energy():
     all_atoms = []
 
     for xyz_file in sorted(data.keys())[:1000]:
-
         filename = ASSETS / "qm7" / xyz_file
         coord, atoms = read_xyz(filename)
 

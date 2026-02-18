@@ -15,8 +15,10 @@ from qmllib.solvers import cho_solve
 from qmllib.utils.xyz_format import read_xyz
 
 
-def _get_training_data(n_points, representation_options={}):
+def _get_training_data(n_points, representation_options=None):
 
+    if representation_options is None:
+        representation_options = {}
     _representation_options = {
         **dict(
             cut_distance=1e6,
@@ -33,7 +35,6 @@ def _get_training_data(n_points, representation_options={}):
     all_atoms = []
 
     for xyz_file in sorted(data.keys())[:n_points]:
-
         filename = ASSETS / "qm7" / xyz_file
         coord, atoms = read_xyz(filename)
 
@@ -42,9 +43,9 @@ def _get_training_data(n_points, representation_options={}):
 
         representation = generate_fchl18(atoms, coord, **_representation_options)
 
-        assert (
-            representation.shape[0] == _representation_options["max_size"]
-        ), "ERROR: Check FCHL descriptor size!"
+        assert representation.shape[0] == _representation_options["max_size"], (
+            "ERROR: Check FCHL descriptor size!"
+        )
 
         all_representations.append(representation)
         all_atoms.append(atoms)
@@ -207,7 +208,6 @@ def test_krr_fchl_atomic():
 
     for i, Xi in enumerate(all_representations):
         for j, Xj in enumerate(all_representations):
-
             K_atomic = get_atomic_kernels(
                 Xi[: len(all_atoms[i])], Xj[: len(all_atoms[j])], **kernel_args
             )[0]
@@ -219,12 +219,12 @@ def test_krr_fchl_atomic():
                 K_atomic_symmetric = get_atomic_symmetric_kernels(
                     Xi[: len(all_atoms[i])], **kernel_args
                 )[0]
-                assert np.allclose(
-                    K_atomic, K_atomic_symmetric
-                ), "Error in FCHL symmetric atomic kernels"
-                assert np.invert(
-                    np.all(np.isnan(K_atomic_symmetric))
-                ), "FCHL atomic symmetric kernel contains NaN"
+                assert np.allclose(K_atomic, K_atomic_symmetric), (
+                    "Error in FCHL symmetric atomic kernels"
+                )
+                assert np.invert(np.all(np.isnan(K_atomic_symmetric))), (
+                    "FCHL atomic symmetric kernel contains NaN"
+                )
 
     assert np.allclose(K, K_test), "Error in FCHL atomic kernels"
 
@@ -1005,14 +1005,12 @@ def test_fchl_linear():
     for i, Xi in enumerate(representations):
         Sii = get_atomic_kernels(Xi[: len(atoms[i])], Xi[: len(atoms[i])], **kernel_args)[0]
         for j, Xj in enumerate(representations):
-
             Sjj = get_atomic_kernels(Xj[: len(atoms[j])], Xj[: len(atoms[j])], **kernel_args)[0]
 
             Sij = get_atomic_kernels(Xi[: len(atoms[i])], Xj[: len(atoms[j])], **kernel_args)[0]
 
             for ii in range(Sii.shape[0]):
                 for jj in range(Sjj.shape[0]):
-
                     l2 = Sii[ii, ii] + Sjj[jj, jj] - 2 * Sij[ii, jj]
                     K_test[i, j] += np.exp(-l2 / (2 * (2.5**2)))
 
@@ -1046,14 +1044,12 @@ def test_fchl_polynomial():
 
     for i, Xi in enumerate(representations):
         for j, Xj in enumerate(representations):
-
             Sij = get_atomic_kernels(
                 Xi[: len(atoms[i])], Xj[: len(atoms[j])], **linear_kernel_args
             )[0]
 
             for ii in range(Sij.shape[0]):
                 for jj in range(Sij.shape[1]):
-
                     K_test[i, j] += (2.0 * Sij[ii, jj] + 3.0) ** 4.0
 
     assert np.allclose(K, K_test), "Error in FCHL polynomial kernels"
@@ -1085,14 +1081,12 @@ def test_fchl_sigmoid():
 
     for i, Xi in enumerate(representations):
         for j, Xj in enumerate(representations):
-
             Sij = get_atomic_kernels(
                 Xi[: len(atoms[i])], Xj[: len(atoms[j])], **linear_kernel_args
             )[0]
 
             for ii in range(Sij.shape[0]):
                 for jj in range(Sij.shape[1]):
-
                     # K_test[i,j] += (2.0 * Sij[ii,jj] + 3.0)**4.0
                     K_test[i, j] += np.tanh(2.0 * Sij[ii, jj] + 3.0)
 
@@ -1125,7 +1119,6 @@ def test_fchl_multiquadratic():
     for i, Xi in enumerate(representations):
         Sii = get_atomic_kernels(Xi[: len(atoms[i])], Xi[: len(atoms[i])], **linear_kernel_args)[0]
         for j, Xj in enumerate(representations):
-
             Sjj = get_atomic_kernels(
                 Xj[: len(atoms[j])], Xj[: len(atoms[j])], **linear_kernel_args
             )[0]
@@ -1135,7 +1128,6 @@ def test_fchl_multiquadratic():
 
             for ii in range(Sii.shape[0]):
                 for jj in range(Sjj.shape[0]):
-
                     l2 = Sii[ii, ii] + Sjj[jj, jj] - 2 * Sij[ii, jj]
                     K_test[i, j] += np.sqrt(l2 + 4.0)
 
@@ -1168,7 +1160,6 @@ def test_fchl_inverse_multiquadratic():
     for i, Xi in enumerate(representations):
         Sii = get_atomic_kernels(Xi[: len(atoms[i])], Xi[: len(atoms[i])], **linear_kernel_args)[0]
         for j, Xj in enumerate(representations):
-
             Sjj = get_atomic_kernels(
                 Xj[: len(atoms[j])], Xj[: len(atoms[j])], **linear_kernel_args
             )[0]
@@ -1178,7 +1169,6 @@ def test_fchl_inverse_multiquadratic():
 
             for ii in range(Sii.shape[0]):
                 for jj in range(Sjj.shape[0]):
-
                     l2 = Sii[ii, ii] + Sjj[jj, jj] - 2 * Sij[ii, jj]
                     K_test[i, j] += 1.0 / np.sqrt(l2 + 4.0)
     assert np.allclose(K, K_test), "Error in FCHL inverse multiquadratic kernels"
@@ -1216,7 +1206,6 @@ def test_fchl_bessel():
     for i, Xi in enumerate(representations):
         Sii = get_atomic_kernels(Xi[: len(atoms[i])], Xi[: len(atoms[i])], **linear_kernel_args)[0]
         for j, Xj in enumerate(representations):
-
             Sjj = get_atomic_kernels(
                 Xj[: len(atoms[j])], Xj[: len(atoms[j])], **linear_kernel_args
             )[0]
@@ -1226,7 +1215,6 @@ def test_fchl_bessel():
 
             for ii in range(Sii.shape[0]):
                 for jj in range(Sjj.shape[0]):
-
                     # UNUSED l2 = np.sqrt(Sii[ii, ii] + Sjj[jj, jj] - 2 * Sij[ii, jj])
 
                     K_test[i, j] += jn(v, sigma * Sij[ii, jj]) / Sij[ii, jj] ** (-n * (v + 1))
@@ -1261,12 +1249,10 @@ def test_fchl_l2():
 
     for i, Xi in enumerate(representations):
         for j, Xj in enumerate(representations):
-
             Sij = get_atomic_kernels(Xi[: len(atoms[i])], Xj[: len(atoms[j])], **l2_kernel_args)[0]
 
             for ii in range(Sij.shape[0]):
                 for jj in range(Sij.shape[1]):
-
                     K_test[i, j] += np.exp(Sij[ii, jj] * inv_sigma)
 
     print(K_test)
@@ -1306,7 +1292,6 @@ def test_fchl_matern():
     for i, Xi in enumerate(representations):
         Sii = get_atomic_kernels(Xi[: len(atoms[i])], Xi[: len(atoms[i])], **linear_kernel_args)[0]
         for j, Xj in enumerate(representations):
-
             Sjj = get_atomic_kernels(
                 Xj[: len(atoms[j])], Xj[: len(atoms[j])], **linear_kernel_args
             )[0]
@@ -1316,7 +1301,6 @@ def test_fchl_matern():
 
             for ii in range(Sii.shape[0]):
                 for jj in range(Sjj.shape[0]):
-
                     l2 = np.sqrt(Sii[ii, ii] + Sjj[jj, jj] - 2 * Sij[ii, jj])
 
                     rho = 2 * np.sqrt(2 * v) * l2 / sigma
@@ -1354,7 +1338,6 @@ def test_fchl_cauchy():
     for i, Xi in enumerate(representations):
         Sii = get_atomic_kernels(Xi[: len(atoms[i])], Xi[: len(atoms[i])], **linear_kernel_args)[0]
         for j, Xj in enumerate(representations):
-
             Sjj = get_atomic_kernels(
                 Xj[: len(atoms[j])], Xj[: len(atoms[j])], **linear_kernel_args
             )[0]
@@ -1364,7 +1347,6 @@ def test_fchl_cauchy():
 
             for ii in range(Sii.shape[0]):
                 for jj in range(Sjj.shape[0]):
-
                     l2 = Sii[ii, ii] + Sjj[jj, jj] - 2 * Sij[ii, jj]
                     K_test[i, j] += 1.0 / (1.0 + l2 / 2.0**2)
 
@@ -1397,7 +1379,6 @@ def test_fchl_polynomial2():
     for i, Xi in enumerate(representations):
         Sii = get_atomic_kernels(Xi[: len(atoms[i])], Xi[: len(atoms[i])], **linear_kernel_args)[0]
         for j, Xj in enumerate(representations):
-
             Sjj = get_atomic_kernels(
                 Xj[: len(atoms[j])], Xj[: len(atoms[j])], **linear_kernel_args
             )[0]
@@ -1407,7 +1388,6 @@ def test_fchl_polynomial2():
 
             for ii in range(Sii.shape[0]):
                 for jj in range(Sjj.shape[0]):
-
                     K_test[i, j] += 1.0 + 2.0 * Sij[ii, jj] + 3.0 * Sij[ii, jj] ** 2
 
     assert np.allclose(K, K_test), "Error in FCHL polynomial2 kernels"

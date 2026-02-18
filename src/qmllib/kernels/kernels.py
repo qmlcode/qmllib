@@ -1,5 +1,3 @@
-from typing import List, Union
-
 import numpy as np
 from numpy import float64, ndarray
 
@@ -19,9 +17,7 @@ from qmllib._fkernels import (
 )
 
 
-def wasserstein_kernel(
-    A: ndarray, B: ndarray, sigma: float, p: int = 1, q: int = 1
-) -> ndarray:
+def wasserstein_kernel(A: ndarray, B: ndarray, sigma: float, p: int = 1, q: int = 1) -> ndarray:
     """Calculates the Wasserstein kernel matrix K, where :math:`K_{ij}`:
 
     :math:`K_{ij} = \\exp \\big( -\\frac{(W_p(A_i, B_i))^q}{\\sigma} \\big)`
@@ -44,9 +40,7 @@ def wasserstein_kernel(
     nb = B.shape[0]
 
     # Transpose for Fortran column-major format (rep_size, n_samples)
-    K = fwasserstein_kernel(
-        np.asfortranarray(A.T), na, np.asfortranarray(B.T), nb, sigma, p, q
-    )
+    K = fwasserstein_kernel(np.asfortranarray(A.T), na, np.asfortranarray(B.T), nb, sigma, p, q)
 
     return K
 
@@ -174,8 +168,8 @@ def linear_kernel(A: ndarray, B: ndarray) -> ndarray:
 def sargan_kernel(
     A: ndarray,
     B: ndarray,
-    sigma: Union[float, float64],
-    gammas: Union[ndarray, List[Union[int, float]], List[int]],
+    sigma: float | float64,
+    gammas: ndarray | list[int | float] | list[int],
 ) -> ndarray:
     """Calculates the Sargan kernel matrix K, where :math:`K_{ij}`:
 
@@ -271,7 +265,7 @@ def matern_kernel(
 
 
 def get_local_kernels_gaussian(
-    A: ndarray, B: ndarray, na: ndarray, nb: ndarray, sigmas: List[float]
+    A: ndarray, B: ndarray, na: ndarray, nb: ndarray, sigmas: list[float]
 ) -> ndarray:
     """Calculates the Gaussian kernel matrix K, for a local representation where :math:`K_{ij}`:
 
@@ -321,7 +315,7 @@ def get_local_kernels_gaussian(
 
 
 def get_local_kernels_laplacian(
-    A: ndarray, B: ndarray, na: ndarray, nb: ndarray, sigmas: List[float]
+    A: ndarray, B: ndarray, na: ndarray, nb: ndarray, sigmas: list[float]
 ) -> ndarray:
     """Calculates the Local Laplacian kernel matrix K, for a local representation where :math:`K_{ij}`:
 

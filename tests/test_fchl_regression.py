@@ -1,31 +1,21 @@
-
-import numpy as np
-from conftest import ASSETS, get_energies, shuffle_arrays
-from scipy.special import binom, factorial, jn
-from scipy.stats import linregress
-
-from qmllib.representations.fchl import (
-    generate_fchl18_displaced,
-    generate_fchl18,
-    get_atomic_kernels,
-    get_atomic_symmetric_kernels,
-    get_global_kernels,
-    get_global_symmetric_kernels,
-    get_local_kernels,
-    get_local_symmetric_kernels,
-    get_local_gradient_kernels,
-    get_local_symmetric_hessian_kernels,
-    get_local_hessian_kernels,
-    get_gaussian_process_kernels,
-)
-from qmllib.solvers import cho_solve
-from qmllib.utils.xyz_format import read_xyz
-
 import ast
-from copy import deepcopy
 
 import numpy as np
 import pytest
+from conftest import ASSETS
+from scipy.stats import linregress
+
+from qmllib.representations.fchl import (
+    generate_fchl18,
+    generate_fchl18_displaced,
+    get_gaussian_process_kernels,
+    get_local_gradient_kernels,
+    get_local_hessian_kernels,
+    get_local_kernels,
+    get_local_symmetric_hessian_kernels,
+    get_local_symmetric_kernels,
+)
+from qmllib.solvers import cho_solve
 
 # Skip if pandas not installed
 try:
@@ -33,17 +23,6 @@ try:
 except ImportError:
     pytest.skip("pandas not installed", allow_module_level=True)
 
-from conftest import ASSETS
-from scipy.stats import linregress
-
-from qmllib.kernels import (
-    get_atomic_local_gradient_kernel,
-    get_atomic_local_kernel,
-    get_gp_kernel,
-    get_symmetric_gp_kernel,
-)
-from qmllib.representations import generate_fchl19
-from qmllib.solvers import cho_solve, svd_solve
 
 np.set_printoptions(linewidth=999, edgeitems=10, suppress=True)
 
@@ -64,6 +43,7 @@ LLAMBDA = 1e-6
 
 np.random.seed(666)
 
+
 def mae(a, b):
     return np.mean(np.abs(a.flatten() - b.flatten()))
 
@@ -80,9 +60,7 @@ def get_reps(df):
     max_atoms = 23
     for i in range(len(df)):
         coordinates = np.array(ast.literal_eval(df["coordinates"][i]))
-        nuclear_charges = np.array(
-            ast.literal_eval(df["nuclear_charges"][i]), dtype=np.int32
-        )
+        nuclear_charges = np.array(ast.literal_eval(df["nuclear_charges"][i]), dtype=np.int32)
         # UNUSED atomtypes = df["atomtypes"][i]
 
         force = np.array(ast.literal_eval(df["forces"][i]))
@@ -123,8 +101,9 @@ def get_reps(df):
 
     return x, f, e, np.array(disp_x), q
 
+
 def test_fchl_force():
-    
+
     # Test that all kernel arguments work
     kernel_args = {
         "alchemy": "off",
@@ -132,7 +111,7 @@ def test_fchl_force():
             "sigma": [SIGMA],
         },
     }
-    
+
     X, F, E, dX, Q = get_reps(DF_TRAIN)
     Xs, Fs, Es, dXs, Qs = get_reps(DF_TEST)
 
@@ -146,19 +125,21 @@ def test_fchl_force():
     assert np.invert(np.all(np.isnan(Kgp))), "FCHL local kernel contains NaN"
 
     K_symmetric = get_local_symmetric_kernels(X, **kernel_args)[0]
-    Kuu = Kgp[: len(X), :len(X)]
+    Kuu = Kgp[: len(X), : len(X)]
     assert np.allclose(K_symmetric, Kuu), "Error in FCHL local kernel and Gaussian process kernel"
 
     Kgrad = get_local_gradient_kernels(X, dX, **kernel_args)[0]
-    Kgu = Kgp[len(X):, :len(X)]
-    assert np.allclose(Kgrad.T, Kgu), "Error in FCHL local gradient kernel and Gaussian process kernel"
-    Kug = Kgp[:len(X), len(X):]
+    Kgu = Kgp[len(X) :, : len(X)]
+    assert np.allclose(Kgrad.T, Kgu), (
+        "Error in FCHL local gradient kernel and Gaussian process kernel"
+    )
+    Kug = Kgp[: len(X), len(X) :]
     assert np.allclose(Kgrad, Kug), "Error in FCHL local gradient"
 
     Khess = get_local_symmetric_hessian_kernels(dX, dx=0.005, **kernel_args)[0]
-    Kgg = Kgp[len(X):, len(X):]
+    Kgg = Kgp[len(X) :, len(X) :]
     assert np.allclose(Khess, Kgg), "Error in FCHL local"
-        
+
     Kgp[np.diag_indices_from(Kgp)] += LLAMBDA
     alpha = cho_solve(Kgp, Y)
     beta = alpha[:TRAINING]
@@ -172,9 +153,7 @@ def test_fchl_force():
 
     # Make predictions by manually combining kernel blocks
     # Test force predictions
-    Fss = np.dot(np.transpose(Ks), gamma) + np.dot(
-        Ks_energy.T, beta
-    )
+    Fss = np.dot(np.transpose(Ks), gamma) + np.dot(Ks_energy.T, beta)
     # Training force predictions
     Kt = Kgp[TRAINING:, TRAINING:]
     Kt_energy = Kgp[:TRAINING, TRAINING:]
@@ -199,30 +178,20 @@ def test_fchl_force():
 
     slope, intercept, r_value, p_value, std_err = linregress(E, Et)
     print(
-        "TRAINING ENERGY   MAE = %10.4f  slope = %10.4f  intercept = %10.4f  r^2 = %9.6f"
-        % (mae(Et, E), slope, intercept, r_value)
+        f"TRAINING ENERGY   MAE = {mae(Et, E):10.4f}  slope = {slope:10.4f}  intercept = {intercept:10.4f}  r^2 = {r_value:9.6f}"
     )
 
-    slope, intercept, r_value, p_value, std_err = linregress(
-        F.flatten(), Ft.flatten()
-    )
+    slope, intercept, r_value, p_value, std_err = linregress(F.flatten(), Ft.flatten())
     print(
-        "TRAINING FORCE    MAE = %10.4f  slope = %10.4f  intercept = %10.4f  r^2 = %9.6f"
-        % (mae(Ft, F), slope, intercept, r_value)
+        f"TRAINING FORCE    MAE = {mae(Ft, F):10.4f}  slope = {slope:10.4f}  intercept = {intercept:10.4f}  r^2 = {r_value:9.6f}"
     )
 
-    slope, intercept, r_value, p_value, std_err = linregress(
-        Es.flatten(), Ess.flatten()
-    )
+    slope, intercept, r_value, p_value, std_err = linregress(Es.flatten(), Ess.flatten())
     print(
-        "TEST     ENERGY   MAE = %10.4f  slope = %10.4f  intercept = %10.4f  r^2 = %9.6f"
-        % (mae(Ess, Es), slope, intercept, r_value)
+        f"TEST     ENERGY   MAE = {mae(Ess, Es):10.4f}  slope = {slope:10.4f}  intercept = {intercept:10.4f}  r^2 = {r_value:9.6f}"
     )
 
-    slope, intercept, r_value, p_value, std_err = linregress(
-        Fs.flatten(), Fss.flatten()
-    )
+    slope, intercept, r_value, p_value, std_err = linregress(Fs.flatten(), Fss.flatten())
     print(
-        "TEST     FORCE    MAE = %10.4f  slope = %10.4f  intercept = %10.4f  r^2 = %9.6f"
-        % (mae(Fss, Fs), slope, intercept, r_value)
+        f"TEST     FORCE    MAE = {mae(Fss, Fs):10.4f}  slope = {slope:10.4f}  intercept = {intercept:10.4f}  r^2 = {r_value:9.6f}"
     )

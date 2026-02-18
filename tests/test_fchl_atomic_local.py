@@ -1,7 +1,6 @@
 """Simple test for atomic local kernels migration."""
 
 import numpy as np
-import pytest
 
 from qmllib.representations import (
     generate_fchl18,
@@ -9,9 +8,9 @@ from qmllib.representations import (
     generate_fchl18_displaced_5point,
 )
 from qmllib.representations.fchl import (
-    get_atomic_local_kernels,
-    get_atomic_local_gradient_kernels,
     get_atomic_local_gradient_5point_kernels,
+    get_atomic_local_gradient_kernels,
+    get_atomic_local_kernels,
 )
 
 
@@ -46,9 +45,7 @@ def test_atomic_local_kernels_simple():
     # Check result shape: (nsigmas, na1, nm2)
     assert result.shape[0] == 2, f"Wrong number of sigmas: {result.shape[0]} != 2"
     assert result.shape[1] == na1, f"Wrong na1: {result.shape[1]} != {na1}"
-    assert result.shape[2] == 1, (
-        f"Wrong nm2: {result.shape[2]} != 1"
-    )  # 1 molecule in X2
+    assert result.shape[2] == 1, f"Wrong nm2: {result.shape[2]} != 1"  # 1 molecule in X2
     assert np.all(np.isfinite(result)), "Atomic local kernel contains NaN/Inf"
     assert np.all(result >= 0), "Kernel values should be non-negative"
 
@@ -168,9 +165,7 @@ def test_atomic_local_gradient_5point_kernels_simple():
     assert result.shape[0] == 2, f"Wrong number of sigmas: {result.shape[0]} != 2"
     assert result.shape[1] == na1, f"Wrong na1: {result.shape[1]} != {na1}"
     assert result.shape[2] == naq2, f"Wrong naq2: {result.shape[2]} != {naq2}"
-    assert np.all(np.isfinite(result)), (
-        "Atomic local gradient 5point kernel contains NaN/Inf"
-    )
+    assert np.all(np.isfinite(result)), "Atomic local gradient 5point kernel contains NaN/Inf"
 
     print(f"✓ Atomic local gradient 5point kernel shape: {result.shape}")
     print(f"✓ Kernel values range: [{result.min():.6f}, {result.max():.6f}]")

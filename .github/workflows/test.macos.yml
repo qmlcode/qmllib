@@ -1,37 +1,37 @@
-name: Test MacOS
-
-on:
-  push:
-    branches:
-      - '**'
-  pull_request:
-    branches: [ main ]
-
-jobs:
-
-  test:
-    name: Testing ${{matrix.os}} py-${{matrix.python-version}}
-    runs-on: ${{matrix.os}}
-
-    strategy:
-      matrix:
-        os: ['macos-latest']
-        python-version: ['3.11', '3.12']
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@v5
-
-      - run: which brew
-      - run: brew install gcc openblas lapack libomp
-      - run: ls /opt/homebrew/bin/
-      - run: which gfortran-14
-
-      - run: FC=gfortran-14 make env_uv python_version=${{ matrix.python-version }}
-
-      - run: make test
-      - run: make format
-      - run: FC=gfortran-14 make build
-      - run: make test-dist
+# name: Test MacOS
+# 
+# on:
+#   push:
+#     branches:
+#       - '**'
+#   pull_request:
+#     branches: [ main ]
+# 
+# jobs:
+# 
+#   test:
+#     name: Testing ${{matrix.os}} py-${{matrix.python-version}}
+#     runs-on: ${{matrix.os}}
+# 
+#     strategy:
+#       matrix:
+#         os: ['macos-latest']
+#         python-version: ['3.11', '3.12']
+# 
+#     steps:
+#       - uses: actions/checkout@v2
+# 
+#       - name: Install the latest version of uv
+#         uses: astral-sh/setup-uv@v5
+# 
+#       - run: which brew
+#       - run: brew install gcc openblas lapack libomp
+#       - run: ls /opt/homebrew/bin/
+#       - run: which gfortran-14
+# 
+#       - run: FC=gfortran-14 make env_uv python_version=${{ matrix.python-version }}
+# 
+#       - run: make test
+#       - run: make format
+#       - run: FC=gfortran-14 make build
+#       - run: make test-dist

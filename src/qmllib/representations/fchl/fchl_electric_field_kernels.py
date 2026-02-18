@@ -260,7 +260,6 @@ def get_gaussian_process_electric_field_kernels(
     F2 = np.zeros((nm2, 3))
 
     if fields is not None:
-
         F1 = np.array(fields[0])
         F2 = np.array(fields[1])
 

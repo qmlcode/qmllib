@@ -42,7 +42,7 @@ def test_kpca():
         representation = generate_bob(atoms, coordinates, atomtypes)
         representations.append(representation)
 
-    X = np.array([representation for representation in representations])
+    X = np.array(list(representations))
 
     # Calculate laplacian kernel manually (since fkernels not converted yet)
     sigma = 2e5
@@ -60,9 +60,7 @@ def test_kpca():
     pcas_qml = fkpca(K, K.shape[0], centering=1)[:n_components]
 
     # Calculate with sklearn
-    pcas_sklearn = KernelPCA(
-        10, eigen_solver="dense", kernel="precomputed"
-    ).fit_transform(K)
+    pcas_sklearn = KernelPCA(10, eigen_solver="dense", kernel="precomputed").fit_transform(K)
 
     assert array_nan_close(np.abs(pcas_sklearn.T), np.abs(pcas_qml)), (
         "Error in Kernel PCA decomposition."
@@ -78,12 +76,8 @@ def test_wasserstein_kernel():
 
     # List of dummy representations (rep_size x n)
     rep_size = 3
-    X = np.array(
-        np.random.randint(0, 10, size=(rep_size, n_train)), dtype=np.float64, order="F"
-    )
-    Xs = np.array(
-        np.random.randint(0, 10, size=(rep_size, n_test)), dtype=np.float64, order="F"
-    )
+    X = np.array(np.random.randint(0, 10, size=(rep_size, n_train)), dtype=np.float64, order="F")
+    Xs = np.array(np.random.randint(0, 10, size=(rep_size, n_test)), dtype=np.float64, order="F")
 
     sigma = 100.0
 
@@ -91,9 +85,7 @@ def test_wasserstein_kernel():
 
     for i in range(n_train):
         for j in range(n_test):
-            Ktest[i, j] = np.exp(
-                wasserstein_distance(X[:, i], Xs[:, j]) / (-1.0 * sigma)
-            )
+            Ktest[i, j] = np.exp(wasserstein_distance(X[:, i], Xs[:, j]) / (-1.0 * sigma))
 
     K = fwasserstein_kernel(X, n_train, Xs, n_test, sigma, 1, 1)
 

@@ -21,12 +21,10 @@ def get_asize(list_of_atoms, pad):
     asize: dict[int, int] = dict()
 
     for atoms in list_of_atoms:
-
         unique_atoms, unique_counts = np.unique(atoms, return_counts=True)
 
-        for atom, count in zip(unique_atoms, unique_counts):
-
-            prev = asize.get(atom, None)
+        for atom, count in zip(unique_atoms, unique_counts, strict=False):
+            prev = asize.get(atom)
 
             if prev is None:
                 asize[atom] = count + pad
@@ -46,7 +44,7 @@ def get_asize(list_of_atoms, pad):
 def get_energies(filename: Path):
     """Returns a dictionary with heats of formation for each xyz-file."""
 
-    with open(filename, "r") as f:
+    with open(filename) as f:
         lines = f.readlines()
 
     energies = dict()

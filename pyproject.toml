@@ -17,7 +17,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Chemistry",
 ]
 keywords = ["qml", "quantum chemistry", "machine learning"]
-readme="README.rst"
+readme="README.md"
 license = {text = "MIT"}
 requires-python = ">=3.10"
 dependencies = [
@@ -28,10 +28,15 @@ dependencies = [
 
 [project.optional-dependencies]
 test = ["pytest>=8", "pytest-xdist", "pytest-cov", "pytest-timeout"]
+dev = [
+    "ruff>=0.8.0",
+    "mypy>=1.9.0",
+    "pre-commit>=3.6.0",
+]
 
 [project.urls]
 Homepage = "https://qmlcode.org"
-Issues = "https://github.com/youruser/kernelforge/issues"
+Issues = "https://github.com/qmlcode/qmllib/issues"
 
 [tool.scikit-build]
 wheel.expand-macos-universal-tags = true
@@ -46,3 +51,61 @@ wheel.packages = ["python/kernelforge"]
 [tool.scikit-build.cmake.define]
 CMAKE_VERBOSE_MAKEFILE = "ON"
 CMAKE_BUILD_TYPE = "Release"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "F",      # pyflakes
+    "I",      # isort (import sorting)
+    "N",      # pep8-naming
+    "UP",     # pyupgrade (modern Python syntax)
+    "B",      # flake8-bugbear
+    "C4",     # flake8-comprehensions
+    "SIM",    # flake8-simplify
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["qmllib"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["N803", "N806", "B017", "B023", "C408", "E501", "E402", "SIM115", "SIM113"]  # Allow test-specific patterns
+# Mathematical notation: Allow uppercase variables (A, B, K, X1, X2, SIGMA, etc.) in kernel/distance code
+# Also allow function calls in defaults (B008) for mathematical constants like sqrt(2)
+# Allow ambiguous variable names (E741) like 'l' for mathematical indices
+"src/qmllib/kernels/*" = ["N803", "N806", "E501"]
+"src/qmllib/representations/*" = ["N803", "N806", "E501", "B008", "E741"]
+"src/qmllib/solvers/*" = ["N803", "N806", "E501"]
+"src/qmllib/utils/alchemy.py" = ["N802"]  # QNum_distance follows domain naming convention
+
+[tool.mypy]
+python_version = "3.10"
+warn_unused_configs = true
+# Note: Strict mode disabled due to heavy use of Fortran extensions without type stubs
+# This codebase interfaces extensively with Fortran/C code which lacks type information
+# Mypy is configured to catch obvious errors without being overly strict
+warn_redundant_casts = true
+no_implicit_optional = false  # Allow None defaults without Optional[]
+# Disabled checks due to Fortran/C extensions:
+# - check_untyped_defs: Fortran interop makes full typing impractical
+# - disallow_untyped_defs: Many Fortran functions lack types
+# - warn_return_any: Fortran functions return Any
+
+# Disable specific error codes that are impractical for scientific code with Fortran
+# TODO: Incrementally fix these by improving type annotations
+disable_error_code = [
+    "import-untyped",      # Fortran modules lack stubs
+    "import-not-found",    # Optional dependencies
+    "attr-defined",        # Dynamic attributes from Fortran
+    "assignment",          # Type mismatches (many from numpy/list confusion)
+    "arg-type",            # Argument type issues (complex union types)
+    "list-item",           # List item type mismatches
+]
+
+# Exclude tests from type checking
+[[tool.mypy.overrides]]
+module = "tests.*"
+ignore_errors = true

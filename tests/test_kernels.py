@@ -151,9 +151,7 @@ def matern(metric, order):
             if order == 0:
                 Ktest[i, j] = np.exp(-d / sigma)
             elif order == 1:
-                Ktest[i, j] = np.exp(-np.sqrt(3) * d / sigma) * (
-                    1 + np.sqrt(3) * d / sigma
-                )
+                Ktest[i, j] = np.exp(-np.sqrt(3) * d / sigma) * (1 + np.sqrt(3) * d / sigma)
             else:
                 Ktest[i, j] = np.exp(-np.sqrt(5) * d / sigma) * (
                     1 + np.sqrt(5) * d / sigma + 5.0 / 3 * d**2 / sigma**2
@@ -239,16 +237,14 @@ def test_kpca():
         representation = generate_bob(atoms, coordinates, atomtypes)
         representations.append(representation)
 
-    X = np.array([representation for representation in representations])
+    X = np.array(list(representations))
     K = laplacian_kernel(X, X, 2e5)
 
     # calculate pca
     pcas_qml = kpca(K, n=10)
 
     # Calculate with sklearn
-    pcas_sklearn = KernelPCA(
-        10, eigen_solver="dense", kernel="precomputed"
-    ).fit_transform(K)
+    pcas_sklearn = KernelPCA(10, eigen_solver="dense", kernel="precomputed").fit_transform(K)
 
     assert array_nan_close(np.abs(pcas_sklearn.T), np.abs(pcas_qml)), (
         "Error in Kernel PCA decomposition."

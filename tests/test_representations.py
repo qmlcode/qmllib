@@ -55,7 +55,7 @@ def test_coulomb_matrix_rownorm():
         )
         representations.append(representation)
 
-    X_test = np.asarray([rep for rep in representations])
+    X_test = np.asarray(list(representations))
 
     print(X_test.shape)
 
@@ -76,7 +76,7 @@ def test_coulomb_matrix_unsorted():
         )
         representations.append(representation)
 
-    X_test = np.asarray([rep for rep in representations])
+    X_test = np.asarray(list(representations))
 
     print(X_test.shape)
 
@@ -95,7 +95,7 @@ def test_atomic_coulomb_matrix_distance():
         rep = generate_coulomb_matrix_atomic(nuclear_charges, coord, size=size, sorting="distance")
         representations.append(rep)
 
-    X_test = np.concatenate([rep for rep in representations])
+    X_test = np.concatenate(list(representations))
     X_ref = np.loadtxt(ASSETS / "atomic_coulomb_matrix_representation_distance_sorted.txt")
     assert np.allclose(X_test, X_ref), "Error in atomic coulomb matrix representation"
     # Compare to old implementation (before 'indices' keyword)
@@ -144,7 +144,7 @@ def test_atomic_coulomb_matrix_distance_softcut():
         )
         representations.append(rep)
 
-    X_test = np.concatenate([rep for rep in representations])
+    X_test = np.concatenate(list(representations))
     X_ref = np.loadtxt(
         ASSETS / "atomic_coulomb_matrix_representation_distance_sorted_with_cutoff.txt"
     )
@@ -199,9 +199,9 @@ def test_atomic_coulomb_matrix_twoatom_distance():
                 if abs(diff) > 1e-9:
                     print(i, j, diff, representation_subset[i, j], rep[i, j])
 
-        assert np.allclose(
-            representation_subset, rep
-        ), "Error in atomic coulomb matrix representation"
+        assert np.allclose(representation_subset, rep), (
+            "Error in atomic coulomb matrix representation"
+        )
 
 
 def test_atomic_coulomb_matrix_twoatom_rownorm():
@@ -212,7 +212,6 @@ def test_atomic_coulomb_matrix_twoatom_rownorm():
     size = max(atoms.size for _, atoms in mols) + 1
 
     for coord, nuclear_charges in mols:
-
         rep = generate_coulomb_matrix_atomic(nuclear_charges, coord, size=size, sorting="row-norm")
         representation_subset = rep[1:3]
         rep = generate_coulomb_matrix_atomic(
@@ -223,9 +222,9 @@ def test_atomic_coulomb_matrix_twoatom_rownorm():
                 diff = representation_subset[i, j] - rep[i, j]
                 if abs(diff) > 1e-9:
                     print(i, j, diff, representation_subset[i, j], rep[i, j])
-        assert np.allclose(
-            representation_subset, rep
-        ), "Error in atomic coulomb matrix representation"
+        assert np.allclose(representation_subset, rep), (
+            "Error in atomic coulomb matrix representation"
+        )
 
 
 def test_eigenvalue_coulomb_matrix():

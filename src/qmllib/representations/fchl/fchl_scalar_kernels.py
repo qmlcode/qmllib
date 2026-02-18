@@ -1,5 +1,3 @@
-from typing import Dict, List, Optional, Union
-
 import numpy as np
 from numpy import float64, ndarray
 
@@ -34,7 +32,7 @@ def get_local_kernels(
     alchemy_period_width: float = 1.6,
     alchemy_group_width: float = 1.6,
     kernel: str = "gaussian",
-    kernel_args: Optional[Dict[str, List[float]]] = None,
+    kernel_args: dict[str, list[float]] | None = None,
 ) -> ndarray:
     """Calculates the Gaussian kernel matrix K, where :math:`K_{ij}`:
 
@@ -120,9 +118,7 @@ def get_local_kernels(
         alchemy, emax=100, r_width=alchemy_group_width, c_width=alchemy_period_width
     )
 
-    kernel_idx, kernel_parameters, n_kernels = get_kernel_parameters(
-        kernel, kernel_args
-    )
+    kernel_idx, kernel_parameters, n_kernels = get_kernel_parameters(kernel, kernel_args)
 
     return fget_kernels_fchl(
         A,
@@ -154,7 +150,7 @@ def get_local_kernels(
 def get_local_symmetric_kernels(
     A: ndarray,
     verbose: bool = False,
-    two_body_scaling: Union[float, float64] = np.sqrt(8),
+    two_body_scaling: float | float64 = np.sqrt(8),
     three_body_scaling: float = 1.6,
     two_body_width: float = 0.2,
     three_body_width: float = np.pi,
@@ -163,13 +159,11 @@ def get_local_symmetric_kernels(
     cut_start: float = 1.0,
     cut_distance: float = 5.0,
     fourier_order: int = 1,
-    alchemy: Union[ndarray, str] = "periodic-table",
+    alchemy: ndarray | str = "periodic-table",
     alchemy_period_width: float = 1.6,
     alchemy_group_width: float = 1.6,
     kernel: str = "gaussian",
-    kernel_args: Optional[
-        Union[Dict[str, List[List[float]]], Dict[str, List[float]]]
-    ] = None,
+    kernel_args: dict[str, list[list[float]]] | dict[str, list[float]] | None = None,
 ) -> ndarray:
     """Calculates the Gaussian kernel matrix K, where :math:`K_{ij}`:
 
@@ -235,9 +229,7 @@ def get_local_symmetric_kernels(
     doalchemy, pd = get_alchemy(
         alchemy, emax=100, r_width=alchemy_group_width, c_width=alchemy_period_width
     )
-    kernel_idx, kernel_parameters, n_kernels = get_kernel_parameters(
-        kernel, kernel_args
-    )
+    kernel_idx, kernel_parameters, n_kernels = get_kernel_parameters(kernel, kernel_args)
 
     return fget_symmetric_kernels_fchl(
         A,
@@ -278,7 +270,7 @@ def get_global_symmetric_kernels(
     alchemy_period_width: float = 1.6,
     alchemy_group_width: float = 1.6,
     kernel: str = "gaussian",
-    kernel_args: Optional[Dict[str, List[float]]] = None,
+    kernel_args: dict[str, list[float]] | None = None,
 ) -> ndarray:
     """Calculates the Gaussian kernel matrix K, where :math:`K_{ij}`:
 
@@ -386,7 +378,7 @@ def get_global_kernels(
     alchemy_period_width: float = 1.6,
     alchemy_group_width: float = 1.6,
     kernel: str = "gaussian",
-    kernel_args: Optional[Dict[str, List[float]]] = None,
+    kernel_args: dict[str, list[float]] | None = None,
 ) -> ndarray:
     """Calculates the Gaussian kernel matrix K, where :math:`K_{ij}`:
 
@@ -517,7 +509,7 @@ def get_atomic_kernels(
     alchemy_period_width: float = 1.6,
     alchemy_group_width: float = 1.6,
     kernel: str = "gaussian",
-    kernel_args: Optional[Dict[str, List[float]]] = None,
+    kernel_args: dict[str, list[float]] | None = None,
 ) -> ndarray:
     """Calculates the Gaussian kernel matrix K, where :math:`K_{ij}`:
 
@@ -627,7 +619,7 @@ def get_atomic_symmetric_kernels(
     alchemy_period_width: float = 1.6,
     alchemy_group_width: float = 1.6,
     kernel: str = "gaussian",
-    kernel_args: Optional[Dict[str, List[float]]] = None,
+    kernel_args: dict[str, list[float]] | None = None,
 ) -> ndarray:
     """Calculates the Gaussian kernel matrix K, where :math:`K_{ij}`:
 

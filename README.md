@@ -126,18 +126,20 @@ Please cite the representation that you are using accordingly.
 ## What is left to do?
 
 **Housekeeping:**
-- [ ] Set up ruff and mypy
-- [ ] Set up proper typing and code formatting
+- [x] Set up ruff and mypy
+- [x] Set up proper typing and code formatting
 - [ ] Set up proper doc strings
 - [ ] Set up pre-commit hooks
 - [ ] Set up proper `Makefile` for Jimmy
+- [ ] Stretch goal: stubs for Fortran code for `py.typed`
 - [ ] Enable compiling with MacOS
 - [ ] Divide tests into CI and integration tests
   - [ ] Add a few additional tests to replace integration tests in CI
   - [ ] Find way to run integration tests (not in CI)
 - [ ] Enable GitHub actions for CI
-- [ ] Enable code quality
+- [x] Enable code quality
 - [x] Convert readme to markdown
+- [ ] `setuptools-scm` for versioning
 - [ ] Enable badges
 - [ ] Test pip wheel building
 - [ ] Make qmlbench tool to track performance

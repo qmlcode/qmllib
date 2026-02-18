@@ -1,9 +1,8 @@
 import numpy as np
 from conftest import ASSETS, get_energies, shuffle_arrays
 
-from qmllib.kernels import get_local_kernel, get_local_symmetric_kernel
+from qmllib.kernels import get_local_symmetric_kernel
 from qmllib.representations import generate_fchl19
-from qmllib.solvers import cho_solve
 from qmllib.utils.xyz_format import read_xyz
 
 np.set_printoptions(linewidth=666)
@@ -45,16 +44,15 @@ def test_energy():
     test_indices = list(range(n_train, n_train + n_test))
 
     # List of representations
-    test_representations = all_representations[test_indices]
+    all_representations[test_indices]
     train_representations = all_representations[train_indices]
-    test_atoms = [all_atoms[i] for i in test_indices]
+    [all_atoms[i] for i in test_indices]
     train_atoms = [all_atoms[i] for i in train_indices]
-    test_properties = all_properties[test_indices]
-    train_properties = all_properties[train_indices]
+    all_properties[test_indices]
+    all_properties[train_indices]
 
     # Set hyper-parameters
     sigma = 3.0
-    llambda = 1e-10
 
     kernel = get_local_symmetric_kernel(train_representations, train_atoms, sigma)
     print(kernel)

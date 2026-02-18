@@ -7,9 +7,7 @@ import pytest
 from scipy.linalg import lstsq
 
 # Electric field kernels not yet migrated to pybind11
-pytest.skip(
-    "Electric field kernels not yet migrated to pybind11", allow_module_level=True
-)
+pytest.skip("Electric field kernels not yet migrated to pybind11", allow_module_level=True)
 
 from qmllib.representations import (
     generate_fchl18,
@@ -129,16 +127,14 @@ def parse_csv(filename):
     G = []
     D = []
 
-    with open(filename, "r") as csvfile:
+    with open(filename) as csvfile:
         csvlines = csv.reader(csvfile, delimiter=";")
 
-        for i, row in enumerate(csvlines):
+        for _i, row in enumerate(csvlines):
             nuclear_charges = np.array(ast.literal_eval(row[6]), dtype=np.int32)
 
             # Gradients (from force in hartree/borh to gradients in eV/angstrom)
-            gradient = (
-                np.array(ast.literal_eval(row[5])) * HARTREE_TO_EV / BOHR_TO_ANGS * -1
-            )
+            gradient = np.array(ast.literal_eval(row[5])) * HARTREE_TO_EV / BOHR_TO_ANGS * -1
 
             # SCF energy (eV)
             energy = float(row[4]) * HARTREE_TO_EV
@@ -150,9 +146,7 @@ def parse_csv(filename):
             coords = np.array(ast.literal_eval(row[2]))
 
             rep = generate_fchl18(nuclear_charges, coords, **REP_ARGS)
-            rep_gradient = generate_fchl18_displaced(
-                nuclear_charges, coords, dx=DX, **REP_ARGS
-            )
+            rep_gradient = generate_fchl18_displaced(nuclear_charges, coords, dx=DX, **REP_ARGS)
             rep_dipole = generate_fchl18_electric_field(
                 nuclear_charges, coords, fictitious_charges="Gasteiger", **REP_ARGS
             )
@@ -178,26 +172,18 @@ def parse_csv(filename):
 
 @pytest.mark.skip(reason="Missing test file")
 def test_multiple_operators():
-    X, X_gradient, X_dipole, E, G, D = parse_csv(
-        ASSETS / "dichloromethane_mp2_test.csv"
-    )
+    X, X_gradient, X_dipole, E, G, D = parse_csv(ASSETS / "dichloromethane_mp2_test.csv")
 
     K = get_atomic_local_kernels(X, X, **KERNEL_ARGS)[0]
-    K_gradient = get_atomic_local_gradient_kernels(X, X_gradient, dx=DX, **KERNEL_ARGS)[
-        0
-    ]
+    K_gradient = get_atomic_local_gradient_kernels(X, X_gradient, dx=DX, **KERNEL_ARGS)[0]
     K_dipole = get_atomic_local_electric_field_gradient_kernels(
         X, X_dipole, df=DF, ef_scaling=EF_SCALING, **KERNEL_ARGS
     )[0]
 
-    Xs, Xs_gradient, Xs_dipole, Es, Gs, Ds = parse_csv(
-        ASSETS / "dichloromethane_mp2_train.csv"
-    )
+    Xs, Xs_gradient, Xs_dipole, Es, Gs, Ds = parse_csv(ASSETS / "dichloromethane_mp2_train.csv")
 
     Ks = get_atomic_local_kernels(X, Xs, **KERNEL_ARGS)[0]
-    Ks_gradient = get_atomic_local_gradient_kernels(
-        X, Xs_gradient, dx=DX, **KERNEL_ARGS
-    )[0]
+    Ks_gradient = get_atomic_local_gradient_kernels(X, Xs_gradient, dx=DX, **KERNEL_ARGS)[0]
     Ks_dipole = get_atomic_local_electric_field_gradient_kernels(
         X, Xs_dipole, df=DF, ef_scaling=EF_SCALING, **KERNEL_ARGS
     )[0]
@@ -245,9 +231,7 @@ def test_multiple_operators():
 
 
 def test_generate_representation():
-    coords = np.array(
-        [[1.464, 0.707, 1.056], [0.878, 1.218, 0.498], [2.319, 1.126, 0.952]]
-    )
+    coords = np.array([[1.464, 0.707, 1.056], [0.878, 1.218, 0.498], [2.319, 1.126, 0.952]])
 
     nuclear_charges = np.array([8, 1, 1], dtype=np.int32)
 
@@ -260,9 +244,7 @@ def test_generate_representation():
         nuclear_charges, coords, fictitious_charges=fic_charges1, max_size=3
     )
 
-    assert np.allclose(rep1, rep_ref), (
-        "Error generating representation for electric fields"
-    )
+    assert np.allclose(rep1, rep_ref), "Error generating representation for electric fields"
 
     # Test with fictitious charges from a list
     fic_charges2 = [-0.41046649, 0.20523324, 0.20523324]
@@ -271,9 +253,7 @@ def test_generate_representation():
         nuclear_charges, coords, fictitious_charges=fic_charges2, max_size=3
     )
 
-    assert np.allclose(rep2, rep_ref), (
-        "Error generating representation for electric fields"
-    )
+    assert np.allclose(rep2, rep_ref), "Error generating representation for electric fields"
 
 
 @needspybel()
@@ -308,21 +288,13 @@ def test_generate_representation_rdkit():
 
 @pytest.mark.skip(reason="Missing test file")
 def test_gaussian_process():
-    X, X_gradient, X_dipole, E, G, D = parse_csv(
-        ASSETS / "dichloromethane_mp2_test.csv"
-    )
+    X, X_gradient, X_dipole, E, G, D = parse_csv(ASSETS / "dichloromethane_mp2_test.csv")
 
-    K = get_gaussian_process_electric_field_kernels(X_dipole, X_dipole, **KERNEL_ARGS)[
-        0
-    ]
+    K = get_gaussian_process_electric_field_kernels(X_dipole, X_dipole, **KERNEL_ARGS)[0]
 
-    Xs, Xs_gradient, Xs_dipole, Es, Gs, Ds = parse_csv(
-        ASSETS / "dichloromethane_mp2_train.csv"
-    )
+    Xs, Xs_gradient, Xs_dipole, Es, Gs, Ds = parse_csv(ASSETS / "dichloromethane_mp2_train.csv")
 
-    Ks = get_gaussian_process_electric_field_kernels(
-        X_dipole, Xs_dipole, **KERNEL_ARGS
-    )[0]
+    Ks = get_gaussian_process_electric_field_kernels(X_dipole, Xs_dipole, **KERNEL_ARGS)[0]
 
     offset = E.mean()
     E -= offset

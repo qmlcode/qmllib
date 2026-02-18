@@ -56,9 +56,7 @@ def get_reps(df):
 
     for i in range(len(df)):
         coordinates = np.array(ast.literal_eval(df["coordinates"][i]))
-        nuclear_charges = np.array(
-            ast.literal_eval(df["nuclear_charges"][i]), dtype=np.int32
-        )
+        nuclear_charges = np.array(ast.literal_eval(df["nuclear_charges"][i]), dtype=np.int32)
         # UNUSED atomtypes = df["atomtypes"][i]
 
         force = np.array(ast.literal_eval(df["forces"][i]))
@@ -66,9 +64,7 @@ def get_reps(df):
 
         energy = float(df["atomization_energy"][i])
 
-        (x1, dx1) = generate_fchl19(
-            nuclear_charges, coordinates, gradients=True, pad=max_atoms
-        )
+        (x1, dx1) = generate_fchl19(nuclear_charges, coordinates, gradients=True, pad=max_atoms)
 
         x.append(x1)
         f.append(force)
@@ -136,46 +132,32 @@ def test_fchl_acsf_operator():
 
     slope, intercept, r_value, p_value, std_err = linregress(E, eYt)
     print(
-        "TRAINING ENERGY   MAE = %10.4f  slope = %10.4f  intercept = %10.4f  r^2 = %9.6f"
-        % (np.mean(np.abs(E - eYt)), slope, intercept, r_value)
+        f"TRAINING ENERGY   MAE = {np.mean(np.abs(E - eYt)):10.4f}  slope = {slope:10.4f}  intercept = {intercept:10.4f}  r^2 = {r_value:9.6f}"
     )
 
     slope, intercept, r_value, p_value, std_err = linregress(F.flatten(), fYt.flatten())
     print(
-        "TRAINING FORCE    MAE = %10.4f  slope = %10.4f  intercept = %10.4f  r^2 = %9.6f"
-        % (np.mean(np.abs(F.flatten() - fYt.flatten())), slope, intercept, r_value)
+        f"TRAINING FORCE    MAE = {np.mean(np.abs(F.flatten() - fYt.flatten())):10.4f}  slope = {slope:10.4f}  intercept = {intercept:10.4f}  r^2 = {r_value:9.6f}"
     )
 
-    slope, intercept, r_value, p_value, std_err = linregress(
-        Es.flatten(), eYs.flatten()
-    )
+    slope, intercept, r_value, p_value, std_err = linregress(Es.flatten(), eYs.flatten())
     print(
-        "TEST     ENERGY   MAE = %10.4f  slope = %10.4f  intercept = %10.4f  r^2 = %9.6f"
-        % (np.mean(np.abs(Es - eYs)), slope, intercept, r_value)
+        f"TEST     ENERGY   MAE = {np.mean(np.abs(Es - eYs)):10.4f}  slope = {slope:10.4f}  intercept = {intercept:10.4f}  r^2 = {r_value:9.6f}"
     )
 
-    slope, intercept, r_value, p_value, std_err = linregress(
-        Fs.flatten(), fYs.flatten()
-    )
+    slope, intercept, r_value, p_value, std_err = linregress(Fs.flatten(), fYs.flatten())
     print(
-        "TEST     FORCE    MAE = %10.4f  slope = %10.4f  intercept = %10.4f  r^2 = %9.6f"
-        % (np.mean(np.abs(Fs.flatten() - fYs.flatten())), slope, intercept, r_value)
+        f"TEST     FORCE    MAE = {np.mean(np.abs(Fs.flatten() - fYs.flatten())):10.4f}  slope = {slope:10.4f}  intercept = {intercept:10.4f}  r^2 = {r_value:9.6f}"
     )
 
-    slope, intercept, r_value, p_value, std_err = linregress(
-        Ev.flatten(), eYv.flatten()
-    )
+    slope, intercept, r_value, p_value, std_err = linregress(Ev.flatten(), eYv.flatten())
     print(
-        "VALID    ENERGY   MAE = %10.4f  slope = %10.4f  intercept = %10.4f  r^2 = %9.6f"
-        % (np.mean(np.abs(Ev - eYv)), slope, intercept, r_value)
+        f"VALID    ENERGY   MAE = {np.mean(np.abs(Ev - eYv)):10.4f}  slope = {slope:10.4f}  intercept = {intercept:10.4f}  r^2 = {r_value:9.6f}"
     )
 
-    slope, intercept, r_value, p_value, std_err = linregress(
-        Fv.flatten(), fYv.flatten()
-    )
+    slope, intercept, r_value, p_value, std_err = linregress(Fv.flatten(), fYv.flatten())
     print(
-        "VALID    FORCE    MAE = %10.4f  slope = %10.4f  intercept = %10.4f  r^2 = %9.6f"
-        % (np.mean(np.abs(Fv.flatten() - fYv.flatten())), slope, intercept, r_value)
+        f"VALID    FORCE    MAE = {np.mean(np.abs(Fv.flatten() - fYv.flatten())):10.4f}  slope = {slope:10.4f}  intercept = {intercept:10.4f}  r^2 = {r_value:9.6f}"
     )
 
 
@@ -231,46 +213,32 @@ def test_fchl_acsf_gaussian_process():
 
     slope, intercept, r_value, p_value, std_err = linregress(E, eYt)
     print(
-        "TRAINING ENERGY   MAE = %10.4f  slope = %10.4f  intercept = %10.4f  r^2 = %9.6f"
-        % (np.mean(np.abs(E - eYt)), slope, intercept, r_value)
+        f"TRAINING ENERGY   MAE = {np.mean(np.abs(E - eYt)):10.4f}  slope = {slope:10.4f}  intercept = {intercept:10.4f}  r^2 = {r_value:9.6f}"
     )
 
     slope, intercept, r_value, p_value, std_err = linregress(F.flatten(), fYt.flatten())
     print(
-        "TRAINING FORCE    MAE = %10.4f  slope = %10.4f  intercept = %10.4f  r^2 = %9.6f"
-        % (np.mean(np.abs(F.flatten() - fYt.flatten())), slope, intercept, r_value)
+        f"TRAINING FORCE    MAE = {np.mean(np.abs(F.flatten() - fYt.flatten())):10.4f}  slope = {slope:10.4f}  intercept = {intercept:10.4f}  r^2 = {r_value:9.6f}"
     )
 
-    slope, intercept, r_value, p_value, std_err = linregress(
-        Es.flatten(), eYs.flatten()
-    )
+    slope, intercept, r_value, p_value, std_err = linregress(Es.flatten(), eYs.flatten())
     print(
-        "TEST     ENERGY   MAE = %10.4f  slope = %10.4f  intercept = %10.4f  r^2 = %9.6f"
-        % (np.mean(np.abs(Es - eYs)), slope, intercept, r_value)
+        f"TEST     ENERGY   MAE = {np.mean(np.abs(Es - eYs)):10.4f}  slope = {slope:10.4f}  intercept = {intercept:10.4f}  r^2 = {r_value:9.6f}"
     )
 
-    slope, intercept, r_value, p_value, std_err = linregress(
-        Fs.flatten(), fYs.flatten()
-    )
+    slope, intercept, r_value, p_value, std_err = linregress(Fs.flatten(), fYs.flatten())
     print(
-        "TEST     FORCE    MAE = %10.4f  slope = %10.4f  intercept = %10.4f  r^2 = %9.6f"
-        % (np.mean(np.abs(Fs.flatten() - fYs.flatten())), slope, intercept, r_value)
+        f"TEST     FORCE    MAE = {np.mean(np.abs(Fs.flatten() - fYs.flatten())):10.4f}  slope = {slope:10.4f}  intercept = {intercept:10.4f}  r^2 = {r_value:9.6f}"
     )
 
-    slope, intercept, r_value, p_value, std_err = linregress(
-        Ev.flatten(), eYv.flatten()
-    )
+    slope, intercept, r_value, p_value, std_err = linregress(Ev.flatten(), eYv.flatten())
     print(
-        "VALID    ENERGY   MAE = %10.4f  slope = %10.4f  intercept = %10.4f  r^2 = %9.6f"
-        % (np.mean(np.abs(Ev - eYv)), slope, intercept, r_value)
+        f"VALID    ENERGY   MAE = {np.mean(np.abs(Ev - eYv)):10.4f}  slope = {slope:10.4f}  intercept = {intercept:10.4f}  r^2 = {r_value:9.6f}"
     )
 
-    slope, intercept, r_value, p_value, std_err = linregress(
-        Fv.flatten(), fYv.flatten()
-    )
+    slope, intercept, r_value, p_value, std_err = linregress(Fv.flatten(), fYv.flatten())
     print(
-        "VALID    FORCE    MAE = %10.4f  slope = %10.4f  intercept = %10.4f  r^2 = %9.6f"
-        % (np.mean(np.abs(Fv.flatten() - fYv.flatten())), slope, intercept, r_value)
+        f"VALID    FORCE    MAE = {np.mean(np.abs(Fv.flatten() - fYv.flatten())):10.4f}  slope = {slope:10.4f}  intercept = {intercept:10.4f}  r^2 = {r_value:9.6f}"
     )
 
 

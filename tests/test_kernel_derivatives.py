@@ -46,12 +46,10 @@ def csv_to_molecular_reps(csv_filename):
 
     disp_x = [[] for _ in range(4)]
 
-    with open(csv_filename, "r") as csvfile:
-
+    with open(csv_filename) as csvfile:
         df = csv.reader(csvfile, delimiter=";", quotechar="#")
 
         for i, row in enumerate(df):
-
             if i > TEST + TRAINING:
                 break
 
@@ -72,7 +70,6 @@ def csv_to_molecular_reps(csv_filename):
 
             for j in range(len(nuclear_charges)):
                 for xyz in range(3):
-
                     for k, disp in enumerate([2 * DX, DX, -DX, -2 * DX]):
                         disp_coords = deepcopy(coordinates)
 
@@ -135,11 +132,9 @@ def test_local_kernel():
 
     for i in range(TRAINING):
         for n1 in range(N[i]):
-
             for j in range(TEST):
                 for n2 in range(Ns[j]):
                     if Q[i][n1] == Qs[j][n2]:
-
                         d = np.linalg.norm(X[i, n1] - Xs[j, n2])
                         gauss = np.exp(-(d**2) / (2 * SIGMA**2))
                         K_numm[j, i] += gauss
@@ -171,10 +166,8 @@ def test_atomic_local_kernel():
 
     for i in range(TRAINING):
         for n1 in range(N[i]):
-
             for j in range(TEST):
                 for n2 in range(Ns[j]):
-
                     if Q[i][n1] == Qs[j][n2]:
                         d = np.linalg.norm(X[i, n1] - Xs[j, n2])
                         gauss = np.exp(-(d**2) / (2 * SIGMA**2))
@@ -209,12 +202,10 @@ def test_atomic_local_gradient():
 
     for i in range(TRAINING):
         for n1 in range(N[i]):
-
             idx2 = 0
             for j in range(TRAINING):
-                for n2 in range(N[j]):
-                    for xyz in range(3):
-
+                for _n2 in range(N[j]):
+                    for _xyz in range(3):
                         for n_diff in range(N[j]):
                             for k in range(4):
                                 if Q[i][n1] == Q[j][n_diff]:
@@ -253,15 +244,13 @@ def test_local_gradient():
 
     for i in range(TRAINING):
         for n1 in range(N[i]):
-
             idx1 = 0
 
             for j in range(TRAINING):
-                for n2 in range(N[j]):
-                    for xyz in range(3):
+                for _n2 in range(N[j]):
+                    for _xyz in range(3):
                         for n_diff in range(N[j]):
                             for k in range(4):
-
                                 if Q[i][n1] == Q[j][n_diff]:
                                     d = np.linalg.norm(X[i, n1] - dispX[k, idx1, n_diff])
                                     gauss = np.exp(-(d**2) / (2 * SIGMA**2))
@@ -298,17 +287,15 @@ def test_gdml_kernel():
     K_numm = np.zeros(Kt_gdml.shape)
 
     for i in range(TRAINING):
-        for n1 in range(N[i]):
-            for xyz1 in range(3):
+        for _n1 in range(N[i]):
+            for _xyz1 in range(3):
                 for n_diff1 in range(N[i]):
-
                     idx2 = 0
 
                     for j in range(TEST):
-                        for n2 in range(Ns[j]):
-                            for xyz2 in range(3):
+                        for _n2 in range(Ns[j]):
+                            for _xyz2 in range(3):
                                 for n_diff2 in range(Ns[j]):
-
                                     if Q[i][n_diff1] == Qs[j][n_diff2]:
                                         # displacements = [2*DX, DX, -DX, -2*DX]
 

@@ -35,7 +35,7 @@ def test_slatm_global_representation():
         slatm_vector = generate_slatm(atoms, coord, mbtypes)
         representations.append(slatm_vector)
 
-    X_qml = np.array([rep for rep in representations])
+    X_qml = np.array(list(representations))
     X_ref = np.loadtxt(ASSETS / "slatm_global_representation.txt")
 
     assert np.allclose(X_qml, X_ref), "Error in SLATM generation"
@@ -66,7 +66,6 @@ def test_slatm_local_representation():
 
     local_representations = []
     for _, mol in enumerate(mols):
-
         coord, atoms = mol
         slatm_vector = generate_slatm(atoms, coord, mbtypes, local=True)
 
@@ -85,6 +84,5 @@ def test_slatm_local_representation():
 
 
 if __name__ == "__main__":
-
     test_slatm_global_representation()
     test_slatm_local_representation()

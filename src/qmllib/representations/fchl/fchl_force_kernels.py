@@ -78,9 +78,7 @@ def get_gaussian_process_kernels(
             for pm in range(2):
                 for i in range(ni):
                     for a, x in enumerate(B[m, xyz, pm, i, :ni]):
-                        neighbors2[m, xyz, pm, i, a] = len(
-                            np.where(x[0] < cut_distance)[0]
-                        )
+                        neighbors2[m, xyz, pm, i, a] = len(np.where(x[0] < cut_distance)[0])
 
     doalchemy, pd = get_alchemy(
         alchemy, emax=100, r_width=alchemy_group_width, c_width=alchemy_period_width
@@ -182,9 +180,7 @@ def get_local_gradient_kernels(
             for pm in range(2):
                 for i in range(ni):
                     for a, x in enumerate(B[m, xyz, pm, i, :ni]):
-                        neighbors2[m, xyz, pm, i, a] = len(
-                            np.where(x[0] < cut_distance)[0]
-                        )
+                        neighbors2[m, xyz, pm, i, a] = len(np.where(x[0] < cut_distance)[0])
 
     doalchemy, pd = get_alchemy(
         alchemy, emax=100, r_width=alchemy_group_width, c_width=alchemy_period_width
@@ -281,9 +277,7 @@ def get_local_hessian_kernels(
             for pm in range(2):
                 for i in range(ni):
                     for a, x in enumerate(A[m, xyz, pm, i, :ni]):
-                        neighbors1[m, xyz, pm, i, a] = len(
-                            np.where(x[0] < cut_distance)[0]
-                        )
+                        neighbors1[m, xyz, pm, i, a] = len(np.where(x[0] < cut_distance)[0])
 
     for m in range(nm2):
         ni = N2[m]
@@ -291,9 +285,7 @@ def get_local_hessian_kernels(
             for pm in range(2):
                 for i in range(ni):
                     for a, x in enumerate(B[m, xyz, pm, i, :ni]):
-                        neighbors2[m, xyz, pm, i, a] = len(
-                            np.where(x[0] < cut_distance)[0]
-                        )
+                        neighbors2[m, xyz, pm, i, a] = len(np.where(x[0] < cut_distance)[0])
 
     doalchemy, pd = get_alchemy(
         alchemy, emax=100, r_width=alchemy_group_width, c_width=alchemy_period_width
@@ -381,9 +373,7 @@ def get_local_symmetric_hessian_kernels(
             for pm in range(2):
                 for i in range(ni):
                     for a, x in enumerate(A[m, xyz, pm, i, :ni]):
-                        neighbors1[m, xyz, pm, i, a] = len(
-                            np.where(x[0] < cut_distance)[0]
-                        )
+                        neighbors1[m, xyz, pm, i, a] = len(np.where(x[0] < cut_distance)[0])
 
     doalchemy, pd = get_alchemy(
         alchemy, emax=100, r_width=alchemy_group_width, c_width=alchemy_period_width
@@ -484,9 +474,7 @@ def get_force_alphas(
             for pm in range(2):
                 for i in range(ni):
                     for a, x in enumerate(B[m, xyz, pm, i, :ni]):
-                        neighbors2[m, xyz, pm, i, a] = len(
-                            np.where(x[0] < cut_distance)[0]
-                        )
+                        neighbors2[m, xyz, pm, i, a] = len(np.where(x[0] < cut_distance)[0])
 
     doalchemy, pd = get_alchemy(
         alchemy, emax=100, r_width=alchemy_group_width, c_width=alchemy_period_width
@@ -497,7 +485,7 @@ def get_force_alphas(
     na1 = np.sum(N1)
     # UNUSED naq2 = np.sum(N2) * 3
 
-    E = np.zeros((nm1))
+    E = np.zeros(nm1)
     if energy is not None:
         E = energy
 
@@ -596,9 +584,7 @@ def get_atomic_local_gradient_kernels(
             for pm in range(2):
                 for i in range(ni):
                     for a, x in enumerate(B[m, xyz, pm, i, :ni]):
-                        neighbors2[m, xyz, pm, i, a] = len(
-                            np.where(x[0] < cut_distance)[0]
-                        )
+                        neighbors2[m, xyz, pm, i, a] = len(np.where(x[0] < cut_distance)[0])
 
     doalchemy, pd = get_alchemy(
         alchemy, emax=100, r_width=alchemy_group_width, c_width=alchemy_period_width
@@ -702,9 +688,7 @@ def get_atomic_local_gradient_5point_kernels(
             for pm in range(5):
                 for i in range(ni):
                     for a, x in enumerate(B[m, xyz, pm, i, :ni]):
-                        neighbors2[m, xyz, pm, i, a] = len(
-                            np.where(x[0] < cut_distance)[0]
-                        )
+                        neighbors2[m, xyz, pm, i, a] = len(np.where(x[0] < cut_distance)[0])
 
     doalchemy, pd = get_alchemy(
         alchemy, emax=100, r_width=alchemy_group_width, c_width=alchemy_period_width

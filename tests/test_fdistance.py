@@ -1,7 +1,8 @@
 import numpy as np
+
 from qmllib._fdistance import (
-    fmanhattan_distance,
     fl2_distance,
+    fmanhattan_distance,
     fp_distance_double,
     fp_distance_integer,
 )

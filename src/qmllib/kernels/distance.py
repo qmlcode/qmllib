@@ -1,6 +1,3 @@
-from typing import Union
-
-import numpy as np
 from numpy import ndarray
 
 # Import from pybind11 module
@@ -72,7 +69,7 @@ def l2_distance(A: ndarray, B: ndarray) -> ndarray:
     return D
 
 
-def p_distance(A: ndarray, B: ndarray, p: Union[int, float] = 2) -> ndarray:
+def p_distance(A: ndarray, B: ndarray, p: int | float = 2) -> ndarray:
     """Calculates the p-norm distances between two
     Numpy arrays of representations.
     The value of the keyword argument ``p =`` sets the norm order.
@@ -102,18 +99,12 @@ def p_distance(A: ndarray, B: ndarray, p: Union[int, float] = 2) -> ndarray:
 
     # Call the pybind11 function which returns the result
     if isinstance(p, int):
-        if p == 2:
-            D = fl2_distance(A.T, B.T)
-        else:
-            D = fp_distance_integer(A.T, B.T, p)
+        D = fl2_distance(A.T, B.T) if p == 2 else fp_distance_integer(A.T, B.T, p)
 
     elif isinstance(p, float):
         if p.is_integer():
             p = int(p)
-            if p == 2:
-                D = fl2_distance(A.T, B.T)
-            else:
-                D = fp_distance_integer(A.T, B.T, p)
+            D = fl2_distance(A.T, B.T) if p == 2 else fp_distance_integer(A.T, B.T, p)
 
         else:
             D = fp_distance_double(A.T, B.T, p)

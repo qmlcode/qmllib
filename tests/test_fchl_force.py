@@ -63,9 +63,7 @@ def mae(a, b):
     return np.mean(np.abs(a.flatten() - b.flatten()))
 
 
-def csv_to_molecular_reps(
-    csv_filename, force_key="orca_forces", energy_key="orca_energy"
-):
+def csv_to_molecular_reps(csv_filename, force_key="orca_forces", energy_key="orca_energy"):
     np.random.seed(667)
 
     x = []
@@ -177,9 +175,7 @@ def test_gaussian_process_derivative():
 
         # Make predictions by manually combining kernel blocks
         # Test force predictions
-        Fss = np.dot(np.transpose(Ks[i]), gamma) + np.dot(
-            np.transpose(Ks_energy[i]), beta
-        )
+        Fss = np.dot(np.transpose(Ks[i]), gamma) + np.dot(np.transpose(Ks_energy[i]), beta)
         # Training force predictions
         Kt = K[i, TRAINING_GP:, TRAINING_GP:]
         Kt_energy = K[i, :TRAINING_GP, TRAINING_GP:]
@@ -269,9 +265,7 @@ def test_gaussian_process_derivative_with_fchl_acsf_data():
 
         for i in range(len(df)):
             coordinates = np.array(ast.literal_eval(df["coordinates"][i]))
-            nuclear_charges = np.array(
-                ast.literal_eval(df["nuclear_charges"][i]), dtype=np.int32
-            )
+            nuclear_charges = np.array(ast.literal_eval(df["nuclear_charges"][i]), dtype=np.int32)
             force = np.array(ast.literal_eval(df["forces"][i]))
             force *= -1  # Same sign convention as FCHL19 test
             energy = float(df["atomization_energy"][i])
@@ -348,9 +342,7 @@ def test_gaussian_process_derivative_with_fchl_acsf_data():
 
         # Make predictions by manually combining kernel blocks
         # Test force predictions
-        Fss = np.dot(np.transpose(Ks[i]), gamma) + np.dot(
-            np.transpose(Ks_energy[i]), beta
-        )
+        Fss = np.dot(np.transpose(Ks[i]), gamma) + np.dot(np.transpose(Ks_energy[i]), beta)
         # Training force predictions
         Kt = K[i, TRAINING_GP:, TRAINING_GP:]
         Kt_energy = K[i, :TRAINING_GP, TRAINING_GP:]
@@ -467,9 +459,7 @@ def test_gdml_derivative():
         # assert mae(Et, E) < 0.001, "Error in Gaussian Process training energy"
 
         assert mae(Fss, Fs) < 1.0, "Error in GDML test force"
-        assert mae(Ft, F) < 0.02, (
-            "Error in GDML training force"
-        )  # Relaxed from 0.001 to 0.02
+        assert mae(Ft, F) < 0.02, "Error in GDML training force"  # Relaxed from 0.001 to 0.02
 
 
 # @pytest.mark.skip(
@@ -585,19 +575,11 @@ def test_normal_equation_derivative():
         print("TRAINING diff     MAE = %10.4f" % mae(Ft5, Ft))
         print("TEST     diff     MAE = %10.4f" % mae(Fss5, Fss))
 
-        assert mae(Ess, Es) < 0.3, (
-            f"Error in normal equation test energy: MAE={mae(Ess, Es):.4f}"
-        )
-        assert mae(Et, E) < 0.25, (
-            f"Error in normal equation training energy: MAE={mae(Et, E):.4f}"
-        )
+        assert mae(Ess, Es) < 0.3, f"Error in normal equation test energy: MAE={mae(Ess, Es):.4f}"
+        assert mae(Et, E) < 0.25, f"Error in normal equation training energy: MAE={mae(Et, E):.4f}"
 
-        assert mae(Fss, Fs) < 3.2, (
-            f"Error in normal equation test force: MAE={mae(Fss, Fs):.4f}"
-        )
-        assert mae(Ft, F) < 0.8, (
-            f"Error in normal equation training force: MAE={mae(Ft, F):.4f}"
-        )
+        assert mae(Fss, Fs) < 3.2, f"Error in normal equation test force: MAE={mae(Fss, Fs):.4f}"
+        assert mae(Ft, F) < 0.8, f"Error in normal equation training force: MAE={mae(Ft, F):.4f}"
 
         assert mae(Fss5, Fs) < 3.2, (
             f"Error in normal equation 5-point test force: MAE={mae(Fss5, Fs):.4f}"
@@ -652,9 +634,7 @@ def test_operator_derivative():
 
         C = np.concatenate((Kt_energy[i].T, Kt_force[i].T))
 
-        alphas, residuals, singular_values, rank = lstsq(
-            C, Y, cond=1e-9, lapack_driver="gelsd"
-        )
+        alphas, residuals, singular_values, rank = lstsq(C, Y, cond=1e-9, lapack_driver="gelsd")
 
         Ess = np.dot(Ks_energy[i].T, alphas)
         Et = np.dot(Kt_energy[i].T, alphas)
@@ -828,9 +808,7 @@ def test_gaussian_process_kernels_simple():
     )
 
     # Load real molecular data from CSV
-    X, F, E, dX, dX5 = csv_to_molecular_reps(
-        CSV_FILE, force_key=FORCE_KEY, energy_key=ENERGY_KEY
-    )
+    X, F, E, dX, dX5 = csv_to_molecular_reps(CSV_FILE, force_key=FORCE_KEY, energy_key=ENERGY_KEY)
 
     # Use first 4 molecules for testing
     X = X[:4]
@@ -853,9 +831,7 @@ def test_gaussian_process_kernels_simple():
     K_gp = get_gaussian_process_kernels(X, dX, dx=DX, **KERNEL_ARGS)
 
     # Check overall shape
-    assert K_gp.shape[0] == len(SIGMAS), (
-        f"Wrong number of sigmas: {K_gp.shape[0]} != {len(SIGMAS)}"
-    )
+    assert K_gp.shape[0] == len(SIGMAS), f"Wrong number of sigmas: {K_gp.shape[0]} != {len(SIGMAS)}"
     assert K_gp.shape[1] == nm1 + naq2, (
         f"Wrong size for dimension 1: {K_gp.shape[1]} != {nm1 + naq2}"
     )
@@ -889,15 +865,7 @@ def test_gaussian_process_kernels_simple():
     assert np.all(np.isfinite(K_gg)), "K_gg (force-force) contains NaN/Inf"
 
     # Test 4: Verify blocks have expected shapes
-    assert K_uu.shape == (nm1, nm1), (
-        f"K_uu shape is {K_uu.shape}, expected ({nm1}, {nm1})"
-    )
-    assert K_ug.shape == (nm1, naq2), (
-        f"K_ug shape is {K_ug.shape}, expected ({nm1}, {naq2})"
-    )
-    assert K_gu.shape == (naq2, nm1), (
-        f"K_gu shape is {K_gu.shape}, expected ({naq2}, {nm1})"
-    )
-    assert K_gg.shape == (naq2, naq2), (
-        f"K_gg shape is {K_gg.shape}, expected ({naq2}, {naq2})"
-    )
+    assert K_uu.shape == (nm1, nm1), f"K_uu shape is {K_uu.shape}, expected ({nm1}, {nm1})"
+    assert K_ug.shape == (nm1, naq2), f"K_ug shape is {K_ug.shape}, expected ({nm1}, {naq2})"
+    assert K_gu.shape == (naq2, nm1), f"K_gu shape is {K_gu.shape}, expected ({naq2}, {nm1})"
+    assert K_gg.shape == (naq2, naq2), f"K_gg shape is {K_gg.shape}, expected ({naq2}, {naq2})"

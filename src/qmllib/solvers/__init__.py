@@ -1,4 +1,4 @@
-from typing import Optional
+import contextlib
 
 import numpy as np
 from numpy import ndarray
@@ -7,9 +7,17 @@ from numpy import ndarray
 try:
     from qmllib._solvers import (
         fbkf_invert as _fbkf_invert,
+    )
+    from qmllib._solvers import (
         fbkf_solve as _fbkf_solve,
+    )
+    from qmllib._solvers import (
         fcho_invert as _fcho_invert,
+    )
+    from qmllib._solvers import (
         fcho_solve as _fcho_solve,
+    )
+    from qmllib._solvers import (
         fsvd_solve,
     )
 
@@ -20,23 +28,27 @@ except ImportError:
     try:
         from .fsolvers import (
             fbkf_invert as _fbkf_invert,
+        )
+        from .fsolvers import (
             fbkf_solve as _fbkf_solve,
+        )
+        from .fsolvers import (
             fcho_invert as _fcho_invert,
+        )
+        from .fsolvers import (
             fcho_solve as _fcho_solve,
         )
     except ImportError:
         pass
 
 # These are not yet migrated to pybind11, keep using f2py if available
-try:
+with contextlib.suppress(ImportError):
     from .fsolvers import (
         fcond,
         fcond_ge,
         fqrlq_solve,
         fsvd_solve,
     )
-except ImportError:
-    pass
 
 
 def cho_invert(A: ndarray) -> ndarray:
@@ -61,9 +73,7 @@ def cho_invert(A: ndarray) -> ndarray:
     return matrix
 
 
-def cho_solve(
-    A: ndarray, y: ndarray, l2reg: float = 0.0, destructive: bool = False
-) -> ndarray:
+def cho_solve(A: ndarray, y: ndarray, l2reg: float = 0.0, destructive: bool = False) -> ndarray:
     """Solves the equation
 
         :math:`A x = y`
@@ -174,7 +184,7 @@ def bkf_solve(A: ndarray, y: ndarray) -> ndarray:
     return x
 
 
-def svd_solve(A: ndarray, y: ndarray, rcond: Optional[float] = None) -> ndarray:
+def svd_solve(A: ndarray, y: ndarray, rcond: float | None = None) -> ndarray:
     """Solves the equation
 
         :math:`A x = y`
@@ -246,9 +256,7 @@ def condition_number(A, method="cholesky"):
 
     if method.lower() == "cholesky":
         if not np.allclose(A, A.T):
-            raise ValueError(
-                "Can't use a Cholesky-decomposition for a non-symmetric matrix."
-            )
+            raise ValueError("Can't use a Cholesky-decomposition for a non-symmetric matrix.")
 
         cond = fcond(A)
 
