@@ -113,7 +113,7 @@ py::array_t<double> fget_kernels_fchl_py(
     
     // Create output array - Fortran-style
     std::vector<ssize_t> shape = {nsigmas, nm1, nm2};
-    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * nsigmas, sizeof(double) * nsigmas * nm1};
+    std::vector<ssize_t> strides = {static_cast<ssize_t>(sizeof(double)), static_cast<ssize_t>(sizeof(double) * nsigmas), static_cast<ssize_t>(sizeof(double) * nsigmas * nm1)};
     auto result = py::array_t<double>(shape, strides);
     auto br = result.request();
     
@@ -158,7 +158,7 @@ py::array_t<double> fget_symmetric_kernels_fchl_py(
     
     // Create output array - Fortran-style
     std::vector<ssize_t> shape = {nsigmas, nm1, nm1};
-    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * nsigmas, sizeof(double) * nsigmas * nm1};
+    std::vector<ssize_t> strides = {static_cast<ssize_t>(sizeof(double)), static_cast<ssize_t>(sizeof(double) * nsigmas), static_cast<ssize_t>(sizeof(double) * nsigmas * nm1)};
     auto result = py::array_t<double>(shape, strides);
     auto br = result.request();
     

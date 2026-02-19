@@ -1,227 +1,222 @@
 cmake_minimum_required(VERSION 3.18)
+
+# If building on Apple and user did not choose a compiler, default to Homebrew LLVM.
+# This is so we don't need to export the path for clang explicitly before running cmake
+if(APPLE)
+  # Only set if not already set by -D... or environment/toolchain.
+  if(NOT DEFINED CMAKE_C_COMPILER AND NOT DEFINED CMAKE_CXX_COMPILER)
+    set(_HB_LLVM "/opt/homebrew/opt/llvm/bin")
+    if(EXISTS "${_HB_LLVM}/clang" AND EXISTS "${_HB_LLVM}/clang++")
+      set(CMAKE_C_COMPILER   "${_HB_LLVM}/clang"   CACHE FILEPATH "" FORCE)
+      set(CMAKE_CXX_COMPILER "${_HB_LLVM}/clang++" CACHE FILEPATH "" FORCE)
+    endif()
+  endif()
+endif()
+
 project(qmllib LANGUAGES C CXX Fortran)
 
-# Python + pybind11
+# ---- C++ standard -------------------------------------------------------------
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+# ---- Options -----------------------------------------------------------------
+# Keep binaries portable by default; enable native tuning explicitly.
+option(QMLLIB_USE_NATIVE "Enable -march/-mcpu=native tuning flags" OFF)
+
+# Your current approach uses install_name_tool to add the Homebrew libomp rpath.
+# Keep it as an option (default ON on macOS).
+option(QMLLIB_USE_INSTALL_NAME_TOOL_RPATH "Use install_name_tool to add libomp rpath on macOS" ON)
+
+# Prefer global PIC for all targets (object libs + modules).
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+# ---- Platform tweaks ----------------------------------------------------------
+if(APPLE)
+  # Required for "new lapack" in Accelerate
+  set(CMAKE_OSX_DEPLOYMENT_TARGET "15.0" CACHE STRING "" FORCE)
+  add_compile_definitions(ACCELERATE_NEW_LAPACK)
+  set(CMAKE_OSX_ARCHITECTURES "arm64" CACHE STRING "" FORCE)
+
+  # Your existing libc++ / Homebrew LLVM runtime bits (kept as-is)
+  # THis took me way too long to find out
+  add_compile_options(-stdlib=libc++)
+  add_link_options(
+    -stdlib=libc++
+    -L/opt/homebrew/opt/llvm/lib/c++
+    -Wl,-rpath,/opt/homebrew/opt/llvm/lib/c++
+  )
+endif()
+
+# ---- Python + pybind11 --------------------------------------------------------
 find_package(Python COMPONENTS Interpreter Development.Module REQUIRED)
 find_package(pybind11 CONFIG REQUIRED)
 
-# Create a common interface target for kernels that need pybind11 headers
 add_library(qmllib_common INTERFACE)
 target_link_libraries(qmllib_common INTERFACE pybind11::headers Python::Module)
 
-# Fortran solvers as an object library
-add_library(qmllib_solvers OBJECT src/qmllib/solvers/fsolvers.f90)
-set_property(TARGET qmllib_solvers PROPERTY POSITION_INDEPENDENT_CODE ON)
+# ---- OpenMP (required) --------------------------------------------------------
+find_package(OpenMP REQUIRED)
 
-# Fortran representations as an object library
-add_library(qmllib_representations OBJECT src/qmllib/representations/frepresentations.f90)
-set_property(TARGET qmllib_representations PROPERTY POSITION_INDEPENDENT_CODE ON)
+# Helper to link OpenMP targets to something if found.
+function(qmllib_link_openmp tgt)
+  if(OpenMP_CXX_FOUND)
+    target_link_libraries(${tgt} PRIVATE OpenMP::OpenMP_CXX)
+  endif()
+  if(OpenMP_Fortran_FOUND)
+    target_link_libraries(${tgt} PRIVATE OpenMP::OpenMP_Fortran)
+  endif()
+endfunction()
 
-# Fortran utils as an object library
-add_library(qmllib_utils OBJECT src/qmllib/utils/fsettings.f90)
-set_property(TARGET qmllib_utils PROPERTY POSITION_INDEPENDENT_CODE ON)
+# ---- Optimization flags (portable by default) --------------------------------
+function(qmllib_apply_cxx_opts tgt)
+  if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(${tgt} PRIVATE
+      -O3 -ffast-math -ftree-vectorize
+      $<$<BOOL:${QMLLIB_USE_NATIVE}>:-march=native -mtune=native>
+    )
+  elseif(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
+    target_compile_options(${tgt} PRIVATE
+      -O3
+      $<$<BOOL:${QMLLIB_USE_NATIVE}>:-xHost>
+    )
+  endif()
+endfunction()
 
-# Fortran kernels as an object library
-add_library(qmllib_fkernels OBJECT 
-    src/qmllib/kernels/fkpca.f90
-    src/qmllib/kernels/fkwasserstein.f90
-    src/qmllib/kernels/fkernels.f90
+function(qmllib_apply_fortran_opts tgt)
+  if(CMAKE_Fortran_COMPILER_ID STREQUAL "IntelLLVM" OR CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
+    target_compile_options(${tgt} PRIVATE
+      -O3 -ipo -fp-model fast=2 -no-prec-div -fno-alias
+      $<$<BOOL:${QMLLIB_USE_NATIVE}>:-xHost>
+    )
+  elseif(CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
+    target_compile_options(${tgt} PRIVATE
+      -O3 -ffast-math -ftree-vectorize
+      $<$<BOOL:${QMLLIB_USE_NATIVE}>:-mcpu=native -mtune=native>
+    )
+  endif()
+endfunction()
+
+# ---- macOS libomp runtime rpath hack (centralized) ----------------------------
+function(qmllib_add_macos_libomp_rpath tgt)
+  if(APPLE AND QMLLIB_USE_INSTALL_NAME_TOOL_RPATH)
+    add_custom_command(TARGET ${tgt} POST_BUILD
+      COMMAND install_name_tool -add_rpath /opt/homebrew/opt/libomp/lib $<TARGET_FILE:${tgt}> || true
+      VERBATIM
+    )
+  endif()
+endfunction()
+
+# ---- Fortran object libraries -------------------------------------------------
+# Helper: create a Fortran object library and register it in a list.
+set(QMLLIB_FORTRAN_OBJLIBS "")
+function(qmllib_add_fortran_objlib name)
+  add_library(${name} OBJECT ${ARGN})
+  list(APPEND QMLLIB_FORTRAN_OBJLIBS ${name})
+  set(QMLLIB_FORTRAN_OBJLIBS "${QMLLIB_FORTRAN_OBJLIBS}" PARENT_SCOPE)
+endfunction()
+
+qmllib_add_fortran_objlib(qmllib_solvers          src/qmllib/solvers/fsolvers.f90)
+qmllib_add_fortran_objlib(qmllib_representations  src/qmllib/representations/frepresentations.f90)
+qmllib_add_fortran_objlib(qmllib_utils            src/qmllib/utils/fsettings.f90)
+qmllib_add_fortran_objlib(qmllib_fkernels
+  src/qmllib/kernels/fkpca.f90
+  src/qmllib/kernels/fkwasserstein.f90
+  src/qmllib/kernels/fkernels.f90
 )
-set_property(TARGET qmllib_fkernels PROPERTY POSITION_INDEPENDENT_CODE ON)
-
-# Fortran distance functions as an object library
-add_library(qmllib_fdistance OBJECT src/qmllib/kernels/fdistance.f90)
-set_property(TARGET qmllib_fdistance PROPERTY POSITION_INDEPENDENT_CODE ON)
-
-# Fortran gradient kernels as an object library
-add_library(qmllib_fgradient_kernels OBJECT src/qmllib/kernels/fgradient_kernels.f90)
-set_property(TARGET qmllib_fgradient_kernels PROPERTY POSITION_INDEPENDENT_CODE ON)
-
-# Fortran ACSF/FCHL representations as an object library
-add_library(qmllib_facsf OBJECT src/qmllib/representations/facsf.f90)
-set_property(TARGET qmllib_facsf PROPERTY POSITION_INDEPENDENT_CODE ON)
-
-# Fortran SLATM representations as an object library
-add_library(qmllib_fslatm OBJECT src/qmllib/representations/fslatm.f90)
-set_property(TARGET qmllib_fslatm PROPERTY POSITION_INDEPENDENT_CODE ON)
-
-# Fortran FCHL representations as an object library
-add_library(qmllib_ffchl OBJECT 
-    src/qmllib/representations/fchl/ffchl_kernel_types.f90
-    src/qmllib/representations/fchl/ffchl_kernels.f90
-    src/qmllib/representations/fchl/ffchl_module.f90
-    src/qmllib/representations/fchl/ffchl_scalar_kernels.f90
-    src/qmllib/representations/fchl/ffchl_gradient_kernels.f90
-    src/qmllib/representations/fchl/ffchl_hessian_kernels.f90
-    src/qmllib/representations/fchl/ffchl_gaussian_process_kernels.f90
-    src/qmllib/representations/fchl/ffchl_atomic_local_kernels.f90
-    src/qmllib/representations/fchl/ffchl_force_alphas.f90
-)
-set_property(TARGET qmllib_ffchl PROPERTY POSITION_INDEPENDENT_CODE ON)
-
-# Build the Python extension module for solvers
-pybind11_add_module(_solvers MODULE
-    src/qmllib/solvers/bindings_solvers.cpp
-    $<TARGET_OBJECTS:qmllib_solvers>
-)
-
-set_target_properties(_solvers PROPERTIES OUTPUT_NAME "_solvers")
-
-# Build the Python extension module for representations
-pybind11_add_module(_representations MODULE
-    src/qmllib/representations/bindings_representations.cpp
-    $<TARGET_OBJECTS:qmllib_representations>
-)
-
-set_target_properties(_representations PROPERTIES OUTPUT_NAME "_representations")
-
-# Build the Python extension module for utils
-pybind11_add_module(_utils MODULE
-    src/qmllib/utils/bindings_utils.cpp
-    $<TARGET_OBJECTS:qmllib_utils>
-)
-
-set_target_properties(_utils PROPERTIES OUTPUT_NAME "_utils")
-
-# Build the Python extension module for kernels (kpca and wasserstein)
-pybind11_add_module(_fkernels MODULE
-    src/qmllib/kernels/bindings_fkernels.cpp
-    $<TARGET_OBJECTS:qmllib_fkernels>
-)
-
-set_target_properties(_fkernels PROPERTIES OUTPUT_NAME "_fkernels")
-
-# Build the Python extension module for distance functions
-pybind11_add_module(_fdistance MODULE
-    src/qmllib/kernels/bindings_fdistance.cpp
-    $<TARGET_OBJECTS:qmllib_fdistance>
+qmllib_add_fortran_objlib(qmllib_fdistance        src/qmllib/kernels/fdistance.f90)
+qmllib_add_fortran_objlib(qmllib_fgradient_kernels src/qmllib/kernels/fgradient_kernels.f90)
+qmllib_add_fortran_objlib(qmllib_facsf            src/qmllib/representations/facsf.f90)
+qmllib_add_fortran_objlib(qmllib_fslatm           src/qmllib/representations/fslatm.f90)
+qmllib_add_fortran_objlib(qmllib_ffchl
+  src/qmllib/representations/fchl/ffchl_kernel_types.f90
+  src/qmllib/representations/fchl/ffchl_kernels.f90
+  src/qmllib/representations/fchl/ffchl_module.f90
+  src/qmllib/representations/fchl/ffchl_scalar_kernels.f90
+  src/qmllib/representations/fchl/ffchl_gradient_kernels.f90
+  src/qmllib/representations/fchl/ffchl_hessian_kernels.f90
+  src/qmllib/representations/fchl/ffchl_gaussian_process_kernels.f90
+  src/qmllib/representations/fchl/ffchl_atomic_local_kernels.f90
+  src/qmllib/representations/fchl/ffchl_force_alphas.f90
 )
 
-set_target_properties(_fdistance PROPERTIES OUTPUT_NAME "_fdistance")
+# Apply Fortran opts + OpenMP to all Fortran object libs.
+foreach(obj ${QMLLIB_FORTRAN_OBJLIBS})
+  qmllib_apply_fortran_opts(${obj})
+  qmllib_link_openmp(${obj})
+endforeach()
 
-# Build the Python extension module for gradient kernels
-pybind11_add_module(_fgradient_kernels MODULE
-    src/qmllib/kernels/bindings_fgradient_kernels.cpp
-    $<TARGET_OBJECTS:qmllib_fgradient_kernels>
-)
+# ---- Python extension modules -------------------------------------------------
+set(QMLLIB_MODULES "")
 
-set_target_properties(_fgradient_kernels PROPERTIES OUTPUT_NAME "_fgradient_kernels")
+function(qmllib_add_module modname binding_src fortran_objlib)
+  # modname is the final target name (e.g. _solvers, ffchl_module)
+  pybind11_add_module(${modname} MODULE
+    ${binding_src}
+    $<TARGET_OBJECTS:${fortran_objlib}>
+  )
+  target_link_libraries(${modname} PRIVATE qmllib_common)
+  set_target_properties(${modname} PROPERTIES OUTPUT_NAME "${modname}")
 
-# Build the Python extension module for ACSF/FCHL representations
-pybind11_add_module(_facsf MODULE
-    src/qmllib/representations/bindings_facsf.cpp
-    $<TARGET_OBJECTS:qmllib_facsf>
-)
+  qmllib_apply_cxx_opts(${modname})
+  qmllib_link_openmp(${modname})
+  qmllib_add_macos_libomp_rpath(${modname})
 
-set_target_properties(_facsf PROPERTIES OUTPUT_NAME "_facsf")
+  list(APPEND QMLLIB_MODULES ${modname})
+  set(QMLLIB_MODULES "${QMLLIB_MODULES}" PARENT_SCOPE)
+endfunction()
 
-# Build the Python extension module for SLATM representations
-pybind11_add_module(_fslatm MODULE
-    src/qmllib/representations/bindings_fslatm.cpp
-    $<TARGET_OBJECTS:qmllib_fslatm>
-)
+qmllib_add_module(_solvers            src/qmllib/solvers/bindings_solvers.cpp                     qmllib_solvers)
+qmllib_add_module(_representations    src/qmllib/representations/bindings_representations.cpp    qmllib_representations)
+qmllib_add_module(_utils              src/qmllib/utils/bindings_utils.cpp                         qmllib_utils)
+qmllib_add_module(_fkernels           src/qmllib/kernels/bindings_fkernels.cpp                    qmllib_fkernels)
+qmllib_add_module(_fdistance          src/qmllib/kernels/bindings_fdistance.cpp                   qmllib_fdistance)
+qmllib_add_module(_fgradient_kernels  src/qmllib/kernels/bindings_fgradient_kernels.cpp          qmllib_fgradient_kernels)
+qmllib_add_module(_facsf              src/qmllib/representations/bindings_facsf.cpp              qmllib_facsf)
+qmllib_add_module(_fslatm             src/qmllib/representations/bindings_fslatm.cpp             qmllib_fslatm)
 
-set_target_properties(_fslatm PROPERTIES OUTPUT_NAME "_fslatm")
+# Special case: module name doesn't start with underscore
+qmllib_add_module(ffchl_module        src/qmllib/representations/fchl/bindings_fchl_simple.cpp   qmllib_ffchl)
 
-# Build the Python extension module for FCHL representations
-pybind11_add_module(ffchl_module MODULE
-    src/qmllib/representations/fchl/bindings_fchl_simple.cpp
-    $<TARGET_OBJECTS:qmllib_ffchl>
-)
-
-set_target_properties(ffchl_module PROPERTIES OUTPUT_NAME "ffchl_module")
-
-find_package(OpenMP)
-if (OpenMP_Fortran_FOUND)
-  target_link_libraries(_solvers PRIVATE OpenMP::OpenMP_Fortran)
-  target_link_libraries(_representations PRIVATE OpenMP::OpenMP_Fortran)
-  target_link_libraries(_utils PRIVATE OpenMP::OpenMP_Fortran)
-  target_link_libraries(_fkernels PRIVATE OpenMP::OpenMP_Fortran)
-  target_link_libraries(_fdistance PRIVATE OpenMP::OpenMP_Fortran)
-  target_link_libraries(_fgradient_kernels PRIVATE OpenMP::OpenMP_Fortran)
-  target_link_libraries(_facsf PRIVATE OpenMP::OpenMP_Fortran)
-  target_link_libraries(_fslatm PRIVATE OpenMP::OpenMP_Fortran)
-  target_link_libraries(ffchl_module PRIVATE OpenMP::OpenMP_Fortran)
-endif()
-
-# Optional BLAS/LAPACK backends
+# ---- BLAS/LAPACK backend selection -------------------------------------------
+# Match your current behavior: Accelerate on macOS, MKL on Windows, BLAS elsewhere.
 if(APPLE)
   find_library(ACCELERATE Accelerate REQUIRED)
-  target_link_libraries(_solvers PRIVATE ${ACCELERATE})
-  target_link_libraries(_representations PRIVATE ${ACCELERATE})
-  target_link_libraries(_fkernels PRIVATE ${ACCELERATE})
-  target_link_libraries(_fgradient_kernels PRIVATE ${ACCELERATE})
-  target_link_libraries(ffchl_module PRIVATE ${ACCELERATE})
+  set(QMLLIB_BLAS_TARGET "${ACCELERATE}")
 elseif(WIN32)
   find_package(MKL CONFIG REQUIRED)
-  target_link_libraries(_solvers PRIVATE MKL::MKL)
-  target_link_libraries(_representations PRIVATE MKL::MKL)
-  target_link_libraries(_fkernels PRIVATE MKL::MKL)
-  target_link_libraries(_fgradient_kernels PRIVATE MKL::MKL)
-  target_link_libraries(ffchl_module PRIVATE MKL::MKL)
+  set(QMLLIB_BLAS_TARGET MKL::MKL)
 else()
   find_package(BLAS REQUIRED)
-  target_link_libraries(_solvers PRIVATE BLAS::BLAS)
-  target_link_libraries(_representations PRIVATE BLAS::BLAS)
-  target_link_libraries(_fkernels PRIVATE BLAS::BLAS)
-  target_link_libraries(_fgradient_kernels PRIVATE BLAS::BLAS)
-  target_link_libraries(ffchl_module PRIVATE BLAS::BLAS)
+  set(QMLLIB_BLAS_TARGET BLAS::BLAS)
 endif()
 
-# Note: _fdistance doesn't need BLAS/LAPACK
-
-# Compiler optimization flags (portable wheels)
-if (CMAKE_Fortran_COMPILER_ID STREQUAL "IntelLLVM" OR CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
-  set(FORTRAN_OPT_FLAGS -O3 -ipo -xHost -fp-model fast=2 -no-prec-div -fno-alias -qopenmp)
-elseif (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
-  set(FORTRAN_OPT_FLAGS -O3 -fopenmp -mcpu=native -mtune=native -ffast-math -ftree-vectorize)
-endif()
-
-if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-  set(CXX_OPT_FLAGS -O3 -march=native -ffast-math -fopenmp -mtune=native -ftree-vectorize)
-elseif (CMAKE_CXX_COMPILER_ID MATCHES "Intel")
-  set(CXX_OPT_FLAGS -O3 -qopt-report=3 -qopenmp -xHost)
-endif()
-
-# Apply optimization flags to Fortran object libraries
-if(FORTRAN_OPT_FLAGS)
-  target_compile_options(qmllib_solvers PRIVATE ${FORTRAN_OPT_FLAGS})
-  target_compile_options(qmllib_representations PRIVATE ${FORTRAN_OPT_FLAGS})
-  target_compile_options(qmllib_utils PRIVATE ${FORTRAN_OPT_FLAGS})
-  target_compile_options(qmllib_fkernels PRIVATE ${FORTRAN_OPT_FLAGS})
-  target_compile_options(qmllib_fdistance PRIVATE ${FORTRAN_OPT_FLAGS})
-  target_compile_options(qmllib_fgradient_kernels PRIVATE ${FORTRAN_OPT_FLAGS})
-  target_compile_options(qmllib_facsf PRIVATE ${FORTRAN_OPT_FLAGS})
-  target_compile_options(qmllib_fslatm PRIVATE ${FORTRAN_OPT_FLAGS})
-  target_compile_options(qmllib_ffchl PRIVATE ${FORTRAN_OPT_FLAGS})
-endif()
-
-# Apply optimization flags to C++ binding modules
-if(CXX_OPT_FLAGS)
-  target_compile_options(_solvers PRIVATE ${CXX_OPT_FLAGS})
-  target_compile_options(_representations PRIVATE ${CXX_OPT_FLAGS})
-  target_compile_options(_utils PRIVATE ${CXX_OPT_FLAGS})
-  target_compile_options(_fkernels PRIVATE ${CXX_OPT_FLAGS})
-  target_compile_options(_fdistance PRIVATE ${CXX_OPT_FLAGS})
-  target_compile_options(_fgradient_kernels PRIVATE ${CXX_OPT_FLAGS})
-  target_compile_options(_facsf PRIVATE ${CXX_OPT_FLAGS})
-  target_compile_options(_fslatm PRIVATE ${CXX_OPT_FLAGS})
-  target_compile_options(ffchl_module PRIVATE ${CXX_OPT_FLAGS})
-endif()
-
-# Install the compiled extension into the Python package and the Python shim
-install(TARGETS _solvers _representations _utils _fkernels _fdistance _fgradient_kernels _facsf _fslatm
-  LIBRARY DESTINATION qmllib   # Linux/macOS
-  RUNTIME DESTINATION qmllib   # Windows (.pyd)
+# Link BLAS to the subset that needs it (your current note: _fdistance doesn't).
+set(QMLLIB_NEEDS_BLAS
+  _solvers
+  _representations
+  _fkernels
+  _fgradient_kernels
+  ffchl_module
 )
 
-# Install FCHL module to the fchl subdirectory
+foreach(m ${QMLLIB_NEEDS_BLAS})
+  target_link_libraries(${m} PRIVATE ${QMLLIB_BLAS_TARGET})
+endforeach()
+
+# ---- Install -----------------------------------------------------------------
+install(TARGETS
+  _solvers _representations _utils _fkernels _fdistance _fgradient_kernels _facsf _fslatm
+  LIBRARY DESTINATION qmllib
+  RUNTIME DESTINATION qmllib
+)
+
 install(TARGETS ffchl_module
-  LIBRARY DESTINATION qmllib/representations/fchl   # Linux/macOS
-  RUNTIME DESTINATION qmllib/representations/fchl   # Windows (.pyd)
+  LIBRARY DESTINATION qmllib/representations/fchl
+  RUNTIME DESTINATION qmllib/representations/fchl
 )
+
 install(DIRECTORY src/qmllib/ DESTINATION qmllib
   FILES_MATCHING PATTERN "*.py"
   PATTERN "__pycache__" EXCLUDE
 )
-

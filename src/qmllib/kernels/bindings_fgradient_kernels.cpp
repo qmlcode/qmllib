@@ -119,7 +119,7 @@ py::array_t<double> global_kernel_wrapper(
     
     // Create output array (nm2, nm1) - Fortran column-major
     std::vector<ssize_t> shape = {nm2, nm1};
-    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * nm2};
+    std::vector<ssize_t> strides = {static_cast<ssize_t>(sizeof(double)), static_cast<ssize_t>(sizeof(double) * nm2)};
     auto kernel = py::array_t<double>(shape, strides);
     auto bufK = kernel.request();
     
@@ -162,7 +162,7 @@ py::array_t<double> local_kernels_wrapper(
     
     // Create output array (nsigmas, nm2, nm1) - Fortran column-major
     std::vector<ssize_t> shape = {nsigmas, nm2, nm1};
-    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * nsigmas, sizeof(double) * nsigmas * nm2};
+    std::vector<ssize_t> strides = {static_cast<ssize_t>(sizeof(double)), static_cast<ssize_t>(sizeof(double) * nsigmas), static_cast<ssize_t>(sizeof(double) * nsigmas * nm2)};
     auto kernel = py::array_t<double>(shape, strides);
     auto bufK = kernel.request();
     
@@ -200,7 +200,7 @@ py::array_t<double> symmetric_local_kernels_wrapper(
     
     // Create output array (nsigmas, nm1, nm1) - Fortran column-major
     std::vector<ssize_t> shape = {nsigmas, nm1, nm1};
-    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * nsigmas, sizeof(double) * nsigmas * nm1};
+    std::vector<ssize_t> strides = {static_cast<ssize_t>(sizeof(double)), static_cast<ssize_t>(sizeof(double) * nsigmas), static_cast<ssize_t>(sizeof(double) * nsigmas * nm1)};
     auto kernel = py::array_t<double>(shape, strides);
     auto bufK = kernel.request();
     
@@ -252,7 +252,7 @@ py::array_t<double> local_kernel_wrapper(
     
     // Create output array (nm2, nm1) - Fortran column-major
     std::vector<ssize_t> shape = {nm2, nm1};
-    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * nm2};
+    std::vector<ssize_t> strides = {static_cast<ssize_t>(sizeof(double)), static_cast<ssize_t>(sizeof(double) * nm2)};
     auto kernel = py::array_t<double>(shape, strides);
     auto bufK = kernel.request();
     
@@ -294,7 +294,7 @@ py::array_t<double> symmetric_local_kernel_wrapper(
     
     // Create output array (nm1, nm1) - Fortran column-major
     std::vector<ssize_t> shape = {nm1, nm1};
-    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * nm1};
+    std::vector<ssize_t> strides = {static_cast<ssize_t>(sizeof(double)), static_cast<ssize_t>(sizeof(double) * nm1)};
     auto kernel = py::array_t<double>(shape, strides);
     auto bufK = kernel.request();
     
@@ -345,7 +345,7 @@ py::array_t<double> atomic_local_kernel_wrapper(
     // Create output array (nm2, na1) - Fortran column-major
     // Note: Fortran expects kernel(nm2, na1)
     std::vector<ssize_t> shape = {nm2, na1};
-    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * nm2};
+    std::vector<ssize_t> strides = {static_cast<ssize_t>(sizeof(double)), static_cast<ssize_t>(sizeof(double) * nm2)};
     auto kernel = py::array_t<double>(shape, strides);
     auto bufK = kernel.request();
     
@@ -407,7 +407,7 @@ py::array_t<double> atomic_local_gradient_kernel_wrapper(
     // Create output array (naq2, na1) - Fortran column-major
     // Note: Fortran expects kernel(naq2, na1)
     std::vector<ssize_t> shape = {naq2, na1};
-    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * naq2};
+    std::vector<ssize_t> strides = {static_cast<ssize_t>(sizeof(double)), static_cast<ssize_t>(sizeof(double) * naq2)};
     auto kernel = py::array_t<double>(shape, strides);
     auto bufK = kernel.request();
     
@@ -455,7 +455,7 @@ py::array_t<double> local_gradient_kernel_wrapper(
     
     // Create output array (naq2, nm1) - Fortran column-major
     std::vector<ssize_t> shape = {naq2, nm1};
-    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * naq2};
+    std::vector<ssize_t> strides = {static_cast<ssize_t>(sizeof(double)), static_cast<ssize_t>(sizeof(double) * naq2)};
     auto kernel = py::array_t<double>(shape, strides);
     auto bufK = kernel.request();
     
@@ -519,7 +519,7 @@ py::array_t<double> gdml_kernel_wrapper(
     int rows = na2 * 3;
     int cols = na1 * 3;
     std::vector<ssize_t> shape = {rows, cols};
-    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * rows};
+    std::vector<ssize_t> strides = {static_cast<ssize_t>(sizeof(double)), static_cast<ssize_t>(sizeof(double) * rows)};
     auto kernel = py::array_t<double>(shape, strides);
     auto bufK = kernel.request();
     
@@ -568,7 +568,7 @@ py::array_t<double> symmetric_gdml_kernel_wrapper(
     // Note: Fortran expects kernel(na1*3, na1*3)
     int size = na1 * 3;
     std::vector<ssize_t> shape = {size, size};
-    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * size};
+    std::vector<ssize_t> strides = {static_cast<ssize_t>(sizeof(double)), static_cast<ssize_t>(sizeof(double) * size)};
     auto kernel = py::array_t<double>(shape, strides);
     auto bufK = kernel.request();
     
@@ -629,7 +629,7 @@ py::array_t<double> gaussian_process_kernel_wrapper(
     int rows = na2 * 3 + nm2;
     int cols = na1 * 3 + nm1;
     std::vector<ssize_t> shape = {rows, cols};
-    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * rows};
+    std::vector<ssize_t> strides = {static_cast<ssize_t>(sizeof(double)), static_cast<ssize_t>(sizeof(double) * rows)};
     auto kernel = py::array_t<double>(shape, strides);
     auto bufK = kernel.request();
     
@@ -678,7 +678,7 @@ py::array_t<double> symmetric_gaussian_process_kernel_wrapper(
     // Note: Fortran expects kernel(na1*3+nm1, na1*3+nm1)
     int size = na1 * 3 + nm1;
     std::vector<ssize_t> shape = {size, size};
-    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * size};
+    std::vector<ssize_t> strides = {static_cast<ssize_t>(sizeof(double)), static_cast<ssize_t>(sizeof(double) * size)};
     auto kernel = py::array_t<double>(shape, strides);
     auto bufK = kernel.request();
     

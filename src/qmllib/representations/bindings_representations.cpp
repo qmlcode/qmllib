@@ -141,7 +141,7 @@ py::array_t<double> generate_local_coulomb_matrix_wrapper(
     int cm_size = (nmax + 1) * nmax / 2;
     // Create Fortran-style (column-major) array with proper strides
     std::vector<ssize_t> shape = {central_natoms, cm_size};
-    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * central_natoms};
+    std::vector<ssize_t> strides = {static_cast<ssize_t>(sizeof(double)), static_cast<ssize_t>(sizeof(double) * central_natoms)};
     auto cm = py::array_t<double>(shape, strides);
     auto bufCM = cm.request();
 
@@ -185,7 +185,7 @@ py::array_t<double> generate_atomic_coulomb_matrix_wrapper(
     int cm_size = (nmax + 1) * nmax / 2;
     // Create Fortran-style (column-major) array with proper strides
     std::vector<ssize_t> shape = {central_natoms, cm_size};
-    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * central_natoms};
+    std::vector<ssize_t> strides = {static_cast<ssize_t>(sizeof(double)), static_cast<ssize_t>(sizeof(double) * central_natoms)};
     auto cm = py::array_t<double>(shape, strides);
     auto bufCM = cm.request();
 

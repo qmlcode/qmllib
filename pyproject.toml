@@ -27,7 +27,7 @@ dependencies = [
 
 
 [project.optional-dependencies]
-test = ["pytest>=8", "pytest-xdist", "pytest-cov", "pytest-timeout", "pandas"]
+test = ["pytest>=8", "pytest-xdist", "pytest-cov", "pytest-timeout", "pandas", "scipy"]
 dev = [
     "ruff>=0.8.0",
     "ty>=0.0.1",
@@ -42,8 +42,8 @@ Issues = "https://github.com/qmlcode/qmllib/issues"
 wheel.expand-macos-universal-tags = true
 wheel.py-api = "py3"
 cmake.build-type = "Release"
-cmake.verbose = true
-wheel.packages = ["python/kernelforge"]
+build.verbose = true
+wheel.packages = ["python/qmllib"]
 
 # optional: put compiled outputs under build/{tag}/ to avoid clashes
 # build-dir = "build/{wheel_tag}"

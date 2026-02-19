@@ -70,9 +70,6 @@ def test_krr_gaussian_local_cmat():
     K[np.diag_indices_from(K)] += llambda
     alpha = cho_solve(K, train_properties)
 
-    print(test_representations.shape)
-    print(test_sizes)
-
     # Calculate prediction kernel
     Ks = get_local_kernels_gaussian(
         test_representations, train_representations, test_sizes, train_sizes, [sigma]
@@ -88,7 +85,6 @@ def test_krr_gaussian_local_cmat():
     predicted_properties = np.dot(Ks, alpha)
 
     mae = np.mean(np.abs(test_properties - predicted_properties))
-    print(mae)
     assert abs(19.0 - mae) < 1.0, "Error in local Gaussian kernel-ridge regression"
 
 

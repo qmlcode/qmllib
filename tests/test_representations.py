@@ -57,8 +57,6 @@ def test_coulomb_matrix_rownorm():
 
     X_test = np.asarray(list(representations))
 
-    print(X_test.shape)
-
     X_ref = np.loadtxt(ASSETS / "coulomb_matrix_representation_row-norm_sorted.txt")
     assert np.allclose(X_test, X_ref), "Error in coulomb matrix representation"
 
@@ -77,8 +75,6 @@ def test_coulomb_matrix_unsorted():
         representations.append(representation)
 
     X_test = np.asarray(list(representations))
-
-    print(X_test.shape)
 
     X_ref = np.loadtxt(ASSETS / "coulomb_matrix_representation_unsorted.txt")
     assert np.allclose(X_test, X_ref), "Error in coulomb matrix representation"
@@ -257,10 +253,6 @@ def test_bob():
     for _, atoms in mols:
         atomtypes.extend(atoms)
     atomtypes = np.unique(atomtypes)
-
-    print(size)
-    print(atomtypes)
-    print(asize)
 
     representations = []
 

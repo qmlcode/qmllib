@@ -182,8 +182,6 @@ def test_krr_fchl_global():
 
     predicted_properties = np.dot(Ks, alpha)
 
-    print(test_properties, predicted_properties)
-
     mae = np.mean(np.abs(test_properties - predicted_properties))
     assert abs(2 - mae) < 1.0, "Error in FCHL global kernel-ridge regression"
 
@@ -1280,8 +1278,6 @@ def test_fchl_l2():
 
     K_test = np.zeros((n_points, n_points))
 
-    print(K)
-
     # UNUSED sigma = 2.0
     # UNUSED v = 3
     # UNUSED n = 2
@@ -1301,9 +1297,6 @@ def test_fchl_l2():
             # Copy to lower triangle (exploit symmetry)
             if i != j:
                 K_test[j, i] = K_test[i, j]
-
-    print(K_test)
-    print(np.max(K - K_test))
 
     assert np.allclose(K, K_test), "Error in FCHL l2 kernels"
 

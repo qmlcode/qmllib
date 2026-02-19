@@ -55,7 +55,6 @@ def test_energy():
     sigma = 3.0
 
     kernel = get_local_symmetric_kernel(train_representations, train_atoms, sigma)
-    print(kernel)
     kernel_save = np.load("kernel.npy")
     diff = np.abs(kernel - kernel_save)
 

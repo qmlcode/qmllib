@@ -62,7 +62,7 @@ py::array_t<double> generate_acsf_wrapper(
     
     // Create output array (natoms, rep_size) - Fortran column-major
     std::vector<ssize_t> shape = {natoms, rep_size};
-    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * natoms};
+    std::vector<ssize_t> strides = {static_cast<ssize_t>(sizeof(double)), static_cast<ssize_t>(sizeof(double) * natoms)};
     auto rep = py::array_t<double>(shape, strides);
     auto bufRep = rep.request();
     
@@ -108,7 +108,7 @@ std::tuple<py::array_t<double>, py::array_t<double>> generate_acsf_and_gradients
     
     // Create output array (natoms, rep_size) - Fortran column-major
     std::vector<ssize_t> rep_shape = {natoms, rep_size};
-    std::vector<ssize_t> rep_strides = {sizeof(double), sizeof(double) * natoms};
+    std::vector<ssize_t> rep_strides = {sizeof(double), static_cast<ssize_t>(sizeof(double) * natoms)};
     auto rep = py::array_t<double>(rep_shape, rep_strides);
     auto bufRep = rep.request();
     
@@ -116,9 +116,9 @@ std::tuple<py::array_t<double>, py::array_t<double>> generate_acsf_and_gradients
     std::vector<ssize_t> grad_shape = {natoms, rep_size, natoms, 3};
     std::vector<ssize_t> grad_strides = {
         sizeof(double),
-        sizeof(double) * natoms,
-        sizeof(double) * natoms * rep_size,
-        sizeof(double) * natoms * rep_size * natoms
+        static_cast<ssize_t>(sizeof(double) * natoms),
+        static_cast<ssize_t>(sizeof(double) * natoms * rep_size),
+        static_cast<ssize_t>(sizeof(double) * natoms * rep_size) * natoms
     };
     auto grad = py::array_t<double>(grad_shape, grad_strides);
     auto bufGrad = grad.request();
@@ -169,7 +169,7 @@ py::array_t<double> generate_fchl_acsf_wrapper(
     
     // Create output array (natoms, rep_size) - Fortran column-major
     std::vector<ssize_t> shape = {natoms, rep_size};
-    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * natoms};
+    std::vector<ssize_t> strides = {static_cast<ssize_t>(sizeof(double)), static_cast<ssize_t>(sizeof(double) * natoms)};
     auto rep = py::array_t<double>(shape, strides);
     auto bufRep = rep.request();
     
@@ -219,7 +219,7 @@ std::tuple<py::array_t<double>, py::array_t<double>> generate_fchl_acsf_and_grad
     
     // Create output array (natoms, rep_size) - Fortran column-major
     std::vector<ssize_t> rep_shape = {natoms, rep_size};
-    std::vector<ssize_t> rep_strides = {sizeof(double), sizeof(double) * natoms};
+    std::vector<ssize_t> rep_strides = {sizeof(double), static_cast<ssize_t>(sizeof(double) * natoms)};
     auto rep = py::array_t<double>(rep_shape, rep_strides);
     auto bufRep = rep.request();
     
@@ -227,9 +227,9 @@ std::tuple<py::array_t<double>, py::array_t<double>> generate_fchl_acsf_and_grad
     std::vector<ssize_t> grad_shape = {natoms, rep_size, natoms, 3};
     std::vector<ssize_t> grad_strides = {
         sizeof(double),
-        sizeof(double) * natoms,
-        sizeof(double) * natoms * rep_size,
-        sizeof(double) * natoms * rep_size * natoms
+        static_cast<ssize_t>(sizeof(double) * natoms),
+        static_cast<ssize_t>(sizeof(double) * natoms * rep_size),
+        static_cast<ssize_t>(sizeof(double) * natoms * rep_size) * natoms
     };
     auto grad = py::array_t<double>(grad_shape, grad_strides);
     auto bufGrad = grad.request();

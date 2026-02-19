@@ -314,8 +314,8 @@ subroutine fsymmetric_local_kernels(x1, q1, n1, nm1, sigmas, nsigmas, kernel, &
     enddo
     !$OMP END PARALLEL do
 
-    write(*,"(F10.1, A)") dble(work_done) / dble(work_total) * 100.0d0 , " %"
-    write(*,*) "QML: Non-alchemical Gaussian kernel completed!"
+    ! write(*,"(F10.1, A)") dble(work_done) / dble(work_total) * 100.0d0 , " %"
+    ! write(*,*) "QML: Non-alchemical Gaussian kernel completed!"
 
     deallocate(inv_sigma2)
 

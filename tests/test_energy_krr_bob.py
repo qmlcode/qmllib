@@ -72,5 +72,4 @@ def test_krr_bob():
     predicted_properties = np.dot(Ks.transpose(), alpha)
 
     mae = np.mean(np.abs(test_properties - predicted_properties))
-    print(mae)
     assert mae < 2.6, "ERROR: Too high MAE!"

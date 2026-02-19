@@ -1,7 +1,10 @@
 .PHONY: install install-dev test test-all test-integration check format typing stubs clean help
 
 install:
-	pip install -e .[test] --verbose
+	uv pip install -e .[test,dev] --verbose
+
+install-native:
+	CMAKE_ARGS="-DQMLLIB_USE_NATIVE=ON" uv pip install -e .[test,dev] --verbose
 
 install-dev:
 	pip install -e .[test,dev] --verbose
@@ -9,21 +12,22 @@ install-dev:
 
 # Run fast unit tests only (exclude integration tests)
 test:
-	pytest -m "not integration"
+	uv run pytest -m "not integration" tests/ -v -s
 
 # Run all tests including integration tests
 test-all:
-	pytest
+	uv run pytest tests/ -v -s
 
-# Run only integration tests
-test-integration:
-	pytest -m integration
+env_uv:
+	uv venv --python 3.14
+	# These are sometimes missed in GitHub CI builds
+	uv pip install scikit-build-core pybind11
 
 check: format typing
 
 format:
 	ruff format src/ tests/
-	ruff check --fix src/ tests/
+	ruff check --fix --verbose src/ tests/
 
 types:
 	ty check src/ --exclude tests/

@@ -41,7 +41,7 @@ py::array_t<double> get_sbot_wrapper(
     
     // Create output array - Fortran column-major
     std::vector<ssize_t> shape = {nx};
-    std::vector<ssize_t> strides = {sizeof(double)};
+    std::vector<ssize_t> strides = {static_cast<ssize_t>(sizeof(double))};
     auto ys = py::array_t<double>(shape, strides);
     auto bufYs = ys.request();
     
@@ -74,7 +74,7 @@ py::array_t<double> get_sbot_local_wrapper(
     
     // Create output array - Fortran column-major
     std::vector<ssize_t> shape = {nx};
-    std::vector<ssize_t> strides = {sizeof(double)};
+    std::vector<ssize_t> strides = {static_cast<ssize_t>(sizeof(double))};
     auto ys = py::array_t<double>(shape, strides);
     auto bufYs = ys.request();
     
@@ -107,7 +107,7 @@ py::array_t<double> get_sbop_wrapper(
     
     // Create output array - Fortran column-major
     std::vector<ssize_t> shape = {nx};
-    std::vector<ssize_t> strides = {sizeof(double)};
+    std::vector<ssize_t> strides = {static_cast<ssize_t>(sizeof(double))};
     auto ys = py::array_t<double>(shape, strides);
     auto bufYs = ys.request();
     
@@ -140,7 +140,7 @@ py::array_t<double> get_sbop_local_wrapper(
     
     // Create output array - Fortran column-major
     std::vector<ssize_t> shape = {nx};
-    std::vector<ssize_t> strides = {sizeof(double)};
+    std::vector<ssize_t> strides = {static_cast<ssize_t>(sizeof(double))};
     auto ys = py::array_t<double>(shape, strides);
     auto bufYs = ys.request();
     

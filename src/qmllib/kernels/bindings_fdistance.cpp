@@ -39,7 +39,7 @@ py::array_t<double> manhattan_distance_wrapper(
     
     // Create Fortran-style (column-major) output array
     std::vector<ssize_t> shape = {na, nb};
-    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * na};
+    std::vector<ssize_t> strides = {static_cast<ssize_t>(sizeof(double)), static_cast<ssize_t>(sizeof(double) * na)};
     auto D = py::array_t<double>(shape, strides);
     auto bufD = D.request();
     
@@ -77,7 +77,7 @@ py::array_t<double> l2_distance_wrapper(
     
     // Create Fortran-style (column-major) output array
     std::vector<ssize_t> shape = {na, nb};
-    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * na};
+    std::vector<ssize_t> strides = {static_cast<ssize_t>(sizeof(double)), static_cast<ssize_t>(sizeof(double) * na)};
     auto D = py::array_t<double>(shape, strides);
     auto bufD = D.request();
     
@@ -116,7 +116,7 @@ py::array_t<double> p_distance_double_wrapper(
     
     // Create Fortran-style (column-major) output array
     std::vector<ssize_t> shape = {na, nb};
-    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * na};
+    std::vector<ssize_t> strides = {static_cast<ssize_t>(sizeof(double)), static_cast<ssize_t>(sizeof(double) * na)};
     auto D = py::array_t<double>(shape, strides);
     auto bufD = D.request();
     
@@ -155,7 +155,7 @@ py::array_t<double> p_distance_integer_wrapper(
     
     // Create Fortran-style (column-major) output array
     std::vector<ssize_t> shape = {na, nb};
-    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * na};
+    std::vector<ssize_t> strides = {static_cast<ssize_t>(sizeof(double)), static_cast<ssize_t>(sizeof(double) * na)};
     auto D = py::array_t<double>(shape, strides);
     auto bufD = D.request();
     

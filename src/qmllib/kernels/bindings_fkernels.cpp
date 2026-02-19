@@ -88,7 +88,7 @@ py::array_t<double> kpca_wrapper(
     
     // Create Fortran-style (column-major) output array
     std::vector<ssize_t> shape = {n, n};
-    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * n};
+    std::vector<ssize_t> strides = {static_cast<ssize_t>(sizeof(double)), static_cast<ssize_t>(sizeof(double) * n)};
     auto kpca = py::array_t<double>(shape, strides);
     auto bufKPCA = kpca.request();
     
@@ -136,7 +136,7 @@ py::array_t<double> wasserstein_kernel_wrapper(
     
     // Create Fortran-style (column-major) output array
     std::vector<ssize_t> shape = {na, nb};
-    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * na};
+    std::vector<ssize_t> strides = {static_cast<ssize_t>(sizeof(double)), static_cast<ssize_t>(sizeof(double) * na)};
     auto k = py::array_t<double>(shape, strides);
     auto bufK = k.request();
     
@@ -177,7 +177,7 @@ py::array_t<double> gaussian_kernel_wrapper(
     }
     
     std::vector<ssize_t> shape = {na, nb};
-    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * na};
+    std::vector<ssize_t> strides = {static_cast<ssize_t>(sizeof(double)), static_cast<ssize_t>(sizeof(double) * na)};
     auto k = py::array_t<double>(shape, strides);
     auto bufK = k.request();
     
@@ -205,7 +205,7 @@ py::array_t<double> gaussian_kernel_symmetric_wrapper(
     int n = static_cast<int>(bufX.shape[1]);
     
     std::vector<ssize_t> shape = {n, n};
-    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * n};
+    std::vector<ssize_t> strides = {static_cast<ssize_t>(sizeof(double)), static_cast<ssize_t>(sizeof(double) * n)};
     auto k = py::array_t<double>(shape, strides);
     auto bufK = k.request();
     
@@ -239,7 +239,7 @@ py::array_t<double> laplacian_kernel_wrapper(
     }
     
     std::vector<ssize_t> shape = {na, nb};
-    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * na};
+    std::vector<ssize_t> strides = {static_cast<ssize_t>(sizeof(double)), static_cast<ssize_t>(sizeof(double) * na)};
     auto k = py::array_t<double>(shape, strides);
     auto bufK = k.request();
     
@@ -267,7 +267,7 @@ py::array_t<double> laplacian_kernel_symmetric_wrapper(
     int n = static_cast<int>(bufX.shape[1]);
     
     std::vector<ssize_t> shape = {n, n};
-    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * n};
+    std::vector<ssize_t> strides = {static_cast<ssize_t>(sizeof(double)), static_cast<ssize_t>(sizeof(double) * n)};
     auto k = py::array_t<double>(shape, strides);
     auto bufK = k.request();
     
@@ -300,7 +300,7 @@ py::array_t<double> linear_kernel_wrapper(
     }
     
     std::vector<ssize_t> shape = {na, nb};
-    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * na};
+    std::vector<ssize_t> strides = {static_cast<ssize_t>(sizeof(double)), static_cast<ssize_t>(sizeof(double) * na)};
     auto k = py::array_t<double>(shape, strides);
     auto bufK = k.request();
     
@@ -336,7 +336,7 @@ py::array_t<double> matern_kernel_l2_wrapper(
     }
     
     std::vector<ssize_t> shape = {na, nb};
-    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * na};
+    std::vector<ssize_t> strides = {static_cast<ssize_t>(sizeof(double)), static_cast<ssize_t>(sizeof(double) * na)};
     auto k = py::array_t<double>(shape, strides);
     auto bufK = k.request();
     
@@ -378,7 +378,7 @@ py::array_t<double> sargan_kernel_wrapper(
     }
     
     std::vector<ssize_t> shape = {na, nb};
-    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * na};
+    std::vector<ssize_t> strides = {static_cast<ssize_t>(sizeof(double)), static_cast<ssize_t>(sizeof(double) * na)};
     auto k = py::array_t<double>(shape, strides);
     auto bufK = k.request();
     
@@ -423,7 +423,7 @@ py::array_t<double> get_local_kernels_gaussian_wrapper(
     
     // Create output array (nsigmas, nm1, nm2)
     std::vector<ssize_t> shape = {nsigmas, nm1, nm2};
-    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * nsigmas, sizeof(double) * nsigmas * nm1};
+    std::vector<ssize_t> strides = {static_cast<ssize_t>(sizeof(double)), static_cast<ssize_t>(sizeof(double) * nsigmas), static_cast<ssize_t>(sizeof(double) * nsigmas * nm1)};
     auto kernels = py::array_t<double>(shape, strides);
     auto bufK = kernels.request();
     
@@ -472,7 +472,7 @@ py::array_t<double> get_local_kernels_laplacian_wrapper(
     
     // Create output array (nsigmas, nm1, nm2)
     std::vector<ssize_t> shape = {nsigmas, nm1, nm2};
-    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * nsigmas, sizeof(double) * nsigmas * nm1};
+    std::vector<ssize_t> strides = {static_cast<ssize_t>(sizeof(double)), static_cast<ssize_t>(sizeof(double) * nsigmas), static_cast<ssize_t>(sizeof(double) * nsigmas * nm1)};
     auto kernels = py::array_t<double>(shape, strides);
     auto bufK = kernels.request();
     
@@ -520,7 +520,7 @@ py::array_t<double> get_vector_kernels_gaussian_wrapper(
     
     // Create output array (nsigmas, nm1, nm2)
     std::vector<ssize_t> shape = {nsigmas, nm1, nm2};
-    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * nsigmas, sizeof(double) * nsigmas * nm1};
+    std::vector<ssize_t> strides = {static_cast<ssize_t>(sizeof(double)), static_cast<ssize_t>(sizeof(double) * nsigmas), static_cast<ssize_t>(sizeof(double) * nsigmas * nm1)};
     auto kernels = py::array_t<double>(shape, strides);
     auto bufK = kernels.request();
     
@@ -567,7 +567,7 @@ py::array_t<double> get_vector_kernels_laplacian_wrapper(
     
     // Create output array (nsigmas, nm1, nm2)
     std::vector<ssize_t> shape = {nsigmas, nm1, nm2};
-    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * nsigmas, sizeof(double) * nsigmas * nm1};
+    std::vector<ssize_t> strides = {static_cast<ssize_t>(sizeof(double)), static_cast<ssize_t>(sizeof(double) * nsigmas), static_cast<ssize_t>(sizeof(double) * nsigmas * nm1)};
     auto kernels = py::array_t<double>(shape, strides);
     auto bufK = kernels.request();
     
@@ -609,7 +609,7 @@ py::array_t<double> get_vector_kernels_gaussian_symmetric_wrapper(
     
     // Create output array (nsigmas, nm, nm)
     std::vector<ssize_t> shape = {nsigmas, nm, nm};
-    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * nsigmas, sizeof(double) * nsigmas * nm};
+    std::vector<ssize_t> strides = {static_cast<ssize_t>(sizeof(double)), static_cast<ssize_t>(sizeof(double) * nsigmas), static_cast<ssize_t>(sizeof(double) * nsigmas * nm)};
     auto kernels = py::array_t<double>(shape, strides);
     auto bufK = kernels.request();
     
@@ -649,7 +649,7 @@ py::array_t<double> get_vector_kernels_laplacian_symmetric_wrapper(
     
     // Create output array (nsigmas, nm, nm)
     std::vector<ssize_t> shape = {nsigmas, nm, nm};
-    std::vector<ssize_t> strides = {sizeof(double), sizeof(double) * nsigmas, sizeof(double) * nsigmas * nm};
+    std::vector<ssize_t> strides = {static_cast<ssize_t>(sizeof(double)), static_cast<ssize_t>(sizeof(double) * nsigmas), static_cast<ssize_t>(sizeof(double) * nsigmas * nm)};
     auto kernels = py::array_t<double>(shape, strides);
     auto bufK = kernels.request();
     

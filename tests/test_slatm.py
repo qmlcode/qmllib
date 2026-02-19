@@ -28,7 +28,6 @@ def test_slatm_global_representation():
     charges = [atoms for _, atoms in mols]
 
     mbtypes = get_slatm_mbtypes(charges)
-    print("mbtypes:", mbtypes)
 
     representations = []
     for coord, atoms in mols:

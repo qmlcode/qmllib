@@ -2,14 +2,8 @@ import ast
 from copy import deepcopy
 
 import numpy as np
+import pandas as pd
 import pytest
-
-# Skip if pandas not installed
-try:
-    import pandas as pd
-except ImportError:
-    pytest.skip("pandas not installed", allow_module_level=True)
-
 from conftest import ASSETS
 from scipy.stats import linregress
 
@@ -85,6 +79,7 @@ def get_reps(df):
     return x, f, e, np.array(disp_x), q
 
 
+@pytest.mark.integration
 def test_fchl_acsf_operator():
     print("Representations ...")
     X, F, E, dX, Q = get_reps(DF_TRAIN)
@@ -161,6 +156,7 @@ def test_fchl_acsf_operator():
     )
 
 
+@pytest.mark.integration
 def test_fchl_acsf_gaussian_process():
     print("Representations ...")
     X, F, E, dX, Q = get_reps(DF_TRAIN)
