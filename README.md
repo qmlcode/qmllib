@@ -131,12 +131,12 @@ Please cite the representation that you are using accordingly.
 - [ ] Set up proper doc strings
 - [ ] Set up pre-commit hooks
 - [ ] Set up proper `Makefile` for Jimmy
-- [ ] Stretch goal: stubs for Fortran code for `py.typed`
+- [x] Stretch goal: stubs for Fortran code for `py.typed`
 - [ ] Enable compiling with MacOS
-- [ ] Divide tests into CI and integration tests
-  - [ ] Add a few additional tests to replace integration tests in CI
-  - [ ] Find way to run integration tests (not in CI)
-- [ ] Enable GitHub actions for CI
+- [x] Divide tests into CI and integration tests
+  - [x] Mark integration tests with `@pytest.mark.integration`
+  - [x] Add a few additional tests to replace integration tests in CI
+- [X] Enable GitHub actions for CI/pytest
 - [x] Enable code quality
 - [x] Convert readme to markdown
 - [ ] `setuptools-scm` for versioning
@@ -150,3 +150,4 @@ Please cite the representation that you are using accordingly.
 
 **Finally:**
 - [ ] Transition to C++/pybind11 backend
+- [ ] Rest in peace Fortran

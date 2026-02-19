@@ -10,6 +10,7 @@ import pytest
 import scipy
 import scipy.stats
 from conftest import ASSETS
+
 from scipy.linalg import lstsq
 
 from qmllib.kernels import get_gp_kernel, get_symmetric_gp_kernel
@@ -119,6 +120,7 @@ def csv_to_molecular_reps(csv_filename, force_key="orca_forces", energy_key="orc
     return np.array(x), f, e, np.array(disp_x), np.array(disp_x5)
 
 
+@pytest.mark.integration
 def test_gaussian_process_derivative():
     """Test FCHL18 Gaussian Process kernels with amons_small.csv data."""
     Xall, Fall, Eall, dXall, dXall5 = csv_to_molecular_reps(
@@ -238,6 +240,7 @@ def test_gaussian_process_derivative():
         assert np.all(np.isfinite(Fss)), "Test force predictions contain NaN/Inf"
 
 
+@pytest.mark.integration
 def test_gaussian_process_derivative_with_fchl_acsf_data():
     """Test FCHL18 Gaussian Process kernels with force_train.csv/force_test.csv data (same data as FCHL19 test)."""
 
@@ -405,6 +408,7 @@ def test_gaussian_process_derivative_with_fchl_acsf_data():
         assert np.all(np.isfinite(Fss)), "Test force predictions contain NaN/Inf"
 
 
+@pytest.mark.integration
 def test_gdml_derivative():
     Xall, Fall, Eall, dXall, dXall5 = csv_to_molecular_reps(
         CSV_FILE, force_key=FORCE_KEY, energy_key=ENERGY_KEY
@@ -462,9 +466,7 @@ def test_gdml_derivative():
         assert mae(Ft, F) < 0.02, "Error in GDML training force"  # Relaxed from 0.001 to 0.02
 
 
-# @pytest.mark.skip(
-#     reason="FIXME: Energy predictions slightly off (MAE ~4.7 vs expected <0.3). May need tolerance adjustment or investigation of get_force_alphas."
-# )
+@pytest.mark.integration
 def test_normal_equation_derivative():
     Xall, Fall, Eall, dXall, dXall5 = csv_to_molecular_reps(
         CSV_FILE, force_key=FORCE_KEY, energy_key=ENERGY_KEY
@@ -596,6 +598,7 @@ def test_normal_equation_derivative():
         )
 
 
+@pytest.mark.integration
 def test_operator_derivative():
     Xall, Fall, Eall, dXall, dXall5 = csv_to_molecular_reps(
         CSV_FILE, force_key=FORCE_KEY, energy_key=ENERGY_KEY
@@ -724,14 +727,6 @@ def test_krr_derivative():
     assert mae(K[0], K[0].T) < 1e-10, "Symmetric kernel not symmetric"
 
 
-if __name__ == "__main__":
-    test_gaussian_process_derivative()
-    test_gdml_derivative()
-    test_normal_equation_derivative()
-    test_operator_derivative()
-    test_krr_derivative()
-
-
 def test_symmetric_hessian_simple():
     """Test that symmetric hessian kernels can be computed without errors using real molecular data."""
     from qmllib.representations.fchl import get_local_symmetric_hessian_kernels
@@ -757,9 +752,6 @@ def test_symmetric_hessian_simple():
     assert result.shape[2] == naq, f"Wrong dimension 2: {result.shape[2]} != {naq}"
     assert result.shape[1] == result.shape[2], "Hessian kernel not square"
     assert np.all(np.isfinite(result)), "Hessian kernel contains NaN/Inf"
-
-    # Note: The Hessian is NOT symmetric due to mixed derivative terms with different pm1/pm2 values
-    # This is expected behavior - "symmetric" refers to computing only upper triangle (a <= b)
 
 
 def test_hessian_simple():

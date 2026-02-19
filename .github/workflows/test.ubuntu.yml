@@ -1,34 +1,50 @@
-# name: Test Ubuntu
-# 
-# on:
-#   push:
-#     branches:
-#       - '**'
-#   pull_request:
-#     branches: [ main ]
-# 
-# jobs:
-# 
-#   test:
-#     name: Testing ${{matrix.os}} py-${{matrix.python-version}}
-#     runs-on: ${{matrix.os}}
-# 
-#     strategy:
-#       matrix:
-#         os: ['ubuntu-latest']
-#         python-version: ['3.11', '3.12']
-# 
-#     steps:
-#       - uses: actions/checkout@v2
-# 
-#       - name: Install the latest version of uv
-#         uses: astral-sh/setup-uv@v5
-# 
-#       - run: sudo apt-get install -y gcc libomp-dev libopenblas-dev
-# 
-#       - run: make env_uv python_version=${{ matrix.python-version }}
-# 
-#       - run: make test
-#       - run: make format
-#       - run: make build
-#       - run: make test-dist
+name: Test Ubuntu
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test Python ${{ matrix.python-version }} on Ubuntu
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ['3.12']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gfortran libomp-dev libopenblas-dev
+
+      - name: Install package with test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[test] --verbose
+
+      - name: Run fast unit tests (no integration tests)
+        run: make test
+
+      - name: Check test count
+        run: |
+          echo "Total tests:"
+          pytest --collect-only -q | tail -1

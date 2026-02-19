@@ -1,4 +1,4 @@
-.PHONY: install install-dev test check format typing stubs clean help
+.PHONY: install install-dev test test-all test-integration check format typing stubs clean help
 
 install:
 	pip install -e .[test] --verbose
@@ -7,8 +7,17 @@ install-dev:
 	pip install -e .[test,dev] --verbose
 	pre-commit install
 
+# Run fast unit tests only (exclude integration tests)
 test:
+	pytest -m "not integration"
+
+# Run all tests including integration tests
+test-all:
 	pytest
+
+# Run only integration tests
+test-integration:
+	pytest -m integration
 
 check: format typing
 

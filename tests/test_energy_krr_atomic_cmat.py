@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 from conftest import ASSETS, get_energies, shuffle_arrays
 
 from qmllib.kernels import get_local_kernels_gaussian, get_local_kernels_laplacian
@@ -7,6 +8,7 @@ from qmllib.solvers import cho_solve
 from qmllib.utils.xyz_format import read_xyz
 
 
+@pytest.mark.integration
 def test_krr_gaussian_local_cmat():
 
     # Parse file containing PBE0/def2-TZVP heats of formation and xyz filenames
@@ -90,6 +92,7 @@ def test_krr_gaussian_local_cmat():
     assert abs(19.0 - mae) < 1.0, "Error in local Gaussian kernel-ridge regression"
 
 
+@pytest.mark.integration
 def test_krr_laplacian_local_cmat():
 
     # Parse file containing PBE0/def2-TZVP heats of formation and xyz filenames

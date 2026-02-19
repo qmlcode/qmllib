@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 from conftest import ASSETS, get_energies, shuffle_arrays
 from scipy.special import binom, factorial, jn
 
@@ -57,6 +58,7 @@ def _get_training_data(n_points, representation_options=None):
     return all_properties, all_representations, all_atoms
 
 
+@pytest.mark.integration
 def test_krr_fchl_local():
 
     # Test that all kernel arguments work
@@ -127,6 +129,7 @@ def test_krr_fchl_local():
     assert abs(2 - mae) < 1.0, "Error in FCHL local kernel-ridge regression"
 
 
+@pytest.mark.integration
 def test_krr_fchl_global():
 
     # Test that all kernel arguments work
@@ -185,6 +188,7 @@ def test_krr_fchl_global():
     assert abs(2 - mae) < 1.0, "Error in FCHL global kernel-ridge regression"
 
 
+@pytest.mark.integration
 def test_krr_fchl_atomic():
 
     kernel_args = {

@@ -27,7 +27,7 @@ dependencies = [
 
 
 [project.optional-dependencies]
-test = ["pytest>=8", "pytest-xdist", "pytest-cov", "pytest-timeout"]
+test = ["pytest>=8", "pytest-xdist", "pytest-cov", "pytest-timeout", "pandas"]
 dev = [
     "ruff>=0.8.0",
     "ty>=0.0.1",
@@ -55,6 +55,14 @@ CMAKE_BUILD_TYPE = "Release"
 [tool.ruff]
 line-length = 100
 target-version = "py310"
+exclude = [
+    ".git",
+    ".github",
+    "__pycache__",
+    "build",
+    "dist",
+    "*.egg-info",
+]
 
 [tool.ruff.lint]
 select = [
@@ -92,3 +100,8 @@ root = ["src"]
 
 [tool.ty.src]
 exclude = ["src/qmllib/representations/fchl/fchl_electric_field_kernels.py"]
+
+[tool.pytest.ini_options]
+markers = [
+    "integration: heavy end-to-end ML regression tests (deselect with '-m \"not integration\"')",
+]
