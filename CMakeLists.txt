@@ -217,6 +217,9 @@ install(TARGETS ffchl_module
 )
 
 install(DIRECTORY src/qmllib/ DESTINATION qmllib
-  FILES_MATCHING PATTERN "*.py"
+  FILES_MATCHING
+    PATTERN "*.py"
+    PATTERN "*.pyi"
+    PATTERN "py.typed"
   PATTERN "__pycache__" EXCLUDE
 )
