@@ -7,8 +7,8 @@ install-native:
 	CMAKE_ARGS="-DQMLLIB_USE_NATIVE=ON" uv pip install -e .[test,dev] --verbose
 
 install-dev:
-	pip install -e .[test,dev] --verbose
-	pre-commit install
+	uv pip install -e .[test,dev] --verbose
+	uv run pre-commit install
 
 test:
 	uv run pytest -m "not integration" tests/ -v -s
@@ -36,15 +36,15 @@ monkeytype:
 
 stubs:
 	mkdir -p stubs_temp
-	stubgen -p qmllib._fdistance -o stubs_temp
-	stubgen -p qmllib._fgradient_kernels -o stubs_temp
-	stubgen -p qmllib._fkernels -o stubs_temp
-	stubgen -p qmllib._facsf -o stubs_temp
-	stubgen -p qmllib._representations -o stubs_temp
-	stubgen -p qmllib._fslatm -o stubs_temp
-	stubgen -p qmllib._solvers -o stubs_temp
-	stubgen -p qmllib._utils -o stubs_temp
-	stubgen -p qmllib.representations.fchl.ffchl_module -o stubs_temp
+	uv run stubgen -p qmllib._fdistance -o stubs_temp
+	uv run stubgen -p qmllib._fgradient_kernels -o stubs_temp
+	uv run stubgen -p qmllib._fkernels -o stubs_temp
+	uv run stubgen -p qmllib._facsf -o stubs_temp
+	uv run stubgen -p qmllib._representations -o stubs_temp
+	uv run stubgen -p qmllib._fslatm -o stubs_temp
+	uv run stubgen -p qmllib._solvers -o stubs_temp
+	uv run stubgen -p qmllib._utils -o stubs_temp
+	uv run stubgen -p qmllib.representations.fchl.ffchl_module -o stubs_temp
 	mv stubs_temp/qmllib/*.pyi src/qmllib/
 	mv stubs_temp/qmllib/representations/fchl/ffchl_module/*.pyi src/qmllib/representations/fchl/
 	rm -rf stubs_temp
