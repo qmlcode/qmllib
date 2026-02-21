@@ -43,6 +43,8 @@ dev = [
     "ruff>=0.8.0",
     "ty>=0.0.1",
     "pre-commit>=3.6.0",
+    "monkeytype>=23.3.0",
+    "twine>=6.0.0",
 ]
 
 [project.urls]

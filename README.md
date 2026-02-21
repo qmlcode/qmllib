@@ -1,4 +1,11 @@
-# What is qmllib?
+[![Test Ubuntu](https://github.com/qmlcode/qmllib/actions/workflows/test.ubuntu.yml/badge.svg)](https://github.com/qmlcode/qmllib/actions/workflows/test.ubuntu.yml)
+[![Test MacOS](https://github.com/qmlcode/qmllib/actions/workflows/test.macos.yml/badge.svg)](https://github.com/qmlcode/qmllib/actions/workflows/test.macos.yml)
+[![PyPI version](https://img.shields.io/pypi/v/qmllib)](https://pypi.org/project/qmllib/)
+[![Python Versions](https://img.shields.io/pypi/pyversions/qmllib?logo=python&logoColor=white)](https://pypi.org/project/qmllib/)
+[![Platform](https://img.shields.io/badge/platform-linux%20%7C%20macos-lightgrey)](https://github.com/qmlcode/qmllib)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+## What is qmllib?
 
 `qmllib` is a Python/Fortran toolkit for representation of molecules and solids for machine learning of properties of molecules and solids. The library is not a high-level framework where you can do `model.train()`, but supplies the building blocks to carry out efficient and accurate machine learning. As such, the goal is to provide usable and efficient implementations of concepts such as representations and kernels.
 
@@ -12,31 +19,38 @@ If you are moving from `qml` to `qmllib`, note that there are breaking changes t
 
 ## How to install
 
-You need a fortran compiler, OpenMP and a math library. Default is `gfortran` and `openblas`.
+Install from PyPI — pre-built wheels are available for Linux and macOS. They are pre-compiled with optimized BLAS libraries and OpenMP support.
 
-```bash
-sudo apt install gcc libomp-dev libopenblas-dev
-```
-
-If you are on mac, you can install `gcc`, OpenML and BLAS/Lapack via `brew`
-
-```bash
-brew install gcc libomp openblas lapack
-```
-
-You can then install via PyPi
-
+For most users, you can just install with pip:
 ```bash
 pip install qmllib
 ```
+This installs pre-compiled wheels with optimized BLAS libraries:
+- **Linux**: OpenBLAS
+- **macOS**: Apple Accelerate framework
 
-or directly from github
+
+## Installing from source
+
+If you are installing from source (e.g. directly from GitHub), you will need a Fortran compiler, OpenMP and a BLAS library. On Linux:
+
+```bash
+sudo apt install gfortran libomp-dev libopenblas-dev
+```
+
+On macOS via Homebrew:
+
+```bash
+brew install gcc libomp llvm 
+```
+
+Or install directly from GitHub:
 
 ```bash
 pip install git+https://github.com/qmlcode/qmllib
 ```
 
-or if you want a specific feature branch
+Or a specific branch:
 
 ```bash
 pip install git+https://github.com/qmlcode/qmllib@feature_branch
@@ -44,22 +58,17 @@ pip install git+https://github.com/qmlcode/qmllib@feature_branch
 
 ## How to contribute
 
-Know a issue and want to get started developing? Fork it, clone it, make it, test it.
+[uv](https://docs.astral.sh/uv/) is required for the development workflow.
+
+Fork and clone the repo, then set up the environment and run the tests:
 
 ```bash
 git clone your_repo qmllib.git
 cd qmllib.git
-make # setup env
-make compile # compile
-```
-
-You know have a conda environment in `./env` and are ready to run
-
-```bash
+make install-dev
 make test
 ```
-
-happy developing
+Fork it, clone it, make it, test it!
 
 ## How to use
 
@@ -71,7 +80,7 @@ Please cite the representation that you are using accordingly.
 
 - **Implementation**
 
-  Toolkit for Quantum Chemistry Machine Learning,
+  qmllib: A Python Toolkit for Quantum Chemistry Machine Learning,
   https://github.com/qmlcode/qmllib, \<version or git commit\>
 
 - **FCHL19** `generate_fchl19`
@@ -88,7 +97,7 @@ Please cite the representation that you are using accordingly.
   J. Chem. Phys. 148, 241717 (2018),
   https://doi.org/10.1063/1.5020710
 
-- **Columb Matrix** `generate_columnb_matrix_*`
+- **Coulomb Matrix** `generate_coulomb_matrix_*`
 
   Fast and Accurate Modeling of Molecular Atomization Energies with Machine Learning,
   Rupp, Tkatchenko, Müller, Lilienfeld,
@@ -122,32 +131,3 @@ Please cite the representation that you are using accordingly.
   Faber, Christensen, Huang, Lilienfeld,
   J. Chem. Phys. 148, 241717 (2018),
   https://doi.org/10.1063/1.5020710
-
-## What is left to do?
-
-**Housekeeping:**
-- [x] Set up ruff and mypy
-- [x] Set up proper typing and code formatting
-- [ ] Set up proper doc strings
-- [ ] Set up pre-commit hooks
-- [ ] Set up proper `Makefile` for Jimmy
-- [x] Stretch goal: stubs for Fortran code for `py.typed`
-- [ ] Enable compiling with MacOS
-- [x] Divide tests into CI and integration tests
-  - [x] Mark integration tests with `@pytest.mark.integration`
-  - [x] Add a few additional tests to replace integration tests in CI
-- [X] Enable GitHub actions for CI/pytest
-- [x] Enable code quality
-- [x] Convert readme to markdown
-- [ ] `setuptools-scm` for versioning
-- [ ] Enable badges
-- [ ] Test pip wheel building
-- [ ] Make qmlbench tool to track performance
-
-**Then:**
-- [ ] Make PR into Official qmlcode/qmllib
-- [ ] Automate releases on PyPi
-
-**Finally:**
-- [ ] Transition to C++/pybind11 backend
-- [ ] Rest in peace Fortran
