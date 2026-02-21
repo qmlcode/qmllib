@@ -34,12 +34,3 @@ repos:
     hooks:
       - id: fprettify
         name: "Format Fortran"
-
-  # Mypy disabled in pre-commit (run manually with: make typing)
-  # Uncomment to enable in pre-commit:
-  # - repo: https://github.com/pre-commit/mirrors-mypy
-  #   rev: v1.9.0
-  #   hooks:
-  #     - id: mypy
-  #       additional_dependencies: [numpy>=2.0, scipy>=1.10]
-  #       files: ^(src|tests)/.*\.py$

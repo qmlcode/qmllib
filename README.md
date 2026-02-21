@@ -122,32 +122,3 @@ Please cite the representation that you are using accordingly.
   Faber, Christensen, Huang, Lilienfeld,
   J. Chem. Phys. 148, 241717 (2018),
   https://doi.org/10.1063/1.5020710
-
-## What is left to do?
-
-**Housekeeping:**
-- [x] Set up ruff and mypy
-- [x] Set up proper typing and code formatting
-- [ ] Set up proper doc strings
-- [ ] Set up pre-commit hooks
-- [ ] Set up proper `Makefile` for Jimmy
-- [x] Stretch goal: stubs for Fortran code for `py.typed`
-- [ ] Enable compiling with MacOS
-- [x] Divide tests into CI and integration tests
-  - [x] Mark integration tests with `@pytest.mark.integration`
-  - [x] Add a few additional tests to replace integration tests in CI
-- [X] Enable GitHub actions for CI/pytest
-- [x] Enable code quality
-- [x] Convert readme to markdown
-- [ ] `setuptools-scm` for versioning
-- [ ] Enable badges
-- [ ] Test pip wheel building
-- [ ] Make qmlbench tool to track performance
-
-**Then:**
-- [ ] Make PR into Official qmlcode/qmllib
-- [ ] Automate releases on PyPi
-
-**Finally:**
-- [ ] Transition to C++/pybind11 backend
-- [ ] Rest in peace Fortran
