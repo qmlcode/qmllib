@@ -1,8 +1,8 @@
+from math import comb, factorial
 from typing import cast
 
 import numpy as np
 from numpy import ndarray
-from scipy.special import binom, factorial
 
 from .ffchl_module import ffchl_kernel_types as kt
 
@@ -194,7 +194,7 @@ def get_matern_parameters(
 
         n = int(tags["n"][i])
         for k in range(0, n + 1):
-            parameters[2 + k, i] = float(factorial(n + k) * binom(n, k)) / factorial(2 * n)
+            parameters[2 + k, i] = float(factorial(n + k) * comb(n, k)) / factorial(2 * n)
 
     parameters = parameters.T
 

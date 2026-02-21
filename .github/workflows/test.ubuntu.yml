@@ -36,12 +36,11 @@ jobs:
         uses: astral-sh/setup-uv@v5
         with:
           python-version: ${{ matrix.python-version }}
-          enable-cache: true
 
       - name: Build & install
         run: |
           # Install build dependencies first
-          uv pip install scikit-build-core pybind11 setuptools
+          uv pip install scikit-build-core pybind11 setuptools setuptools-scm
           # Build and install with test dependencies
           uv pip install -e .[test] --verbose
 

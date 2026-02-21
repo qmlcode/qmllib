@@ -1,3 +1,8 @@
-from qmllib.version import __version__ as __version__  # noqa: PLC0414
+from importlib.metadata import PackageNotFoundError, version
+
+try:
+    __version__ = version("qmllib")
+except PackageNotFoundError:
+    __version__ = "unknown"
 
 __all__ = ["__version__"]

@@ -33,8 +33,12 @@ ELEMENTS = [1, 6, 7, 8]
 
 CUT_DISTANCE = 8.0
 
-DF_TRAIN = pd.read_csv(ASSETS / "force_train.csv", delimiter=";").head(TRAINING)
-DF_TEST = pd.read_csv(ASSETS / "force_test.csv", delimiter=";").head(TEST)
+
+def _load_data():
+    df_train = pd.read_csv(ASSETS / "force_train.csv", delimiter=";").head(TRAINING)
+    df_test = pd.read_csv(ASSETS / "force_test.csv", delimiter=";").head(TEST)
+    return df_train, df_test
+
 
 SIGMA = 2.5
 
@@ -104,6 +108,8 @@ def get_reps(df):
 @pytest.mark.integration
 def test_fchl_force():
 
+    df_train, df_test = _load_data()
+
     # Test that all kernel arguments work
     kernel_args = {
         "alchemy": "off",
@@ -112,8 +118,8 @@ def test_fchl_force():
         },
     }
 
-    X, F, E, dX, Q = get_reps(DF_TRAIN)
-    Xs, Fs, Es, dXs, Qs = get_reps(DF_TEST)
+    X, F, E, dX, Q = get_reps(df_train)
+    Xs, Fs, Es, dXs, Qs = get_reps(df_test)
 
     F = np.concatenate(F)
     Fs = np.concatenate(Fs)

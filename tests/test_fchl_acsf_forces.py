@@ -27,9 +27,13 @@ ELEMENTS = [1, 6, 7, 8]
 
 CUT_DISTANCE = 8.0
 
-DF_TRAIN = pd.read_csv(ASSETS / "force_train.csv", delimiter=";").head(TRAINING)
-DF_VALID = pd.read_csv(ASSETS / "force_valid.csv", delimiter=";").head(VALID)
-DF_TEST = pd.read_csv(ASSETS / "force_test.csv", delimiter=";").head(TEST)
+
+def _load_data():
+    df_train = pd.read_csv(ASSETS / "force_train.csv", delimiter=";").head(TRAINING)
+    df_valid = pd.read_csv(ASSETS / "force_valid.csv", delimiter=";").head(VALID)
+    df_test = pd.read_csv(ASSETS / "force_test.csv", delimiter=";").head(TEST)
+    return df_train, df_valid, df_test
+
 
 SIGMA = 21.2
 
@@ -81,10 +85,11 @@ def get_reps(df):
 
 @pytest.mark.integration
 def test_fchl_acsf_operator():
+    df_train, df_valid, df_test = _load_data()
     print("Representations ...")
-    X, F, E, dX, Q = get_reps(DF_TRAIN)
-    Xs, Fs, Es, dXs, Qs = get_reps(DF_TEST)
-    Xv, Fv, Ev, dXv, Qv = get_reps(DF_VALID)
+    X, F, E, dX, Q = get_reps(df_train)
+    Xs, Fs, Es, dXs, Qs = get_reps(df_test)
+    Xv, Fv, Ev, dXv, Qv = get_reps(df_valid)
 
     F = np.concatenate(F)
     Fs = np.concatenate(Fs)
@@ -158,10 +163,11 @@ def test_fchl_acsf_operator():
 
 @pytest.mark.integration
 def test_fchl_acsf_gaussian_process():
+    df_train, df_valid, df_test = _load_data()
     print("Representations ...")
-    X, F, E, dX, Q = get_reps(DF_TRAIN)
-    Xs, Fs, Es, dXs, Qs = get_reps(DF_TEST)
-    Xv, Fv, Ev, dXv, Qv = get_reps(DF_VALID)
+    X, F, E, dX, Q = get_reps(df_train)
+    Xs, Fs, Es, dXs, Qs = get_reps(df_test)
+    Xv, Fv, Ev, dXv, Qv = get_reps(df_valid)
 
     F = np.concatenate(F)
     Fs = np.concatenate(Fs)

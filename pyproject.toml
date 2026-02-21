@@ -1,28 +1,39 @@
 [build-system]
-requires = ["scikit-build-core>=0.9", "pybind11", "setuptools"]
+requires = ["scikit-build-core>=0.9", "pybind11", "setuptools", "setuptools-scm>=8"]
 build-backend = "scikit_build_core.build"
 
 [project]
 name = "qmllib"
 dynamic = ["version"]
-authors = []
-description="Python/Fortran toolkit for representation of molecules and solids for machine learning of properties of molecules and solids."
+authors = [
+    {name = "Jimmy Kromann"},
+    {name = "Anders S. Christensen"},
+]
+description = "Python/Fortran toolkit for representation of molecules and solids for machine learning of properties of molecules and solids."
 classifiers = [
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: MIT License",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Fortran",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: Implementation :: CPython",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Scientific/Engineering :: Chemistry",
+    "Topic :: Scientific/Engineering :: Physics",
 ]
-keywords = ["qml", "quantum chemistry", "machine learning"]
-readme="README.md"
-license = {text = "MIT"}
+keywords = ["qml", "quantum chemistry", "machine learning", "representations", "kernels"]
+readme = "README.md"
+license = "MIT"
 requires-python = ">=3.10"
 dependencies = [
-    "numpy>=2.00",   # required at runtime
-    "scipy>=1.10",  # required at runtime
+    "numpy>=2.0",
 ]
 
 
@@ -38,15 +49,15 @@ dev = [
 Homepage = "https://qmlcode.org"
 Issues = "https://github.com/qmlcode/qmllib/issues"
 
+[tool.setuptools_scm]
+version_scheme = "python-simplified-semver"
+tag_regex = "^v?(?P<version>[0-9.]+)$"
+fallback_version = "0.0.0.dev0"
+
 [tool.scikit-build]
-wheel.expand-macos-universal-tags = true
-wheel.py-api = "py3"
+metadata.version.provider = "scikit_build_core.metadata.setuptools_scm"
 cmake.build-type = "Release"
 build.verbose = true
-wheel.packages = ["python/qmllib"]
-
-# optional: put compiled outputs under build/{tag}/ to avoid clashes
-# build-dir = "build/{wheel_tag}"
 
 [tool.scikit-build.cmake.define]
 CMAKE_VERBOSE_MAKEFILE = "ON"

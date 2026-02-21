@@ -2,7 +2,7 @@ from pathlib import Path
 
 import numpy as np
 
-ASSETS = Path("./tests/assets")
+ASSETS = Path(__file__).parent / "assets"
 
 
 def shuffle_arrays(*args, seed=666):

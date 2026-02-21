@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import numpy as np
 from conftest import ASSETS, get_energies, shuffle_arrays
 
@@ -55,7 +57,7 @@ def test_energy():
     sigma = 3.0
 
     kernel = get_local_symmetric_kernel(train_representations, train_atoms, sigma)
-    kernel_save = np.load("kernel.npy")
+    kernel_save = np.load(Path(__file__).parent / "kernel.npy")
     diff = np.abs(kernel - kernel_save)
 
     assert not np.any(diff > 1e-8), (

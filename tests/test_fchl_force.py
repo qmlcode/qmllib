@@ -248,8 +248,8 @@ def test_gaussian_process_derivative_with_fchl_acsf_data():
     TRAINING_GP = 20
     TEST_GP = 10
 
-    DF_TRAIN = pd.read_csv(ASSETS / "force_train.csv", delimiter=";").head(TRAINING_GP)
-    DF_TEST = pd.read_csv(ASSETS / "force_test.csv", delimiter=";").head(TEST_GP)
+    df_train = pd.read_csv(ASSETS / "force_train.csv", delimiter=";").head(TRAINING_GP)
+    df_test = pd.read_csv(ASSETS / "force_test.csv", delimiter=";").head(TEST_GP)
 
     SIGMA_GP = 0.64  # FCHL18 sigma
     LAMBDA_ENERGY_GP = 1e-4
@@ -301,8 +301,8 @@ def test_gaussian_process_derivative_with_fchl_acsf_data():
         return x, f, e, np.array(disp_x)
 
     # Get representations
-    X, F, E, dX = get_fchl18_reps(DF_TRAIN)
-    Xs, Fs, Es, dXs = get_fchl18_reps(DF_TEST)
+    X, F, E, dX = get_fchl18_reps(df_train)
+    Xs, Fs, Es, dXs = get_fchl18_reps(df_test)
 
     F = np.concatenate(F)
     Fs = np.concatenate(Fs)
