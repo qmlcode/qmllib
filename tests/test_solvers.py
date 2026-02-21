@@ -3,7 +3,14 @@ from copy import deepcopy
 import numpy as np
 from conftest import ASSETS
 
-from qmllib.solvers import bkf_invert, bkf_solve, cho_invert, cho_solve
+from qmllib.solvers import (
+    bkf_invert,
+    bkf_solve,
+    cho_invert,
+    cho_solve,
+    condition_number,
+    qrlq_solve,
+)
 
 
 def test_cho_solve():
@@ -81,8 +88,35 @@ def test_bkf_solve():
     assert np.allclose(x_qml, x_scipy)
 
 
+def test_qrlq_solve():
+    # Test overdetermined system
+    A = np.array([[1.0, 0.0], [0.0, 1.0], [0.0, 0.0]])
+    b = np.array([1.0, 2.0, 0.0])
+
+    x = qrlq_solve(A, b)
+    expected = np.linalg.lstsq(A, b, rcond=None)[0]
+
+    assert np.allclose(x, expected)
+
+
+def test_condition_number():
+    # Test with well-conditioned matrix
+    A = np.eye(5)
+    cond = condition_number(A)
+
+    assert cond is not None
+    assert np.isclose(cond, 1.0, rtol=0.1)
+
+    # Test LU method
+    cond_lu = condition_number(A, method="lu")
+    assert cond_lu is not None
+    assert np.isclose(cond_lu, 1.0, rtol=0.1)
+
+
 if __name__ == "__main__":
     test_cho_solve()
     test_cho_invert()
     test_bkf_invert()
     test_bkf_solve()
+    test_qrlq_solve()
+    test_condition_number()

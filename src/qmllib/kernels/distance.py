@@ -1,9 +1,12 @@
-from typing import Union
-
-import numpy as np
 from numpy import ndarray
 
-from .fdistance import fl2_distance, fmanhattan_distance, fp_distance_double, fp_distance_integer
+# Import from pybind11 module
+from qmllib._fdistance import (
+    fl2_distance,
+    fmanhattan_distance,
+    fp_distance_double,
+    fp_distance_integer,
+)
 
 
 def manhattan_distance(A: ndarray, B: ndarray) -> ndarray:
@@ -30,12 +33,8 @@ def manhattan_distance(A: ndarray, B: ndarray) -> ndarray:
     if B.shape[1] != A.shape[1]:
         raise ValueError("expected matrices containing vectors of same size")
 
-    na = A.shape[0]
-    nb = B.shape[0]
-
-    D = np.empty((na, nb), order="F")
-
-    fmanhattan_distance(A.T, B.T, D)
+    # Call the pybind11 function which returns the result
+    D = fmanhattan_distance(A.T, B.T)
 
     return D
 
@@ -64,17 +63,13 @@ def l2_distance(A: ndarray, B: ndarray) -> ndarray:
     if B.shape[1] != A.shape[1]:
         raise ValueError("expected matrices containing vectors of same size")
 
-    na = A.shape[0]
-    nb = B.shape[0]
-
-    D = np.empty((na, nb), order="F")
-
-    fl2_distance(A.T, B.T, D)
+    # Call the pybind11 function which returns the result
+    D = fl2_distance(A.T, B.T)
 
     return D
 
 
-def p_distance(A: ndarray, B: ndarray, p: Union[int, float] = 2) -> ndarray:
+def p_distance(A: ndarray, B: ndarray, p: int | float = 2) -> ndarray:
     """Calculates the p-norm distances between two
     Numpy arrays of representations.
     The value of the keyword argument ``p =`` sets the norm order.
@@ -102,27 +97,17 @@ def p_distance(A: ndarray, B: ndarray, p: Union[int, float] = 2) -> ndarray:
     if B.shape[1] != A.shape[1]:
         raise ValueError("expected matrices containing vectors of same size")
 
-    na = A.shape[0]
-    nb = B.shape[0]
-
-    D = np.empty((na, nb), order="F")
-
+    # Call the pybind11 function which returns the result
     if isinstance(p, int):
-        if p == 2:
-            fl2_distance(A, B, D)
-        else:
-            fp_distance_integer(A.T, B.T, D, p)
+        D = fl2_distance(A.T, B.T) if p == 2 else fp_distance_integer(A.T, B.T, p)
 
     elif isinstance(p, float):
         if p.is_integer():
             p = int(p)
-            if p == 2:
-                fl2_distance(A, B, D)
-            else:
-                fp_distance_integer(A.T, B.T, D, p)
+            D = fl2_distance(A.T, B.T) if p == 2 else fp_distance_integer(A.T, B.T, p)
 
         else:
-            fp_distance_double(A.T, B.T, D, p)
+            D = fp_distance_double(A.T, B.T, p)
     else:
         raise ValueError("expected exponent of integer or float type")
 

@@ -1,5 +1,4 @@
 import copy
-from typing import List, Optional, Union
 
 import numpy as np
 from numpy import ndarray
@@ -7,11 +6,11 @@ from numpy import ndarray
 
 def generate_fchl18(
     nuclear_charges: ndarray,
-    coordinates: Union[ndarray, List[List[float]]],
+    coordinates: ndarray | list[list[float]],
     max_size: int = 23,
     neighbors: int = 23,
     cut_distance: float = 5.0,
-    cell: Optional[ndarray] = None,
+    cell: ndarray | None = None,
 ) -> ndarray:
     """Generates a representation for the FCHL kernel module.
 
@@ -74,7 +73,7 @@ def generate_fchl18(
         ocExt = np.asarray([ocExt[l] for l in args])
         cD = cD[args]
 
-        args = np.where(D1 < cut_distance)[0]
+        args = np.where(cut_distance > D1)[0]
         D1 = D1[args]
         ocExt = np.asarray([ocExt[l] for l in args])
         cD = cD[args]
@@ -114,10 +113,8 @@ def generate_fchl18_displaced(
     compound_size = len(nuclear_charges)
 
     for xyz in range(3):
-
         for i in range(compound_size):
             for idisp, disp in enumerate([-dx, dx]):
-
                 displaced_coordinates = copy.deepcopy(coordinates)
                 displaced_coordinates[i, xyz] += disp
 
@@ -165,10 +162,8 @@ def generate_fchl18_displaced_5point(
     compound_size = len(nuclear_charges)
 
     for xyz in range(3):
-
         for i in range(compound_size):
             for idisp, disp in enumerate([-2 * dx, -dx, 0.0, dx, 2 * dx]):
-
                 displaced_coordinates = copy.deepcopy(coordinates)
                 displaced_coordinates[i, xyz] += disp
 
@@ -189,7 +184,7 @@ def generate_fchl18_displaced_5point(
 def generate_fchl18_electric_field(
     nuclear_charges: ndarray,
     coordinates: ndarray,
-    fictitious_charges: Union[ndarray, List[float]] = "gasteiger",
+    fictitious_charges: ndarray | list[float] | str = "gasteiger",
     max_size: int = 23,
     neighbors: int = 23,
     cut_distance: float = 5.0,
@@ -221,8 +216,7 @@ def generate_fchl18_electric_field(
 
     # If a list is given, assume these are the fictitious charges
 
-    if isinstance(fictitious_charges, list) or isinstance(fictitious_charges, np.ndarray):
-
+    if isinstance(fictitious_charges, (list, np.ndarray)):
         if len(fictitious_charges) != len(nuclear_charges):
             raise ValueError("Error: incorrect length of fictitious charge list")
 
@@ -292,7 +286,7 @@ def generate_fchl18_electric_field(
 
         cD = cD[args]
 
-        args = np.where(D1 < cut_distance)[0]
+        args = np.where(cut_distance > D1)[0]
         D1 = D1[args]
         ocExt = np.asarray([ocExt[l] for l in args])
         qExt = np.asarray([qExt[l] for l in args])

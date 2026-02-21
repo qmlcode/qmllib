@@ -1,0 +1,113 @@
+# .github/workflows/release.yml
+name: "Build & Publish"
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  build-wheels:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-15]
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0  # Required for setuptools-scm to detect version from git tags
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"   # host Python; cibuildwheel builds all others
+
+      - name: Clean build artifacts
+        run: rm -rf dist/ build/ *.egg-info wheelhouse/
+
+      - name: Install GCC, LLVM and OpenMP (macOS)
+        if: runner.os == 'macOS'
+        run: brew install gcc llvm libomp
+
+      - name: Install cibuildwheel
+        run: python -m pip install cibuildwheel==3.3.1
+
+      - name: Build wheels
+        env:
+          CIBW_BUILD: "cp310-* cp311-* cp312-* cp313-* cp314-*"
+          CIBW_SKIP: "pp* *-musllinux_* cp*-manylinux_i686 cp31?t-*"
+          CIBW_TEST_COMMAND: "pytest -q {project}/tests -m 'not integration' -x"
+          CIBW_TEST_EXTRAS: "test"
+          CIBW_ENVIRONMENT: >
+            OMP_NUM_THREADS=1
+            OPENBLAS_NUM_THREADS=1
+          CIBW_BEFORE_BUILD_LINUX: |
+            yum -y install openblas-devel
+            find /usr/include -name cblas.h -print
+          CIBW_ENVIRONMENT_LINUX: >
+            CPPFLAGS="-I/usr/include/openblas"
+            CFLAGS="-I/usr/include/openblas"
+            LD_LIBRARY_PATH="/usr/lib64:$LD_LIBRARY_PATH"
+            CMAKE_ARGS="-DBLAS_LIBRARIES=/usr/lib64/libopenblas.so
+              -DBLAS_INCLUDE_DIR=/usr/include/openblas
+              -DCMAKE_CXX_FLAGS=-I/usr/include/openblas
+              -DCMAKE_C_FLAGS=-I/usr/include/openblas"
+            OPENBLAS_NUM_THREADS=1
+            OMP_NUM_THREADS=1
+          CIBW_ENVIRONMENT_MACOS: >
+            MACOSX_DEPLOYMENT_TARGET=15.0
+            FC=gfortran-14
+            OpenMP_ROOT=/opt/homebrew/opt/libomp
+            CMAKE_ARGS="-DCMAKE_Fortran_COMPILER=gfortran-14
+              -DOpenMP_ROOT=/opt/homebrew/opt/libomp
+              -DCMAKE_CXX_FLAGS=-I/opt/homebrew/opt/libomp/include
+              -DCMAKE_C_FLAGS=-I/opt/homebrew/opt/libomp/include
+              -DCMAKE_SHARED_LINKER_FLAGS=-L/opt/homebrew/opt/libomp/lib
+              -DCMAKE_EXE_LINKER_FLAGS=-L/opt/homebrew/opt/libomp/lib"
+          CIBW_ARCHS_MACOS: arm64
+        run: python -m cibuildwheel --output-dir wheelhouse
+
+      - name: Build sdist
+        if: runner.os == 'Linux'
+        run: python -m pip install build && python -m build --sdist -o wheelhouse
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          name: wheels-${{ runner.os }}
+          path: wheelhouse/*
+
+  publish:
+    needs: build-wheels
+    runs-on: ubuntu-24.04
+    if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          name: wheels-Linux
+          path: dist
+
+      - uses: actions/download-artifact@v7
+        with:
+          name: wheels-macOS
+          path: dist
+
+      - name: Flatten artifacts
+        run: |
+          mkdir -p dist/flat
+          find dist -name '*.whl' -exec cp {} dist/flat/ \;
+          find dist -name '*.tar.gz' -exec cp {} dist/flat/ \;
+
+      - uses: pypa/gh-action-pypi-publish@v1.13.0
+        with:
+          packages-dir: dist/flat

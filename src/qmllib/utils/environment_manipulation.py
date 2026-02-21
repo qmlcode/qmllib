@@ -19,7 +19,6 @@ def mkl_get_num_threads():
         return mkl_num_threads
 
     except OSError:
-
         return None
 
 

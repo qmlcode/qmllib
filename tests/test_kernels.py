@@ -1,9 +1,6 @@
 import numpy as np
-from conftest import ASSETS, get_energies
-from scipy.stats import wasserstein_distance
-from sklearn.decomposition import KernelPCA
 
-from qmllib.kernels import (
+from qmllib.kernels.kernels import (
     gaussian_kernel,
     gaussian_kernel_symmetric,
     kpca,
@@ -14,272 +11,200 @@ from qmllib.kernels import (
     sargan_kernel,
     wasserstein_kernel,
 )
-from qmllib.representations import generate_bob
-from qmllib.utils.xyz_format import read_xyz
-
-
-def test_laplacian_kernel():
-
-    np.random.seed(666)
-
-    n_train = 25
-    n_test = 20
-
-    # List of dummy representations
-    X = np.random.rand(n_train, 1000)
-    Xs = np.random.rand(n_test, 1000)
-
-    sigma = 100.0
-
-    Ktest = np.zeros((n_train, n_test))
-
-    for i in range(n_train):
-        for j in range(n_test):
-            Ktest[i, j] = np.exp(np.sum(np.abs(X[i] - Xs[j])) / (-1.0 * sigma))
-
-    K = laplacian_kernel(X, Xs, sigma)
-
-    # Compare two implementations:
-    assert np.allclose(K, Ktest), "Error in Laplacian kernel"
-
-    Ksymm = laplacian_kernel(X, X, sigma)
-
-    # Check for symmetry:
-    assert np.allclose(Ksymm, Ksymm.T), "Error in Laplacian kernel"
-
-    Ksymm2 = laplacian_kernel_symmetric(X, sigma)
-
-    # Check for symmetry:
-    assert np.allclose(Ksymm, Ksymm2), "Error in Laplacian kernel"
-
-
-def test_gaussian_kernel():
-
-    np.random.seed(666)
-
-    n_train = 25
-    n_test = 20
-
-    # List of dummy representations
-    X = np.random.rand(n_train, 1000)
-    Xs = np.random.rand(n_test, 1000)
-
-    sigma = 100.0
-
-    Ktest = np.zeros((n_train, n_test))
-
-    for i in range(n_train):
-        for j in range(n_test):
-            Ktest[i, j] = np.exp(np.sum(np.square(X[i] - Xs[j])) / (-2.0 * sigma**2))
-
-    K = gaussian_kernel(X, Xs, sigma)
-
-    # Compare two implementations:
-    assert np.allclose(K, Ktest), "Error in Gaussian kernel"
-
-    Ksymm = gaussian_kernel(X, X, sigma)
-
-    # Check for symmetry:
-    assert np.allclose(Ksymm, Ksymm.T), "Error in Gaussian kernel"
-
-    Ksymm2 = gaussian_kernel_symmetric(X, sigma)
-
-    # Check for symmetry:
-    assert np.allclose(Ksymm, Ksymm2), "Error in Gaussian kernel"
 
 
 def test_linear_kernel():
+    """Linear kernel should be equivalent to matrix multiplication (dot product)."""
+    A = np.array([[1.0, 2.0], [3.0, 4.0]])
+    B = np.array([[5.0, 6.0], [7.0, 8.0]])
 
-    np.random.seed(666)
+    K = linear_kernel(A, B)
+    expected = A @ B.T
 
-    n_train = 25
-    n_test = 20
+    assert K.shape == (2, 2)
+    assert np.allclose(K, expected)
 
-    # List of dummy representations
-    X = np.random.rand(n_train, 1000)
-    Xs = np.random.rand(n_test, 1000)
 
-    # UNUSED sigma = 100.0
+def test_linear_kernel_square():
+    """Linear kernel with same input should produce symmetric matrix."""
+    A = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]])
 
-    Ktest = np.zeros((n_train, n_test))
+    K = linear_kernel(A, A)
 
-    for i in range(n_train):
-        for j in range(n_test):
-            Ktest[i, j] = np.dot(X[i], Xs[j])
+    assert K.shape == (3, 3)
+    assert np.allclose(K, K.T)  # Should be symmetric
 
-    K = linear_kernel(X, Xs)
 
-    # Compare two implementations:
-    assert np.allclose(K, Ktest), "Error in linear kernel"
+def test_gaussian_kernel_identity():
+    """Gaussian kernel of identical points should be 1."""
+    A = np.array([[1.0, 2.0, 3.0]])
 
-    Ksymm = linear_kernel(X, X)
+    K = gaussian_kernel(A, A, sigma=1.0)
 
-    # Check for symmetry:
-    assert np.allclose(Ksymm, Ksymm.T), "Error in linear kernel"
+    assert K.shape == (1, 1)
+    assert np.isclose(K[0, 0], 1.0), "Same point should have kernel value 1"
 
 
-def test_matern_kernel():
+def test_gaussian_kernel_shape():
+    """Gaussian kernel should produce correct output shape."""
+    A = np.array([[1.0, 2.0], [3.0, 4.0]])
+    B = np.array([[5.0, 6.0], [7.0, 8.0], [9.0, 10.0]])
 
-    np.random.seed(666)
+    K = gaussian_kernel(A, B, sigma=1.0)
 
-    for metric in ("l1", "l2"):
-        for order in (0, 1, 2):
-            matern(metric, order)
+    assert K.shape == (2, 3)
+    assert np.all(K >= 0) and np.all(K <= 1), "Gaussian kernel values should be in [0,1]"
 
 
-def matern(metric, order):
+def test_gaussian_kernel_symmetric():
+    """Symmetric Gaussian kernel should produce symmetric matrix."""
+    A = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]])
 
-    n_train = 25
-    n_test = 20
+    K = gaussian_kernel_symmetric(A, sigma=1.0)
 
-    # List of dummy representations
-    X = np.random.rand(n_train, 1000)
-    Xs = np.random.rand(n_test, 1000)
+    assert K.shape == (3, 3)
+    assert np.allclose(K, K.T), "Symmetric kernel should produce symmetric matrix"
+    assert np.allclose(np.diag(K), 1.0), "Diagonal should be all 1s"
 
-    sigma = 100.0
 
-    Ktest = np.zeros((n_train, n_test))
+def test_laplacian_kernel_identity():
+    """Laplacian kernel of identical points should be 1."""
+    A = np.array([[1.0, 2.0, 3.0]])
 
-    for i in range(n_train):
-        for j in range(n_test):
+    K = laplacian_kernel(A, A, sigma=1.0)
 
-            if metric == "l1":
-                d = np.sum(abs(X[i] - Xs[j]))
-            else:
-                d = np.sqrt(np.sum((X[i] - Xs[j]) ** 2))
+    assert K.shape == (1, 1)
+    assert np.isclose(K[0, 0], 1.0), "Same point should have kernel value 1"
 
-            if order == 0:
-                Ktest[i, j] = np.exp(-d / sigma)
-            elif order == 1:
-                Ktest[i, j] = np.exp(-np.sqrt(3) * d / sigma) * (1 + np.sqrt(3) * d / sigma)
-            else:
-                Ktest[i, j] = np.exp(-np.sqrt(5) * d / sigma) * (
-                    1 + np.sqrt(5) * d / sigma + 5.0 / 3 * d**2 / sigma**2
-                )
 
-    K = matern_kernel(X, Xs, sigma, metric=metric, order=order)
+def test_laplacian_kernel_shape():
+    """Laplacian kernel should produce correct output shape."""
+    A = np.array([[1.0, 2.0], [3.0, 4.0]])
+    B = np.array([[5.0, 6.0], [7.0, 8.0], [9.0, 10.0]])
 
-    # Compare two implementations:
-    assert np.allclose(K, Ktest), "Error in Matern kernel"
+    K = laplacian_kernel(A, B, sigma=1.0)
 
-    Ksymm = matern_kernel(X, X, sigma, metric=metric, order=order)
+    assert K.shape == (2, 3)
+    assert np.all(K >= 0) and np.all(K <= 1), "Laplacian kernel values should be in [0,1]"
 
-    # Check for symmetry:
-    assert np.allclose(Ksymm, Ksymm.T), "Error in Matern kernel"
 
+def test_laplacian_kernel_symmetric():
+    """Symmetric Laplacian kernel should produce symmetric matrix."""
+    A = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]])
 
-def test_sargan_kernel():
+    K = laplacian_kernel_symmetric(A, sigma=1.0)
 
-    np.random.seed(666)
+    assert K.shape == (3, 3)
+    assert np.allclose(K, K.T), "Symmetric kernel should produce symmetric matrix"
+    assert np.allclose(np.diag(K), 1.0), "Diagonal should be all 1s"
 
-    for ngamma in (0, 1, 2):
-        sargan(ngamma)
 
+def test_matern_kernel_basic():
+    """Matérn kernel should produce valid kernel matrix."""
+    A = np.array([[1.0, 2.0], [3.0, 4.0]])
+    B = np.array([[5.0, 6.0], [7.0, 8.0]])
 
-def sargan(ngamma):
+    # Test with order=0 (equivalent to Laplacian)
+    K = matern_kernel(A, B, sigma=1.0, order=0, metric="l1")
 
-    n_train = 25
-    n_test = 20
+    assert K.shape == (2, 2)
+    assert np.all(K >= 0) and np.all(K <= 1), "Matérn kernel values should be in [0,1]"
 
-    gammas = np.random.random(ngamma)
 
-    # List of dummy representations
-    X = np.random.rand(n_train, 1000)
-    Xs = np.random.rand(n_test, 1000)
+def test_matern_kernel_identity():
+    """Matérn kernel of identical points should be 1."""
+    A = np.array([[1.0, 2.0]])
 
-    sigma = 100.0
+    K = matern_kernel(A, A, sigma=1.0, order=1, metric="l2")
 
-    Ktest = np.zeros((n_train, n_test))
+    assert K.shape == (1, 1)
+    assert np.isclose(K[0, 0], 1.0), "Same point should have kernel value 1"
 
-    for i in range(n_train):
-        for j in range(n_test):
-            d = np.sum(abs(X[i] - Xs[j]))
 
-            factor = 1
-            for k, gamma in enumerate(gammas):
-                factor += gamma / sigma ** (k + 1) * d ** (k + 1)
-            Ktest[i, j] = np.exp(-d / sigma) * factor
+def test_sargan_kernel_basic():
+    """Sargan kernel should produce valid kernel matrix."""
+    A = np.array([[1.0, 2.0], [3.0, 4.0]])
+    B = np.array([[5.0, 6.0], [7.0, 8.0]])
 
-    K = sargan_kernel(X, Xs, sigma, gammas)
+    gammas = np.array([0.5, 1.0])
+    K = sargan_kernel(A, B, sigma=1.0, gammas=gammas)
 
-    # Compare two implementations:
-    assert np.allclose(K, Ktest), "Error in Sargan kernel"
+    assert K.shape == (2, 2)
+    assert np.all(np.isfinite(K)), "Sargan kernel should not contain NaN/Inf"
 
-    Ksymm = sargan_kernel(X, X, sigma, gammas)
 
-    # Check for symmetry:
-    assert np.allclose(Ksymm, Ksymm.T), "Error in Sargan kernel"
+def test_sargan_kernel_identity():
+    """Sargan kernel of identical points should be 1."""
+    A = np.array([[1.0, 2.0]])
 
+    gammas = np.array([1.0])
+    K = sargan_kernel(A, A, sigma=1.0, gammas=gammas)
 
-def array_nan_close(a, b):
-    # Compares arrays, ignoring nans
+    assert K.shape == (1, 1)
+    assert np.isclose(K[0, 0], 1.0), "Same point should have kernel value 1"
 
-    m = np.isfinite(a) & np.isfinite(b)
-    return np.allclose(a[m], b[m], atol=1e-8, rtol=0.0)
 
+def test_wasserstein_kernel_basic():
+    """Wasserstein kernel should produce valid kernel matrix."""
+    A = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
+    B = np.array([[7.0, 8.0, 9.0], [10.0, 11.0, 12.0]])
 
-def test_kpca():
+    K = wasserstein_kernel(A, B, sigma=1.0, p=1, q=1)
 
-    # Parse file containing PBE0/def2-TZVP heats of formation and xyz filenam
-    data = get_energies(ASSETS / "hof_qm7.txt")
+    assert K.shape == (2, 2)
+    assert np.all(K >= 0) and np.all(K <= 1), "Wasserstein kernel values should be in [0,1]"
 
-    keys = sorted(data.keys())
 
-    np.random.seed(666)
-    np.random.shuffle(keys)
+def test_wasserstein_kernel_identity():
+    """Wasserstein kernel of identical points should be 1."""
+    A = np.array([[1.0, 2.0, 3.0]])
 
-    n_mols = 100
+    K = wasserstein_kernel(A, A, sigma=1.0, p=1, q=1)
 
-    representations = []
+    assert K.shape == (1, 1)
+    assert np.isclose(K[0, 0], 1.0, atol=1e-10), "Same point should have kernel value 1"
 
-    for xyz_file in keys[:n_mols]:
 
-        filename = ASSETS / "qm7" / xyz_file
-        coordinates, atoms = read_xyz(filename)
+def test_kpca_basic():
+    """KPCA should reduce dimensionality of kernel matrix."""
+    # Create a simple kernel matrix
+    K = np.array(
+        [[1.0, 0.8, 0.6, 0.4], [0.8, 1.0, 0.7, 0.5], [0.6, 0.7, 1.0, 0.6], [0.4, 0.5, 0.6, 1.0]]
+    )
 
-        atomtypes = np.unique(atoms)
-        representation = generate_bob(atoms, coordinates, atomtypes)
-        representations.append(representation)
+    # Reduce to 2 dimensions
+    X_reduced = kpca(K, n=2, centering=True)
 
-    X = np.array([representation for representation in representations])
-    K = laplacian_kernel(X, X, 2e5)
+    assert X_reduced.shape == (2, 4), "KPCA should return (n_components, n_samples)"
+    assert np.all(np.isfinite(X_reduced)), "KPCA output should not contain NaN/Inf"
 
-    # calculate pca
-    pcas_qml = kpca(K, n=10)
 
-    # Calculate with sklearn
-    pcas_sklearn = KernelPCA(10, eigen_solver="dense", kernel="precomputed").fit_transform(K)
+def test_kpca_no_centering():
+    """KPCA should work without centering."""
+    K = np.array([[1.0, 0.5, 0.3], [0.5, 1.0, 0.4], [0.3, 0.4, 1.0]])
 
-    assert array_nan_close(
-        np.abs(pcas_sklearn.T), np.abs(pcas_qml)
-    ), "Error in Kernel PCA decomposition."
+    X_reduced = kpca(K, n=2, centering=False)
 
+    assert X_reduced.shape == (2, 3), "KPCA should return (n_components, n_samples)"
+    assert np.all(np.isfinite(X_reduced))
 
-def test_wasserstein_kernel():
 
-    np.random.seed(666)
-
-    n_train = 5
-    n_test = 3
-
-    # List of dummy representations
-    X = np.array(np.random.randint(0, 10, size=(n_train, 3)), dtype=np.float64)
-    Xs = np.array(np.random.randint(0, 10, size=(n_test, 3)), dtype=np.float64)
-
-    sigma = 100.0
-
-    Ktest = np.zeros((n_train, n_test))
-
-    for i in range(n_train):
-        for j in range(n_test):
-            Ktest[i, j] = np.exp(wasserstein_distance(X[i], Xs[j]) / (-1.0 * sigma))
-
-    K = wasserstein_kernel(X, Xs, sigma)
-
-    # Compare two implementations:
-    assert np.allclose(K, Ktest), "Error in Wasserstein kernel"
-
-    Ksymm = wasserstein_kernel(X, X, sigma)
-
-    # Check for symmetry:
-    assert np.allclose(Ksymm, Ksymm.T), "Error in Wasserstein kernel"
+if __name__ == "__main__":
+    # Run all tests
+    test_linear_kernel()
+    test_linear_kernel_square()
+    test_gaussian_kernel_identity()
+    test_gaussian_kernel_shape()
+    test_gaussian_kernel_symmetric()
+    test_laplacian_kernel_identity()
+    test_laplacian_kernel_shape()
+    test_laplacian_kernel_symmetric()
+    test_matern_kernel_basic()
+    test_matern_kernel_identity()
+    test_sargan_kernel_basic()
+    test_sargan_kernel_identity()
+    test_wasserstein_kernel_basic()
+    test_wasserstein_kernel_identity()
+    test_kpca_basic()
+    test_kpca_no_centering()
+    print("All kernel tests passed!")

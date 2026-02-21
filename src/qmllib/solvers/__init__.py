@@ -1,9 +1,8 @@
-from typing import Optional
-
 import numpy as np
 from numpy import ndarray
 
-from .fsolvers import (
+# Import pybind11-based solvers
+from qmllib._solvers import (
     fbkf_invert,
     fbkf_solve,
     fcho_invert,
@@ -31,13 +30,8 @@ def cho_invert(A: ndarray) -> ndarray:
 
     matrix = np.asfortranarray(A)
 
-    fcho_invert(matrix)
-
-    # Matrix to store the inverse
-    i_lower = np.tril_indices_from(A)
-
-    # Copy lower triangle to upper
-    matrix.T[i_lower] = matrix[i_lower]
+    # The pybind11 function already returns the inverted matrix with triangles copied
+    matrix = fcho_invert(matrix)
 
     return matrix
 
@@ -75,7 +69,6 @@ def cho_solve(A: ndarray, y: ndarray, l2reg: float = 0.0, destructive: bool = Fa
     A_diag = A[np.diag_indices_from(A)]
 
     for i in range(len(y)):
-
         A[i, i] += l2reg
 
     x = np.zeros(n)
@@ -85,7 +78,6 @@ def cho_solve(A: ndarray, y: ndarray, l2reg: float = 0.0, destructive: bool = Fa
     A[np.diag_indices_from(A)] = A_diag
 
     if destructive is False:
-
         # Copy lower triangle to upper
         i_lower = np.tril_indices_from(A)
         A.T[i_lower] = A[i_lower]
@@ -109,13 +101,8 @@ def bkf_invert(A: ndarray) -> ndarray:
 
     matrix = np.asfortranarray(A)
 
-    fbkf_invert(matrix)
-
-    # Matrix to store the inverse
-    i_lower = np.tril_indices_from(A)
-
-    # Copy lower triangle to upper
-    matrix.T[i_lower] = matrix[i_lower]
+    # The pybind11 function already returns the inverted matrix with triangles copied
+    matrix = fbkf_invert(matrix)
 
     return matrix
 
@@ -144,13 +131,13 @@ def bkf_solve(A: ndarray, y: ndarray) -> ndarray:
 
     n = A.shape[0]
 
-    # Backup diagonal before Cholesky-decomposition
+    # Backup diagonal before decomposition
     A_diag = A[np.diag_indices_from(A)]
 
     x = np.zeros(n)
     fbkf_solve(A, y, x)
 
-    # Reset diagonal after Cholesky-decomposition
+    # Reset diagonal after decomposition
     A[np.diag_indices_from(A)] = A_diag
 
     # Copy lower triangle to upper
@@ -160,7 +147,7 @@ def bkf_solve(A: ndarray, y: ndarray) -> ndarray:
     return x
 
 
-def svd_solve(A: ndarray, y: ndarray, rcond: Optional[float] = None) -> ndarray:
+def svd_solve(A: ndarray, y: ndarray, rcond: float | None = None) -> ndarray:
     """Solves the equation
 
         :math:`A x = y`
@@ -198,7 +185,7 @@ def qrlq_solve(A, y):
         :math:`A x = y`
 
     for x using a QR or LQ decomposition (depending on matrix dimensions)
-    via calls to LAPACK DGELSD in the F2PY module. Preserves the input matrix A.
+    via calls to LAPACK DGELS. Preserves the input matrix A.
 
     :param A: Matrix (symmetric and positive definite, left-hand side).
     :type A: numpy array
@@ -231,7 +218,6 @@ def condition_number(A, method="cholesky"):
         raise ValueError("expected square matrix")
 
     if method.lower() == "cholesky":
-
         if not np.allclose(A, A.T):
             raise ValueError("Can't use a Cholesky-decomposition for a non-symmetric matrix.")
 
@@ -240,7 +226,6 @@ def condition_number(A, method="cholesky"):
         return cond
 
     elif method.lower() == "lu":
-
         cond = fcond_ge(A)
 
         return cond

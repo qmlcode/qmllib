@@ -3,6 +3,8 @@ import numpy as np
 from qmllib.utils.alchemy import get_alchemy
 
 from .fchl_kernel_functions import get_kernel_parameters
+
+# TODO: Migrate these functions from f2py to pybind11
 from .ffchl_module import (
     fget_atomic_local_gradient_5point_kernels_fchl,
     fget_atomic_local_gradient_kernels_fchl,
@@ -34,7 +36,6 @@ def get_gaussian_process_kernels(
     kernel="gaussian",
     kernel_args=None,
 ):
-
     nm1 = A.shape[0]
     nm2 = B.shape[0]
 
@@ -136,7 +137,6 @@ def get_local_gradient_kernels(
     kernel="gaussian",
     kernel_args=None,
 ):
-
     nm1 = A.shape[0]
     nm2 = B.shape[0]
 
@@ -239,7 +239,6 @@ def get_local_hessian_kernels(
     kernel="gaussian",
     kernel_args=None,
 ):
-
     nm1 = A.shape[0]
     nm2 = B.shape[0]
 
@@ -347,7 +346,6 @@ def get_local_symmetric_hessian_kernels(
     kernel="gaussian",
     kernel_args=None,
 ):
-
     nm1 = A.shape[0]
 
     atoms_max = A.shape[4]
@@ -487,7 +485,7 @@ def get_force_alphas(
     na1 = np.sum(N1)
     # UNUSED naq2 = np.sum(N2) * 3
 
-    E = np.zeros((nm1))
+    E = np.zeros(nm1)
     if energy is not None:
         E = energy
 
@@ -543,7 +541,6 @@ def get_atomic_local_gradient_kernels(
     kernel="gaussian",
     kernel_args=None,
 ):
-
     nm1 = A.shape[0]
     nm2 = B.shape[0]
 
@@ -648,7 +645,6 @@ def get_atomic_local_gradient_5point_kernels(
     kernel="gaussian",
     kernel_args=None,
 ):
-
     nm1 = A.shape[0]
     nm2 = B.shape[0]
 

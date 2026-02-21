@@ -1,0 +1,71 @@
+import typing
+
+import numpy
+import numpy.typing
+
+def fgenerate_acsf(
+    coordinates: typing.Annotated[numpy.typing.ArrayLike, numpy.float64],
+    nuclear_charges: typing.Annotated[numpy.typing.ArrayLike, numpy.int32],
+    elements: typing.Annotated[numpy.typing.ArrayLike, numpy.int32],
+    Rs2: typing.Annotated[numpy.typing.ArrayLike, numpy.float64],
+    Rs3: typing.Annotated[numpy.typing.ArrayLike, numpy.float64],
+    Ts: typing.Annotated[numpy.typing.ArrayLike, numpy.float64],
+    eta2: typing.SupportsFloat,
+    eta3: typing.SupportsFloat,
+    zeta: typing.SupportsFloat,
+    rcut: typing.SupportsFloat,
+    acut: typing.SupportsFloat,
+    natoms: typing.SupportsInt,
+    rep_size: typing.SupportsInt,
+) -> numpy.typing.NDArray[numpy.float64]: ...
+def fgenerate_acsf_and_gradients(
+    coordinates: typing.Annotated[numpy.typing.ArrayLike, numpy.float64],
+    nuclear_charges: typing.Annotated[numpy.typing.ArrayLike, numpy.int32],
+    elements: typing.Annotated[numpy.typing.ArrayLike, numpy.int32],
+    Rs2: typing.Annotated[numpy.typing.ArrayLike, numpy.float64],
+    Rs3: typing.Annotated[numpy.typing.ArrayLike, numpy.float64],
+    Ts: typing.Annotated[numpy.typing.ArrayLike, numpy.float64],
+    eta2: typing.SupportsFloat,
+    eta3: typing.SupportsFloat,
+    zeta: typing.SupportsFloat,
+    rcut: typing.SupportsFloat,
+    acut: typing.SupportsFloat,
+    natoms: typing.SupportsInt,
+    rep_size: typing.SupportsInt,
+) -> tuple[numpy.typing.NDArray[numpy.float64], numpy.typing.NDArray[numpy.float64]]: ...
+def fgenerate_fchl_acsf(
+    coordinates: typing.Annotated[numpy.typing.ArrayLike, numpy.float64],
+    nuclear_charges: typing.Annotated[numpy.typing.ArrayLike, numpy.int32],
+    elements: typing.Annotated[numpy.typing.ArrayLike, numpy.int32],
+    Rs2: typing.Annotated[numpy.typing.ArrayLike, numpy.float64],
+    Rs3: typing.Annotated[numpy.typing.ArrayLike, numpy.float64],
+    Ts: typing.Annotated[numpy.typing.ArrayLike, numpy.float64],
+    eta2: typing.SupportsFloat,
+    eta3: typing.SupportsFloat,
+    zeta: typing.SupportsFloat,
+    rcut: typing.SupportsFloat,
+    acut: typing.SupportsFloat,
+    natoms: typing.SupportsInt,
+    rep_size: typing.SupportsInt,
+    two_body_decay: typing.SupportsFloat,
+    three_body_decay: typing.SupportsFloat,
+    three_body_weight: typing.SupportsFloat,
+) -> numpy.typing.NDArray[numpy.float64]: ...
+def fgenerate_fchl_acsf_and_gradients(
+    coordinates: typing.Annotated[numpy.typing.ArrayLike, numpy.float64],
+    nuclear_charges: typing.Annotated[numpy.typing.ArrayLike, numpy.int32],
+    elements: typing.Annotated[numpy.typing.ArrayLike, numpy.int32],
+    Rs2: typing.Annotated[numpy.typing.ArrayLike, numpy.float64],
+    Rs3: typing.Annotated[numpy.typing.ArrayLike, numpy.float64],
+    Ts: typing.Annotated[numpy.typing.ArrayLike, numpy.float64],
+    eta2: typing.SupportsFloat,
+    eta3: typing.SupportsFloat,
+    zeta: typing.SupportsFloat,
+    rcut: typing.SupportsFloat,
+    acut: typing.SupportsFloat,
+    natoms: typing.SupportsInt,
+    rep_size: typing.SupportsInt,
+    two_body_decay: typing.SupportsFloat,
+    three_body_decay: typing.SupportsFloat,
+    three_body_weight: typing.SupportsFloat,
+) -> tuple[numpy.typing.NDArray[numpy.float64], numpy.typing.NDArray[numpy.float64]]: ...

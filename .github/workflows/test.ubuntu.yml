@@ -1,34 +1,48 @@
 name: Test Ubuntu
 
 on:
-  push:
-    branches:
-      - '**'
+  # push:
+  #   branches:
+  #     - '**'
   pull_request:
-    branches: [ main ]
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-
   test:
     name: Testing ${{matrix.os}} py-${{matrix.python-version}}
     runs-on: ${{matrix.os}}
 
     strategy:
       matrix:
-        os: ['ubuntu-latest']
-        python-version: ['3.11', '3.12']
+        os: ['ubuntu-24.04']
+        python-version: ['3.12']
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-      - name: Install the latest version of uv
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gfortran libomp-dev libopenblas-dev
+
+      - name: Set up uv
         uses: astral-sh/setup-uv@v5
+        with:
+          python-version: ${{ matrix.python-version }}
 
-      - run: sudo apt-get install -y gcc libomp-dev libopenblas-dev
+      - name: Build & install
+        run: |
+          # Install build dependencies first
+          uv pip install scikit-build-core pybind11 setuptools setuptools-scm
+          # Build and install with test dependencies
+          uv pip install -e .[test] --verbose
 
-      - run: make env_uv python_version=${{ matrix.python-version }}
-
-      - run: make test
-      - run: make format
-      - run: make build
-      - run: make test-dist
+      - name: Run unit tests (exclude integration tests)
+        run: uv run pytest -m "not integration" -v

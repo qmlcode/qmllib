@@ -1,40 +1,120 @@
 [build-system]
-requires = ["setuptools", "numpy", "meson", "ninja"]
-build-backend = "setuptools.build_meta"
+requires = ["scikit-build-core>=0.9", "pybind11", "setuptools", "setuptools-scm>=8"]
+build-backend = "scikit_build_core.build"
 
 [project]
 name = "qmllib"
 dynamic = ["version"]
-authors = []
-requires-python = ">=3.9"
-readme="README.rst"
-description="Python/Fortran toolkit for representation of molecules and solids for machine learning of properties of molecules and solids."
+authors = [
+    {name = "Jimmy Kromann"},
+    {name = "Anders S. Christensen"},
+]
+description = "Python/Fortran toolkit for representation of molecules and solids for machine learning of properties of molecules and solids."
 classifiers = [
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: MIT License",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Fortran",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: Implementation :: CPython",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Scientific/Engineering :: Chemistry",
+    "Topic :: Scientific/Engineering :: Physics",
 ]
-keywords = ["qml", "quantum chemistry", "machine learning"]
-dependencies=["numpy", "scipy"]
+keywords = ["qml", "quantum chemistry", "machine learning", "representations", "kernels"]
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=2.0",
+]
+
+
+[project.optional-dependencies]
+test = ["pytest>=8", "pytest-xdist", "pytest-cov", "pytest-timeout", "pandas", "scipy"]
+dev = [
+    "ruff>=0.8.0",
+    "ty>=0.0.1",
+    "pre-commit>=3.6.0",
+    "monkeytype>=23.3.0",
+    "twine>=6.0.0",
+]
 
 [project.urls]
 Homepage = "https://qmlcode.org"
+Issues = "https://github.com/qmlcode/qmllib/issues"
 
-[options.packages.find]
-where="src"
+[tool.setuptools_scm]
+version_scheme = "python-simplified-semver"
+tag_regex = "^v?(?P<version>[0-9.]+)$"
+fallback_version = "0.0.0.dev0"
 
-[tool.setuptools]
-include-package-data = true
+[tool.scikit-build]
+metadata.version.provider = "scikit_build_core.metadata.setuptools_scm"
+cmake.build-type = "Release"
+build.verbose = true
 
-[tool.setuptools.dynamic]
-version = {attr = "qmllib.version.__version__"}
+[tool.scikit-build.cmake.define]
+CMAKE_VERBOSE_MAKEFILE = "ON"
+CMAKE_BUILD_TYPE = "Release"
 
-[tool.setuptools.package-data]
-"*" = ['*.so']
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+exclude = [
+    ".git",
+    ".github",
+    "__pycache__",
+    "build",
+    "dist",
+    "*.egg-info",
+]
 
-# [tool.black]
-# line-length = 120
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "F",      # pyflakes
+    "I",      # isort (import sorting)
+    "N",      # pep8-naming
+    "UP",     # pyupgrade (modern Python syntax)
+    "B",      # flake8-bugbear
+    "C4",     # flake8-comprehensions
+    "SIM",    # flake8-simplify
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["qmllib"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["N803", "N806", "B017", "B023", "C408", "E501", "E402", "SIM115", "SIM113"]  # Allow test-specific patterns
+# Mathematical notation: Allow uppercase variables (A, B, K, X1, X2, SIGMA, etc.) in kernel/distance code
+# Also allow function calls in defaults (B008) for mathematical constants like sqrt(2)
+# Allow ambiguous variable names (E741) like 'l' for mathematical indices
+"src/qmllib/kernels/*" = ["N803", "N806", "E501"]
+"src/qmllib/representations/*" = ["N803", "N806", "E501", "B008", "E741"]
+"src/qmllib/solvers/*" = ["N803", "N806", "E501"]
+"src/qmllib/utils/alchemy.py" = ["N802"]  # QNum_distance follows domain naming convention
+# Auto-generated type stub files - ignore all style issues
+"**/*.pyi" = ["E501", "N803", "N806", "I001"]
+
+[tool.ty]
+# Type checking with ty (Astral's extremely fast Python type checker)
+# All Fortran/pybind11 modules have .pyi stub files for proper type checking
+
+[tool.ty.environment]
+root = ["src"]
+
+[tool.ty.src]
+exclude = ["src/qmllib/representations/fchl/fchl_electric_field_kernels.py"]
+
+[tool.pytest.ini_options]
+markers = [
+    "integration: heavy end-to-end ML regression tests (deselect with '-m \"not integration\"')",
+]

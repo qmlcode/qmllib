@@ -1,18 +1,15 @@
 import itertools
-from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 from numpy import int64, ndarray
 
-from qmllib.constants.periodic_table import NUCLEAR_CHARGE
-
-from .facsf import (
+from qmllib._facsf import (
     fgenerate_acsf,
     fgenerate_acsf_and_gradients,
     fgenerate_fchl_acsf,
     fgenerate_fchl_acsf_and_gradients,
 )
-from .frepresentations import (
+from qmllib._representations import (
     fgenerate_atomic_coulomb_matrix,
     fgenerate_bob,
     fgenerate_coulomb_matrix,
@@ -20,6 +17,8 @@ from .frepresentations import (
     fgenerate_local_coulomb_matrix,
     fgenerate_unsorted_coulomb_matrix,
 )
+from qmllib.constants.periodic_table import NUCLEAR_CHARGE
+
 from .slatm import get_boa, get_sbop, get_sbot
 
 
@@ -52,7 +51,10 @@ def vector_to_matrix(v):
 
 
 def generate_coulomb_matrix(
-    nuclear_charges: ndarray, coordinates: ndarray, size: int = 23, sorting: str = "row-norm"
+    nuclear_charges: ndarray,
+    coordinates: ndarray,
+    size: int = 23,
+    sorting: str = "row-norm",
 ) -> ndarray:
     """ Creates a Coulomb Matrix representation of a molecule.
         Sorting of the elements can either be done by ``sorting="row-norm"`` or ``sorting="unsorted"``.
@@ -109,10 +111,10 @@ def generate_coulomb_matrix_atomic(
     size: int = 23,
     sorting: str = "distance",
     central_cutoff: float = 1e6,
-    central_decay: Union[float, int] = -1,
+    central_decay: float | int = -1,
     interaction_cutoff: float = 1e6,
-    interaction_decay: Union[float, int] = -1,
-    indices: Optional[List[int]] = None,
+    interaction_decay: float | int = -1,
+    indices: ndarray | list[int] | str | None = None,
 ) -> ndarray:
     """ Creates a Coulomb Matrix representation of the local environment of a central atom.
         For each central atom :math:`k`, a matrix :math:`M` is constructed with elements
@@ -203,7 +205,7 @@ def generate_coulomb_matrix_atomic(
                 return np.zeros((0, 0))
 
         else:
-            raise ValueError("Unknown value %s given for 'indices' variable" % indices)
+            raise ValueError(f"Unknown value {indices} given for 'indices' variable")
     else:
         indices = np.asarray(indices, dtype=int) + 1
         nindices = indices.size
@@ -277,7 +279,7 @@ def generate_bob(
     coordinates: ndarray,
     atomtypes: ndarray,
     size: int = 23,
-    asize: Dict[str, Union[int64, int]] = {"O": 3, "C": 7, "N": 3, "H": 16, "S": 1},
+    asize: dict[str, int64 | int] | None = None,
 ) -> ndarray:
     """Creates a Bag of Bonds (BOB) representation of a molecule.
     The representation expands on the coulomb matrix representation.
@@ -314,22 +316,24 @@ def generate_bob(
 
     # TODO Moving between str and int is _, should translate everything to use int
 
+    if asize is None:
+        asize = {"O": 3, "C": 7, "N": 3, "H": 16, "S": 1}
     n = 0
-    atoms = sorted(asize, key=asize.get)
-    nmax = [asize[key] for key in atoms]
-    ids = np.zeros(len(nmax), dtype=int)
-    for i, (key, value) in enumerate(zip(atoms, nmax)):
+    atoms = sorted(asize, key=lambda x: int(asize.get(x, 0)))
+    nmax = np.array([asize[key] for key in atoms], dtype=np.int32)
+    ids = np.zeros(len(nmax), dtype=np.int32)
+    for i, (key, value) in enumerate(zip(atoms, nmax, strict=False)):
         n += value * (1 + value)
         ids[i] = NUCLEAR_CHARGE[key]
         for j in range(i):
             v = nmax[j]
             n += 2 * value * v
-    n /= 2
+    n = int(n // 2)
 
     return fgenerate_bob(nuclear_charges, coordinates, nuclear_charges, ids, nmax, n)
 
 
-def get_slatm_mbtypes(nuclear_charges: List[ndarray], pbc: str = "000") -> List[List[int64]]:
+def get_slatm_mbtypes(nuclear_charges: list[ndarray], pbc: str = "000") -> list[list[int64]]:
     """
     Get the list of minimal types of many-body terms in a dataset. This resulting list
     is necessary as input in the ``generate_slatm()`` function.
@@ -399,16 +403,16 @@ def get_slatm_mbtypes(nuclear_charges: List[ndarray], pbc: str = "000") -> List[
 def generate_slatm(
     nuclear_charges: ndarray,
     coordinates: ndarray,
-    mbtypes: List[List[int64]],
+    mbtypes: list[list[int64]],
     unit_cell: None = None,
     local: bool = False,
-    sigmas: List[float] = [0.05, 0.05],
-    dgrids: List[float] = [0.03, 0.03],
+    sigmas: list[float] | None = None,
+    dgrids: list[float] | None = None,
     rcut: float = 4.8,
     alchemy: bool = False,
     pbc: str = "000",
     rpower: int = 6,
-) -> Union[ndarray, List[ndarray]]:
+) -> ndarray | list[ndarray]:
     """
     Generate Spectrum of London and Axillrod-Teller-Muto potential (SLATM) representation.
     Both global (``local=False``) and local (``local=True``) SLATM are available.
@@ -441,14 +445,17 @@ def generate_slatm(
     :rtype: numpy array
     """
 
+    if dgrids is None:
+        dgrids = [0.03, 0.03]
+    if sigmas is None:
+        sigmas = [0.05, 0.05]
     c = unit_cell
     # UNUSED iprt = False
     if c is None:
         c = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
 
-    if pbc != "000":
-        if c is None:
-            raise ValueError("Please specify unit cell for SLATM")
+    if pbc != "000" and c is None:
+        raise ValueError("Please specify unit cell for SLATM")
 
         # =======================================================================
         # PBC may introduce new many-body terms, so at the stage of get statistics
@@ -576,7 +583,12 @@ def generate_slatm(
                     mbs = np.concatenate((mbs, mbsi), axis=0)
             elif len(mbtype) == 2:
                 mbsi = get_sbop(
-                    mbtype, obj, sigma=sigmas[0], dgrid=dgrids[0], rcut=rcut, rpower=rpower
+                    mbtype,
+                    obj,
+                    sigma=sigmas[0],
+                    dgrid=dgrids[0],
+                    rcut=rcut,
+                    rpower=rpower,
                 )
 
                 if alchemy:
@@ -613,9 +625,9 @@ def generate_slatm(
 
 
 def generate_acsf(
-    nuclear_charges: List[int],
+    nuclear_charges: list[int],
     coordinates: ndarray,
-    elements: List[int] = [1, 6, 7, 8, 16],
+    elements: list[int] | None = None,
     nRs2: int = 3,
     nRs3: int = 3,
     nTs: int = 3,
@@ -626,8 +638,8 @@ def generate_acsf(
     acut: int = 5,
     bin_min: float = 0.8,
     gradients: bool = False,
-    pad: Optional[int] = None,
-) -> Union[Tuple[ndarray, ndarray], ndarray]:
+    pad: int | None = None,
+) -> tuple[ndarray, ndarray] | ndarray:
     """
     Generate the variant of atom-centered symmetry functions used in https://doi.org/10.1039/C7SC04934J
 
@@ -663,6 +675,8 @@ def generate_acsf(
     :rtype: numpy array
     """
 
+    if elements is None:
+        elements = [1, 6, 7, 8, 16]
     Rs2 = np.linspace(bin_min, rcut, nRs2)
     Rs3 = np.linspace(bin_min, acut, nRs3)
     Ts = np.linspace(0, np.pi, nTs)
@@ -672,7 +686,6 @@ def generate_acsf(
     descr_size = n_elements * nRs2 + (n_elements * (n_elements + 1)) // 2 * nRs3 * nTs
 
     if gradients is False:
-
         rep = fgenerate_acsf(
             coordinates,
             nuclear_charges,
@@ -690,7 +703,6 @@ def generate_acsf(
         )
 
         if pad is not None:
-
             rep_pad = np.zeros((pad, descr_size))
             rep_pad[:natoms, :] += rep
 
@@ -700,7 +712,6 @@ def generate_acsf(
             return rep
 
     else:
-
         (rep, grad) = fgenerate_acsf_and_gradients(
             coordinates,
             nuclear_charges,
@@ -732,7 +743,7 @@ def generate_acsf(
 def generate_fchl19(
     nuclear_charges: ndarray,
     coordinates: ndarray,
-    elements: List[int] = [1, 6, 7, 8, 16],
+    elements: list[int] | None = None,
     nRs2: int = 24,
     nRs3: int = 20,
     nFourier: int = 1,
@@ -744,9 +755,9 @@ def generate_fchl19(
     two_body_decay: float = 1.8,
     three_body_decay: float = 0.57,
     three_body_weight: float = 13.4,
-    pad: Union[int, bool] = False,
+    pad: int | bool = False,
     gradients: bool = False,
-) -> Union[Tuple[ndarray, ndarray], ndarray]:
+) -> tuple[ndarray, ndarray] | ndarray:
     """
     FCHL-ACSF
 
@@ -786,6 +797,8 @@ def generate_fchl19(
     :rtype: numpy array
     """
 
+    if elements is None:
+        elements = [1, 6, 7, 8, 16]
     Rs2 = np.linspace(0, rcut, 1 + nRs2)[1:]
     Rs3 = np.linspace(0, acut, 1 + nRs3)[1:]
 
@@ -799,7 +812,6 @@ def generate_fchl19(
     three_body_weight = np.sqrt(eta3 / np.pi) * three_body_weight
 
     if gradients is False:
-
         rep = fgenerate_fchl_acsf(
             coordinates,
             nuclear_charges,
@@ -820,7 +832,6 @@ def generate_fchl19(
         )
 
         if pad is not False:
-
             rep_pad = np.zeros((pad, descr_size))
             rep_pad[:natoms, :] += rep
 
@@ -830,7 +841,6 @@ def generate_fchl19(
             return rep
 
     else:
-
         if nFourier > 1:
             raise ValueError(f"FCHL-ACSF only supports nFourier=1, requested {nFourier}")
 

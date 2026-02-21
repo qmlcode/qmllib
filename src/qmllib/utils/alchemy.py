@@ -1,5 +1,5 @@
 from copy import copy
-from typing import Any, Dict, Tuple, Union
+from typing import Any
 
 import numpy as np
 from numpy import float64, ndarray
@@ -129,9 +129,8 @@ PTP = {
 QtNm = {
     # Row1
     1: [1, 0, 0, 1.0 / 2.0],
-    2: [1, 0, 0, -1.0 / 2.0]
+    2: [1, 0, 0, -1.0 / 2.0],
     # Row2
-    ,
     3: [2, 0, 0, 1.0 / 2.0],
     4: [2, 0, 0, -1.0 / 2.0],
     5: [2, -1, 1, 1.0 / 2.0],
@@ -139,9 +138,8 @@ QtNm = {
     7: [2, 1, 1, 1.0 / 2.0],
     8: [2, -1, 1, -1.0 / 2.0],
     9: [2, 0, 1, -1.0 / 2.0],
-    10: [2, 1, 1, -1.0 / 2.0]
+    10: [2, 1, 1, -1.0 / 2.0],
     # Row3
-    ,
     11: [3, 0, 0, 1.0 / 2.0],
     12: [3, 0, 0, -1.0 / 2.0],
     13: [3, -1, 1, 1.0 / 2.0],
@@ -149,9 +147,8 @@ QtNm = {
     15: [3, 1, 1, 1.0 / 2.0],
     16: [3, -1, 1, -1.0 / 2.0],
     17: [3, 0, 1, -1.0 / 2.0],
-    18: [3, 1, 1, -1.0 / 2.0]
+    18: [3, 1, 1, -1.0 / 2.0],
     # Row3
-    ,
     19: [4, 0, 0, 1.0 / 2.0],
     20: [4, 0, 0, -1.0 / 2.0],
     31: [4, -1, 2, 1.0 / 2.0],
@@ -169,9 +166,8 @@ QtNm = {
     27: [4, -1, 2, -1.0 / 2.0],
     28: [4, 0, 2, -1.0 / 2.0],
     29: [4, 1, 2, -1.0 / 2.0],
-    30: [4, 2, 2, -1.0 / 2.0]
+    30: [4, 2, 2, -1.0 / 2.0],
     # Row5
-    ,
     37: [5, 0, 0, 1.0 / 2.0],
     38: [5, 0, 0, -1.0 / 2.0],
     49: [5, -1, 1, 1.0 / 2.0],
@@ -189,9 +185,8 @@ QtNm = {
     45: [5, -1, 2, -1.0 / 2.0],
     46: [5, 0, 2, -1.0 / 2.0],
     47: [5, 1, 2, -1.0 / 2.0],
-    48: [5, 2, 2, -1.0 / 2.0]
+    48: [5, 2, 2, -1.0 / 2.0],
     # Row6
-    ,
     55: [6, 0, 0, 1.0 / 2.0],
     56: [6, 0, 0, -1.0 / 2.0],
     81: [6, -1, 1, 1.0 / 2.0],
@@ -223,9 +218,8 @@ QtNm = {
     67: [6, 0, 3, -1.0 / 2.0],
     68: [6, 1, 3, -1.0 / 2.0],
     69: [6, 2, 3, -1.0 / 2.0],
-    70: [6, 3, 3, -1.0 / 2.0]
+    70: [6, 3, 3, -1.0 / 2.0],
     # Row7
-    ,
     87: [7, 0, 0, 1.0 / 2.0],
     88: [7, 0, 0, -1.0 / 2.0],
     113: [7, -1, 1, 1.0 / 2.0],
@@ -262,31 +256,30 @@ QtNm = {
 
 
 def get_alchemy(
-    alchemy: Union[ndarray, str],
+    alchemy: ndarray | str,
     emax: int = 100,
     r_width: float = 0.001,
     c_width: float = 0.001,
-    elemental_vectors: Dict[Any, Any] = {},
+    elemental_vectors: dict[Any, Any] | None = None,
     n_width: float = 0.001,
     m_width: float = 0.001,
     l_width: float = 0.001,
     s_width: float = 0.001,
-) -> Tuple[bool, ndarray]:
+) -> tuple[bool, ndarray]:
 
+    if elemental_vectors is None:
+        elemental_vectors = {}
     if isinstance(alchemy, np.ndarray):
-
         doalchemy = True
         return doalchemy, alchemy
 
     elif alchemy == "off":
-
         pd = np.eye(emax)
         doalchemy = False
 
         return doalchemy, pd
 
     elif alchemy == "periodic-table":
-
         pd = gen_pd(emax=emax, r_width=r_width, c_width=c_width)
         doalchemy = True
 
@@ -301,7 +294,6 @@ def get_alchemy(
         return doalchemy, pd
 
     elif alchemy == "custom":
-
         pd = gen_custom(elemental_vectors, emax)
         doalchemy = True
 
@@ -349,7 +341,6 @@ def gen_QNum_distances(emax=100, n_width=0.001, m_width=0.001, l_width=0.001, s_
 
     for i in range(emax):
         for j in range(emax):
-
             pd[i, j] = QNum_distance(i + 1, j + 1, n_width, m_width, l_width, s_width)
 
     return pd

@@ -81,31 +81,27 @@ contains
 
 end module searchtools
 
-subroutine fwasserstein_kernel(a, na, b, nb, k, sigma, p, q)
+subroutine fwasserstein_kernel(a, rep_size, na, b, nb, k, sigma, p, q) &
+      bind(C, name="fwasserstein_kernel")
 
    use searchtools
+   use, intrinsic :: iso_c_binding
    implicit none
 
-   double precision, dimension(:, :), intent(in) :: a
-   double precision, dimension(:, :), intent(in) :: b
+   integer(c_int), value :: rep_size, na, nb, p, q
+   real(c_double), intent(in) :: a(rep_size, na)
+   real(c_double), intent(in) :: b(rep_size, nb)
+   real(c_double), intent(inout) :: k(na, nb)
+   real(c_double), value :: sigma
 
    double precision, allocatable, dimension(:, :) :: asorted
    double precision, allocatable, dimension(:, :) :: bsorted
 
    double precision, allocatable, dimension(:) :: rep
 
-   integer, intent(in) :: na, nb
-
-   double precision, dimension(:, :), intent(inout) :: k
-   double precision, intent(in) :: sigma
-
-   integer, intent(in) :: p
-   integer, intent(in) :: q
-
    double precision :: inv_sigma
 
    integer :: i, j, l
-   integer :: rep_size
 
    double precision, allocatable, dimension(:) :: deltas
    double precision, allocatable, dimension(:) :: all_values
@@ -115,7 +111,14 @@ subroutine fwasserstein_kernel(a, na, b, nb, k, sigma, p, q)
    integer, allocatable, dimension(:) :: a_cdf_idx
    integer, allocatable, dimension(:) :: b_cdf_idx
 
-   rep_size = size(a, dim=1)
+   ! Validate input
+   if (na <= 0 .OR. nb <= 0 .OR. rep_size <= 0) then
+      write (*, *) "ERROR: Wasserstein kernel"
+      write (*, *) "na=", na, "nb=", nb, "rep_size=", rep_size
+      write (*, *) "All dimensions must be positive"
+      stop
+   end if
+
    allocate (asorted(rep_size, na))
    allocate (bsorted(rep_size, nb))
    allocate (rep(rep_size))

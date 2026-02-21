@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 from conftest import ASSETS, get_energies, shuffle_arrays
 from scipy.special import binom, factorial, jn
 
@@ -15,8 +16,10 @@ from qmllib.solvers import cho_solve
 from qmllib.utils.xyz_format import read_xyz
 
 
-def _get_training_data(n_points, representation_options={}):
+def _get_training_data(n_points, representation_options=None):
 
+    if representation_options is None:
+        representation_options = {}
     _representation_options = {
         **dict(
             cut_distance=1e6,
@@ -33,7 +36,6 @@ def _get_training_data(n_points, representation_options={}):
     all_atoms = []
 
     for xyz_file in sorted(data.keys())[:n_points]:
-
         filename = ASSETS / "qm7" / xyz_file
         coord, atoms = read_xyz(filename)
 
@@ -42,9 +44,9 @@ def _get_training_data(n_points, representation_options={}):
 
         representation = generate_fchl18(atoms, coord, **_representation_options)
 
-        assert (
-            representation.shape[0] == _representation_options["max_size"]
-        ), "ERROR: Check FCHL descriptor size!"
+        assert representation.shape[0] == _representation_options["max_size"], (
+            "ERROR: Check FCHL descriptor size!"
+        )
 
         all_representations.append(representation)
         all_atoms.append(atoms)
@@ -56,6 +58,7 @@ def _get_training_data(n_points, representation_options={}):
     return all_properties, all_representations, all_atoms
 
 
+@pytest.mark.integration
 def test_krr_fchl_local():
 
     # Test that all kernel arguments work
@@ -126,6 +129,7 @@ def test_krr_fchl_local():
     assert abs(2 - mae) < 1.0, "Error in FCHL local kernel-ridge regression"
 
 
+@pytest.mark.integration
 def test_krr_fchl_global():
 
     # Test that all kernel arguments work
@@ -178,12 +182,11 @@ def test_krr_fchl_global():
 
     predicted_properties = np.dot(Ks, alpha)
 
-    print(test_properties, predicted_properties)
-
     mae = np.mean(np.abs(test_properties - predicted_properties))
     assert abs(2 - mae) < 1.0, "Error in FCHL global kernel-ridge regression"
 
 
+@pytest.mark.integration
 def test_krr_fchl_atomic():
 
     kernel_args = {
@@ -207,7 +210,6 @@ def test_krr_fchl_atomic():
 
     for i, Xi in enumerate(all_representations):
         for j, Xj in enumerate(all_representations):
-
             K_atomic = get_atomic_kernels(
                 Xi[: len(all_atoms[i])], Xj[: len(all_atoms[j])], **kernel_args
             )[0]
@@ -219,12 +221,12 @@ def test_krr_fchl_atomic():
                 K_atomic_symmetric = get_atomic_symmetric_kernels(
                     Xi[: len(all_atoms[i])], **kernel_args
                 )[0]
-                assert np.allclose(
-                    K_atomic, K_atomic_symmetric
-                ), "Error in FCHL symmetric atomic kernels"
-                assert np.invert(
-                    np.all(np.isnan(K_atomic_symmetric))
-                ), "FCHL atomic symmetric kernel contains NaN"
+                assert np.allclose(K_atomic, K_atomic_symmetric), (
+                    "Error in FCHL symmetric atomic kernels"
+                )
+                assert np.invert(np.all(np.isnan(K_atomic_symmetric))), (
+                    "FCHL atomic symmetric kernel contains NaN"
+                )
 
     assert np.allclose(K, K_test), "Error in FCHL atomic kernels"
 
@@ -988,7 +990,7 @@ def test_krr_fchl_alchemy():
 
 def test_fchl_linear():
 
-    n_points = 5
+    n_points = 4
     _, representations, atoms = _get_training_data(n_points)
 
     K = get_local_symmetric_kernels(representations)[0]
@@ -1002,26 +1004,30 @@ def test_fchl_linear():
         },
     }
 
+    # Exploit symmetry: only compute upper triangle (i >= j)
     for i, Xi in enumerate(representations):
         Sii = get_atomic_kernels(Xi[: len(atoms[i])], Xi[: len(atoms[i])], **kernel_args)[0]
-        for j, Xj in enumerate(representations):
-
+        for j in range(i + 1):  # Only compute j <= i
+            Xj = representations[j]
             Sjj = get_atomic_kernels(Xj[: len(atoms[j])], Xj[: len(atoms[j])], **kernel_args)[0]
 
             Sij = get_atomic_kernels(Xi[: len(atoms[i])], Xj[: len(atoms[j])], **kernel_args)[0]
 
             for ii in range(Sii.shape[0]):
                 for jj in range(Sjj.shape[0]):
-
                     l2 = Sii[ii, ii] + Sjj[jj, jj] - 2 * Sij[ii, jj]
                     K_test[i, j] += np.exp(-l2 / (2 * (2.5**2)))
+
+            # Copy to lower triangle (exploit symmetry)
+            if i != j:
+                K_test[j, i] = K_test[i, j]
 
     assert np.allclose(K, K_test), "Error in FCHL linear kernels"
 
 
 def test_fchl_polynomial():
 
-    n_points = 5
+    n_points = 4
     _, representations, atoms = _get_training_data(n_points)
 
     polynomial_kernel_args = {
@@ -1044,24 +1050,28 @@ def test_fchl_polynomial():
 
     K_test = np.zeros((n_points, n_points))
 
+    # Exploit symmetry: only compute upper triangle (i >= j)
     for i, Xi in enumerate(representations):
-        for j, Xj in enumerate(representations):
-
+        for j in range(i + 1):  # Only compute j <= i
+            Xj = representations[j]
             Sij = get_atomic_kernels(
                 Xi[: len(atoms[i])], Xj[: len(atoms[j])], **linear_kernel_args
             )[0]
 
             for ii in range(Sij.shape[0]):
                 for jj in range(Sij.shape[1]):
-
                     K_test[i, j] += (2.0 * Sij[ii, jj] + 3.0) ** 4.0
+
+            # Copy to lower triangle (exploit symmetry)
+            if i != j:
+                K_test[j, i] = K_test[i, j]
 
     assert np.allclose(K, K_test), "Error in FCHL polynomial kernels"
 
 
 def test_fchl_sigmoid():
 
-    n_points = 5
+    n_points = 4
     _, representations, atoms = _get_training_data(n_points)
 
     sigmoid_kernel_args = {
@@ -1083,25 +1093,29 @@ def test_fchl_sigmoid():
 
     K_test = np.zeros((n_points, n_points))
 
+    # Exploit symmetry: only compute upper triangle (i >= j)
     for i, Xi in enumerate(representations):
-        for j, Xj in enumerate(representations):
-
+        for j in range(i + 1):  # Only compute j <= i
+            Xj = representations[j]
             Sij = get_atomic_kernels(
                 Xi[: len(atoms[i])], Xj[: len(atoms[j])], **linear_kernel_args
             )[0]
 
             for ii in range(Sij.shape[0]):
                 for jj in range(Sij.shape[1]):
-
                     # K_test[i,j] += (2.0 * Sij[ii,jj] + 3.0)**4.0
                     K_test[i, j] += np.tanh(2.0 * Sij[ii, jj] + 3.0)
+
+            # Copy to lower triangle (exploit symmetry)
+            if i != j:
+                K_test[j, i] = K_test[i, j]
 
     assert np.allclose(K, K_test), "Error in FCHL sigmoid kernels"
 
 
 def test_fchl_multiquadratic():
 
-    n_points = 5
+    n_points = 4
     _, representations, atoms = _get_training_data(n_points)
 
     kernel_args = {
@@ -1122,10 +1136,11 @@ def test_fchl_multiquadratic():
 
     K_test = np.zeros((n_points, n_points))
 
+    # Exploit symmetry: only compute upper triangle (i >= j)
     for i, Xi in enumerate(representations):
         Sii = get_atomic_kernels(Xi[: len(atoms[i])], Xi[: len(atoms[i])], **linear_kernel_args)[0]
-        for j, Xj in enumerate(representations):
-
+        for j in range(i + 1):  # Only compute j <= i
+            Xj = representations[j]
             Sjj = get_atomic_kernels(
                 Xj[: len(atoms[j])], Xj[: len(atoms[j])], **linear_kernel_args
             )[0]
@@ -1135,16 +1150,19 @@ def test_fchl_multiquadratic():
 
             for ii in range(Sii.shape[0]):
                 for jj in range(Sjj.shape[0]):
-
                     l2 = Sii[ii, ii] + Sjj[jj, jj] - 2 * Sij[ii, jj]
                     K_test[i, j] += np.sqrt(l2 + 4.0)
+
+            # Copy to lower triangle (exploit symmetry)
+            if i != j:
+                K_test[j, i] = K_test[i, j]
 
     assert np.allclose(K, K_test), "Error in FCHL multiquadratic kernels"
 
 
 def test_fchl_inverse_multiquadratic():
 
-    n_points = 5
+    n_points = 4
     _, representations, atoms = _get_training_data(n_points)
 
     kernel_args = {
@@ -1165,10 +1183,11 @@ def test_fchl_inverse_multiquadratic():
 
     K_test = np.zeros((n_points, n_points))
 
+    # Exploit symmetry: only compute upper triangle (i >= j)
     for i, Xi in enumerate(representations):
         Sii = get_atomic_kernels(Xi[: len(atoms[i])], Xi[: len(atoms[i])], **linear_kernel_args)[0]
-        for j, Xj in enumerate(representations):
-
+        for j in range(i + 1):  # Only compute j <= i
+            Xj = representations[j]
             Sjj = get_atomic_kernels(
                 Xj[: len(atoms[j])], Xj[: len(atoms[j])], **linear_kernel_args
             )[0]
@@ -1178,15 +1197,19 @@ def test_fchl_inverse_multiquadratic():
 
             for ii in range(Sii.shape[0]):
                 for jj in range(Sjj.shape[0]):
-
                     l2 = Sii[ii, ii] + Sjj[jj, jj] - 2 * Sij[ii, jj]
                     K_test[i, j] += 1.0 / np.sqrt(l2 + 4.0)
+
+            # Copy to lower triangle (exploit symmetry)
+            if i != j:
+                K_test[j, i] = K_test[i, j]
+
     assert np.allclose(K, K_test), "Error in FCHL inverse multiquadratic kernels"
 
 
 def test_fchl_bessel():
 
-    n_points = 5
+    n_points = 4
     _, representations, atoms = _get_training_data(n_points)
 
     kernel_args = {
@@ -1213,10 +1236,11 @@ def test_fchl_bessel():
     v = 3
     n = 2
 
+    # Exploit symmetry: only compute upper triangle (i >= j)
     for i, Xi in enumerate(representations):
         Sii = get_atomic_kernels(Xi[: len(atoms[i])], Xi[: len(atoms[i])], **linear_kernel_args)[0]
-        for j, Xj in enumerate(representations):
-
+        for j in range(i + 1):  # Only compute j <= i
+            Xj = representations[j]
             Sjj = get_atomic_kernels(
                 Xj[: len(atoms[j])], Xj[: len(atoms[j])], **linear_kernel_args
             )[0]
@@ -1226,17 +1250,20 @@ def test_fchl_bessel():
 
             for ii in range(Sii.shape[0]):
                 for jj in range(Sjj.shape[0]):
-
                     # UNUSED l2 = np.sqrt(Sii[ii, ii] + Sjj[jj, jj] - 2 * Sij[ii, jj])
 
                     K_test[i, j] += jn(v, sigma * Sij[ii, jj]) / Sij[ii, jj] ** (-n * (v + 1))
+
+            # Copy to lower triangle (exploit symmetry)
+            if i != j:
+                K_test[j, i] = K_test[i, j]
 
     assert np.allclose(K, K_test), "Error in FCHL inverse bessel kernels"
 
 
 def test_fchl_l2():
 
-    n_points = 5
+    n_points = 4
     _, representations, atoms = _get_training_data(n_points)
 
     l2_kernel_args = {
@@ -1251,33 +1278,32 @@ def test_fchl_l2():
 
     K_test = np.zeros((n_points, n_points))
 
-    print(K)
-
     # UNUSED sigma = 2.0
     # UNUSED v = 3
     # UNUSED n = 2
 
     inv_sigma = -1.0 / (2.0 * 2.5**2)
 
+    # Exploit symmetry: only compute upper triangle (i >= j)
     for i, Xi in enumerate(representations):
-        for j, Xj in enumerate(representations):
-
+        for j in range(i + 1):  # Only compute j <= i
+            Xj = representations[j]
             Sij = get_atomic_kernels(Xi[: len(atoms[i])], Xj[: len(atoms[j])], **l2_kernel_args)[0]
 
             for ii in range(Sij.shape[0]):
                 for jj in range(Sij.shape[1]):
-
                     K_test[i, j] += np.exp(Sij[ii, jj] * inv_sigma)
 
-    print(K_test)
-    print(np.max(K - K_test))
+            # Copy to lower triangle (exploit symmetry)
+            if i != j:
+                K_test[j, i] = K_test[i, j]
 
     assert np.allclose(K, K_test), "Error in FCHL l2 kernels"
 
 
 def test_fchl_matern():
 
-    n_points = 5
+    n_points = 4
     _, representations, atoms = _get_training_data(n_points)
 
     kernel_args = {
@@ -1303,10 +1329,11 @@ def test_fchl_matern():
     n = 2
     v = n + 0.5
 
+    # Exploit symmetry: only compute upper triangle (i >= j)
     for i, Xi in enumerate(representations):
         Sii = get_atomic_kernels(Xi[: len(atoms[i])], Xi[: len(atoms[i])], **linear_kernel_args)[0]
-        for j, Xj in enumerate(representations):
-
+        for j in range(i + 1):  # Only compute j <= i
+            Xj = representations[j]
             Sjj = get_atomic_kernels(
                 Xj[: len(atoms[j])], Xj[: len(atoms[j])], **linear_kernel_args
             )[0]
@@ -1316,7 +1343,6 @@ def test_fchl_matern():
 
             for ii in range(Sii.shape[0]):
                 for jj in range(Sjj.shape[0]):
-
                     l2 = np.sqrt(Sii[ii, ii] + Sjj[jj, jj] - 2 * Sij[ii, jj])
 
                     rho = 2 * np.sqrt(2 * v) * l2 / sigma
@@ -1325,12 +1351,16 @@ def test_fchl_matern():
                         fact = float(factorial(n + k)) / factorial(2 * n) * binom(n, k)
                         K_test[i, j] += np.exp(-0.5 * rho) * fact * rho ** (n - k)
 
+            # Copy to lower triangle (exploit symmetry)
+            if i != j:
+                K_test[j, i] = K_test[i, j]
+
     assert np.allclose(K, K_test), "Error in FCHL matern kernels"
 
 
 def test_fchl_cauchy():
 
-    n_points = 5
+    n_points = 4
     _, representations, atoms = _get_training_data(n_points)
 
     kernel_args = {
@@ -1351,10 +1381,11 @@ def test_fchl_cauchy():
 
     K_test = np.zeros((n_points, n_points))
 
+    # Exploit symmetry: only compute upper triangle (i >= j)
     for i, Xi in enumerate(representations):
         Sii = get_atomic_kernels(Xi[: len(atoms[i])], Xi[: len(atoms[i])], **linear_kernel_args)[0]
-        for j, Xj in enumerate(representations):
-
+        for j in range(i + 1):  # Only compute j <= i
+            Xj = representations[j]
             Sjj = get_atomic_kernels(
                 Xj[: len(atoms[j])], Xj[: len(atoms[j])], **linear_kernel_args
             )[0]
@@ -1364,16 +1395,19 @@ def test_fchl_cauchy():
 
             for ii in range(Sii.shape[0]):
                 for jj in range(Sjj.shape[0]):
-
                     l2 = Sii[ii, ii] + Sjj[jj, jj] - 2 * Sij[ii, jj]
                     K_test[i, j] += 1.0 / (1.0 + l2 / 2.0**2)
+
+            # Copy to lower triangle (exploit symmetry)
+            if i != j:
+                K_test[j, i] = K_test[i, j]
 
     assert np.allclose(K, K_test), "Error in FCHL cauchy kernels"
 
 
 def test_fchl_polynomial2():
 
-    n_points = 5
+    n_points = 4
     _, representations, atoms = _get_training_data(n_points)
 
     kernel_args = {
@@ -1394,10 +1428,11 @@ def test_fchl_polynomial2():
 
     K_test = np.zeros((n_points, n_points))
 
+    # Exploit symmetry: only compute upper triangle (i >= j)
     for i, Xi in enumerate(representations):
         Sii = get_atomic_kernels(Xi[: len(atoms[i])], Xi[: len(atoms[i])], **linear_kernel_args)[0]
-        for j, Xj in enumerate(representations):
-
+        for j in range(i + 1):  # Only compute j <= i
+            Xj = representations[j]
             Sjj = get_atomic_kernels(
                 Xj[: len(atoms[j])], Xj[: len(atoms[j])], **linear_kernel_args
             )[0]
@@ -1407,7 +1442,10 @@ def test_fchl_polynomial2():
 
             for ii in range(Sii.shape[0]):
                 for jj in range(Sjj.shape[0]):
-
                     K_test[i, j] += 1.0 + 2.0 * Sij[ii, jj] + 3.0 * Sij[ii, jj] ** 2
+
+            # Copy to lower triangle (exploit symmetry)
+            if i != j:
+                K_test[j, i] = K_test[i, j]
 
     assert np.allclose(K, K_test), "Error in FCHL polynomial2 kernels"

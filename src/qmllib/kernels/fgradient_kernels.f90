@@ -1,20 +1,21 @@
-subroutine fglobal_kernel(x1, x2, q1, q2, n1, n2, nm1, nm2, sigma, kernel)
+subroutine fglobal_kernel(x1, x2, q1, q2, n1, n2, nm1, nm2, sigma, kernel, &
+                         max_atoms1, max_atoms2, rep_size) bind(C, name="fglobal_kernel")
 
+    use, intrinsic :: iso_c_binding
     implicit none
 
-    double precision, dimension(:,:,:), intent(in) :: x1
-    double precision, dimension(:,:,:), intent(in) :: x2
+    integer(c_int), intent(in), value :: nm1, nm2, max_atoms1, max_atoms2, rep_size
 
-    integer, dimension(:,:), intent(in) :: q1
-    integer, dimension(:,:), intent(in) :: q2
+    double precision, dimension(nm1, max_atoms1, rep_size), intent(in) :: x1
+    double precision, dimension(nm2, max_atoms2, rep_size), intent(in) :: x2
 
-    integer, dimension(:), intent(in) :: n1
-    integer, dimension(:), intent(in) :: n2
+    integer, dimension(max_atoms1, nm1), intent(in) :: q1
+    integer, dimension(max_atoms2, nm2), intent(in) :: q2
 
-    integer, intent(in) :: nm1
-    integer, intent(in) :: nm2
+    integer, dimension(nm1), intent(in) :: n1
+    integer, dimension(nm2), intent(in) :: n2
 
-    double precision, intent(in) :: sigma
+    double precision, intent(in), value :: sigma
 
     double precision, dimension(nm2,nm1), intent(out) :: kernel
 
@@ -23,7 +24,6 @@ subroutine fglobal_kernel(x1, x2, q1, q2, n1, n2, nm1, nm2, sigma, kernel)
 
     integer :: a, b
 
-    integer :: rep_size
     double precision :: inv_sigma2
 
     double precision, allocatable, dimension(:) :: d
@@ -35,7 +35,6 @@ subroutine fglobal_kernel(x1, x2, q1, q2, n1, n2, nm1, nm2, sigma, kernel)
 
     kernel = 0.0d0
 
-    rep_size = size(x1, dim=3)
     allocate(d(rep_size))
 
     inv_sigma2 = -1.0d0 / (2 * sigma**2)
@@ -107,26 +106,24 @@ subroutine fglobal_kernel(x1, x2, q1, q2, n1, n2, nm1, nm2, sigma, kernel)
 end subroutine fglobal_kernel
 
 
-subroutine flocal_kernels(x1, x2, q1, q2, n1, n2, nm1, nm2, sigmas, nsigmas, kernel)
+subroutine flocal_kernels(x1, x2, q1, q2, n1, n2, nm1, nm2, sigmas, nsigmas, kernel, &
+                         max_atoms1, max_atoms2, rep_size) bind(C, name="flocal_kernels")
 
-    ! use omp_lib, only: omp_get_thread_num, omp_get_wtime
-
+    use, intrinsic :: iso_c_binding
     implicit none
 
-    double precision, dimension(:,:,:), intent(in) :: x1
-    double precision, dimension(:,:,:), intent(in) :: x2
+    integer(c_int), intent(in), value :: nm1, nm2, nsigmas, max_atoms1, max_atoms2, rep_size
 
-    integer, dimension(:,:), intent(in) :: q1
-    integer, dimension(:,:), intent(in) :: q2
+    double precision, dimension(nm1, max_atoms1, rep_size), intent(in) :: x1
+    double precision, dimension(nm2, max_atoms2, rep_size), intent(in) :: x2
 
-    integer, dimension(:), intent(in) :: n1
-    integer, dimension(:), intent(in) :: n2
+    integer, dimension(max_atoms1, nm1), intent(in) :: q1
+    integer, dimension(max_atoms2, nm2), intent(in) :: q2
 
-    integer, intent(in) :: nm1
-    integer, intent(in) :: nm2
+    integer, dimension(nm1), intent(in) :: n1
+    integer, dimension(nm2), intent(in) :: n2
 
-    double precision, dimension(:), intent(in) :: sigmas
-    integer, intent(in) :: nsigmas
+    double precision, dimension(nsigmas), intent(in) :: sigmas
 
     double precision, dimension(nsigmas,nm2,nm1), intent(out) :: kernel
 
@@ -217,19 +214,19 @@ subroutine flocal_kernels(x1, x2, q1, q2, n1, n2, nm1, nm2, sigmas, nsigmas, ker
 end subroutine flocal_kernels
 
 
-subroutine fsymmetric_local_kernels(x1, q1, n1, nm1, sigmas, nsigmas, kernel)
+subroutine fsymmetric_local_kernels(x1, q1, n1, nm1, sigmas, nsigmas, kernel, &
+                                   max_atoms1, rep_size) bind(C, name="fsymmetric_local_kernels")
 
-    ! use omp_lib, only: omp_get_thread_num, omp_get_wtime
-
+    use, intrinsic :: iso_c_binding
     implicit none
 
-    double precision, dimension(:,:,:), intent(in) :: x1
-    integer, dimension(:,:), intent(in) :: q1
-    integer, dimension(:), intent(in) :: n1
-    integer, intent(in) :: nm1
+    integer(c_int), intent(in), value :: nm1, nsigmas, max_atoms1, rep_size
 
-    double precision, dimension(:), intent(in) :: sigmas
-    integer, intent(in) :: nsigmas
+    double precision, dimension(nm1, max_atoms1, rep_size), intent(in) :: x1
+    integer, dimension(max_atoms1, nm1), intent(in) :: q1
+    integer, dimension(nm1), intent(in) :: n1
+
+    double precision, dimension(nsigmas), intent(in) :: sigmas
 
     double precision, dimension(nsigmas,nm1,nm1), intent(out) :: kernel
 
@@ -240,7 +237,6 @@ subroutine fsymmetric_local_kernels(x1, q1, n1, nm1, sigmas, nsigmas, kernel)
     integer :: work_done
     integer :: work_total
 
-    integer :: rep_size
     double precision, allocatable, dimension(:) :: inv_sigma2
     double precision :: l2
 
@@ -250,7 +246,6 @@ subroutine fsymmetric_local_kernels(x1, q1, n1, nm1, sigmas, nsigmas, kernel)
 
     kernel = 0.0d0
 
-    rep_size = size(x1, dim=3)
     allocate(inv_sigma2(nsigmas))
 
     do i =1, nsigmas
@@ -319,8 +314,8 @@ subroutine fsymmetric_local_kernels(x1, q1, n1, nm1, sigmas, nsigmas, kernel)
     enddo
     !$OMP END PARALLEL do
 
-    write(*,"(F10.1, A)") dble(work_done) / dble(work_total) * 100.0d0 , " %"
-    write(*,*) "QML: Non-alchemical Gaussian kernel completed!"
+    ! write(*,"(F10.1, A)") dble(work_done) / dble(work_total) * 100.0d0 , " %"
+    ! write(*,*) "QML: Non-alchemical Gaussian kernel completed!"
 
     deallocate(inv_sigma2)
 
@@ -328,36 +323,35 @@ end subroutine fsymmetric_local_kernels
 
 
 
-subroutine flocal_kernel(x1, x2, q1, q2, n1, n2, nm1, nm2, sigma, kernel)
+subroutine flocal_kernel(x1, x2, q1, q2, n1, n2, nm1, nm2, sigma, kernel, &
+                        max_atoms1, max_atoms2, rep_size) bind(C, name="flocal_kernel")
 
+    use, intrinsic :: iso_c_binding
     implicit none
 
-    double precision, dimension(:,:,:), intent(in) :: x1
-    double precision, dimension(:,:,:), intent(in) :: x2
+    integer(c_int), intent(in), value :: nm1, nm2, max_atoms1, max_atoms2, rep_size
 
-    integer, dimension(:,:), intent(in) :: q1
-    integer, dimension(:,:), intent(in) :: q2
+    double precision, dimension(nm1, max_atoms1, rep_size), intent(in) :: x1
+    double precision, dimension(nm2, max_atoms2, rep_size), intent(in) :: x2
 
-    integer, dimension(:), intent(in) :: n1
-    integer, dimension(:), intent(in) :: n2
+    integer, dimension(max_atoms1, nm1), intent(in) :: q1
+    integer, dimension(max_atoms2, nm2), intent(in) :: q2
 
-    integer, intent(in) :: nm1
-    integer, intent(in) :: nm2
+    integer, dimension(nm1), intent(in) :: n1
+    integer, dimension(nm2), intent(in) :: n2
 
-    double precision, intent(in) :: sigma
+    double precision, intent(in), value :: sigma
 
     double precision, dimension(nm2,nm1), intent(out) :: kernel
 
     integer :: j1, j2
     integer :: a, b
 
-    integer :: rep_size
     double precision :: inv_sigma2
     double precision :: l2
 
     kernel = 0.0d0
 
-    rep_size = size(x1, dim=3)
     inv_sigma2 = -1.0d0 / (2 * sigma**2)
 
     !$OMP PARALLEL DO private(l2) schedule(dynamic)
@@ -389,32 +383,32 @@ subroutine flocal_kernel(x1, x2, q1, q2, n1, n2, nm1, nm2, sigma, kernel)
 end subroutine flocal_kernel
 
 
-subroutine fsymmetric_local_kernel(x1, q1, n1, nm1, sigma, kernel)
+subroutine fsymmetric_local_kernel(x1, q1, n1, nm1, sigma, kernel, &
+                                  max_atoms1, rep_size) bind(C, name="fsymmetric_local_kernel")
 
+    use, intrinsic :: iso_c_binding
     implicit none
 
-    double precision, dimension(:,:,:), intent(in) :: x1
+    integer(c_int), intent(in), value :: nm1, max_atoms1, rep_size
 
-    integer, dimension(:,:), intent(in) :: q1
+    double precision, dimension(nm1, max_atoms1, rep_size), intent(in) :: x1
 
-    integer, dimension(:), intent(in) :: n1
+    integer, dimension(max_atoms1, nm1), intent(in) :: q1
 
-    integer, intent(in) :: nm1
+    integer, dimension(nm1), intent(in) :: n1
 
-    double precision, intent(in) :: sigma
+    double precision, intent(in), value :: sigma
 
     double precision, dimension(nm1,nm1), intent(out) :: kernel
 
     integer :: j1, j2
     integer :: a, b
 
-    integer :: rep_size
     double precision :: inv_sigma2
     double precision :: l2
 
     kernel = 0.0d0
 
-    rep_size = size(x1, dim=3)
     inv_sigma2 = -1.0d0 / (2 * sigma**2)
 
     !$OMP PARALLEL DO private(l2) schedule(dynamic)
@@ -451,24 +445,24 @@ subroutine fsymmetric_local_kernel(x1, q1, n1, nm1, sigma, kernel)
 end subroutine fsymmetric_local_kernel
 
 
-subroutine fatomic_local_kernel(x1, x2, q1, q2, n1, n2, nm1, nm2, na1, sigma, kernel)
+subroutine fatomic_local_kernel(x1, x2, q1, q2, n1, n2, nm1, nm2, na1, sigma, kernel, &
+                               max_atoms1, max_atoms2, rep_size) bind(C, name="fatomic_local_kernel")
 
+    use, intrinsic :: iso_c_binding
     implicit none
 
-    double precision, dimension(:,:,:), intent(in) :: x1
-    double precision, dimension(:,:,:), intent(in) :: x2
+    integer(c_int), intent(in), value :: nm1, nm2, na1, max_atoms1, max_atoms2, rep_size
 
-    integer, dimension(:,:), intent(in) :: q1
-    integer, dimension(:,:), intent(in) :: q2
+    double precision, dimension(nm1, max_atoms1, rep_size), intent(in) :: x1
+    double precision, dimension(nm2, max_atoms2, rep_size), intent(in) :: x2
 
-    integer, dimension(:), intent(in) :: n1
-    integer, dimension(:), intent(in) :: n2
+    integer, dimension(max_atoms1, nm1), intent(in) :: q1
+    integer, dimension(max_atoms2, nm2), intent(in) :: q2
 
-    integer, intent(in) :: nm1
-    integer, intent(in) :: nm2
-    integer, intent(in) :: na1
+    integer, dimension(nm1), intent(in) :: n1
+    integer, dimension(nm2), intent(in) :: n2
 
-    double precision, intent(in) :: sigma
+    double precision, intent(in), value :: sigma
 
     double precision, dimension(nm2,na1), intent(out) :: kernel
 
@@ -476,13 +470,10 @@ subroutine fatomic_local_kernel(x1, x2, q1, q2, n1, n2, nm1, nm2, na1, sigma, ke
     integer :: a, b
     integer :: idx1_start, idx1
 
-    integer :: rep_size
     double precision :: inv_sigma2
     double precision :: l2
 
     kernel = 0.0d0
-
-    rep_size = size(x1, dim=3)
 
     inv_sigma2 = -1.0d0 / (2 * sigma**2)
 
@@ -519,27 +510,26 @@ subroutine fatomic_local_kernel(x1, x2, q1, q2, n1, n2, nm1, nm2, na1, sigma, ke
 end subroutine fatomic_local_kernel
 
 
-subroutine fatomic_local_gradient_kernel(x1, x2, dx2, q1, q2, n1, n2, nm1, nm2, na1, naq2, sigma, kernel)
+subroutine fatomic_local_gradient_kernel(x1, x2, dx2, q1, q2, n1, n2, nm1, nm2, na1, naq2, sigma, kernel, &
+                                        max_atoms1, max_atoms2, rep_size) bind(C, name="fatomic_local_gradient_kernel")
 
+    use, intrinsic :: iso_c_binding
     implicit none
 
-    double precision, dimension(:,:,:), intent(in) :: x1
-    double precision, dimension(:,:,:), intent(in) :: x2
+    integer(c_int), intent(in), value :: nm1, nm2, na1, naq2, max_atoms1, max_atoms2, rep_size
 
-    double precision, dimension(:,:,:,:,:), intent(in) :: dx2
+    double precision, dimension(nm1, max_atoms1, rep_size), intent(in) :: x1
+    double precision, dimension(nm2, max_atoms2, rep_size), intent(in) :: x2
 
-    integer, dimension(:,:), intent(in) :: q1
-    integer, dimension(:,:), intent(in) :: q2
+    double precision, dimension(nm2, max_atoms2, rep_size, max_atoms2, 3), intent(in) :: dx2
 
-    integer, dimension(:), intent(in) :: n1
-    integer, dimension(:), intent(in) :: n2
+    integer, dimension(max_atoms1, nm1), intent(in) :: q1
+    integer, dimension(max_atoms2, nm2), intent(in) :: q2
 
-    integer, intent(in) :: nm1
-    integer, intent(in) :: nm2
-    integer, intent(in) :: na1
-    integer, intent(in) :: naq2
+    integer, dimension(nm1), intent(in) :: n1
+    integer, dimension(nm2), intent(in) :: n2
 
-    double precision, intent(in) :: sigma
+    double precision, intent(in), value :: sigma
 
     double precision, dimension(naq2,na1), intent(out) :: kernel
 
@@ -547,8 +537,6 @@ subroutine fatomic_local_gradient_kernel(x1, x2, dx2, q1, q2, n1, n2, nm1, nm2, 
     integer :: xyz2
     integer :: a, b
     integer :: idx1_start, idx2_end, idx2_start, idx2, idx1
-
-    integer :: rep_size
 
     double precision :: expd
     double precision :: inv_2sigma2
@@ -558,7 +546,6 @@ subroutine fatomic_local_gradient_kernel(x1, x2, dx2, q1, q2, n1, n2, nm1, nm2, 
     double precision, allocatable, dimension(:,:,:,:) :: sorted_derivs
 
 
-    rep_size = size(x1, dim=3)
     allocate(d(rep_size))
 
     inv_2sigma2 = -1.0d0 / (2 * sigma**2)
@@ -731,26 +718,26 @@ end subroutine fatomic_local_gradient_kernel
 ! end subroutine fatomic_local_gradient_kernel
 
 
-subroutine flocal_gradient_kernel(x1, x2, dx2, q1, q2, n1, n2, nm1, nm2, naq2, sigma, kernel)
+subroutine flocal_gradient_kernel(x1, x2, dx2, q1, q2, n1, n2, nm1, nm2, naq2, sigma, kernel, &
+                                 max_atoms1, max_atoms2, rep_size) bind(C, name="flocal_gradient_kernel")
 
+    use, intrinsic :: iso_c_binding
     implicit none
 
-    double precision, dimension(:,:,:), intent(in) :: x1
-    double precision, dimension(:,:,:), intent(in) :: x2
+    integer(c_int), intent(in), value :: nm1, nm2, naq2, max_atoms1, max_atoms2, rep_size
 
-    double precision, dimension(:,:,:,:,:), intent(in) :: dx2
+    double precision, dimension(nm1, max_atoms1, rep_size), intent(in) :: x1
+    double precision, dimension(nm2, max_atoms2, rep_size), intent(in) :: x2
 
-    integer, dimension(:,:), intent(in) :: q1
-    integer, dimension(:,:), intent(in) :: q2
+    double precision, dimension(nm2, max_atoms2, rep_size, max_atoms2, 3), intent(in) :: dx2
 
-    integer, dimension(:), intent(in) :: n1
-    integer, dimension(:), intent(in) :: n2
+    integer, dimension(max_atoms1, nm1), intent(in) :: q1
+    integer, dimension(max_atoms2, nm2), intent(in) :: q2
 
-    integer, intent(in) :: nm1
-    integer, intent(in) :: nm2
-    integer, intent(in) :: naq2
+    integer, dimension(nm1), intent(in) :: n1
+    integer, dimension(nm2), intent(in) :: n2
 
-    double precision, intent(in) :: sigma
+    double precision, intent(in), value :: sigma
 
     double precision, dimension(naq2,nm1), intent(out) :: kernel
 
@@ -759,14 +746,11 @@ subroutine flocal_gradient_kernel(x1, x2, dx2, q1, q2, n1, n2, nm1, nm2, naq2, s
     integer :: a, b
     integer :: idx2_end, idx2_start, idx2
 
-    integer :: rep_size
-
     double precision :: expd, inv_2sigma2, inv_sigma2
 
     double precision, allocatable, dimension(:) :: d
     double precision, allocatable, dimension(:,:,:,:) :: sorted_derivs
 
-    rep_size = size(x1, dim=3)
     allocate(d(rep_size))
 
     inv_2sigma2 = -1.0d0 / (2 * sigma**2)
@@ -835,28 +819,27 @@ subroutine flocal_gradient_kernel(x1, x2, dx2, q1, q2, n1, n2, nm1, nm2, naq2, s
 end subroutine flocal_gradient_kernel
 
 
-subroutine fgdml_kernel(x1, x2, dx1, dx2, q1, q2, n1, n2, nm1, nm2, na1, na2, sigma, kernel)
+subroutine fgdml_kernel(x1, x2, dx1, dx2, q1, q2, n1, n2, nm1, nm2, na1, na2, sigma, kernel, &
+                       max_atoms1, max_atoms2, rep_size) bind(C, name="fgdml_kernel")
 
+    use, intrinsic :: iso_c_binding
     implicit none
 
-    double precision, dimension(:,:,:), intent(in) :: x1
-    double precision, dimension(:,:,:), intent(in) :: x2
+    integer(c_int), intent(in), value :: nm1, nm2, na1, na2, max_atoms1, max_atoms2, rep_size
 
-    double precision, dimension(:,:,:,:,:), intent(in) :: dx1
-    double precision, dimension(:,:,:,:,:), intent(in) :: dx2
+    double precision, dimension(nm1, max_atoms1, rep_size), intent(in) :: x1
+    double precision, dimension(nm2, max_atoms2, rep_size), intent(in) :: x2
 
-    integer, dimension(:,:), intent(in) :: q1
-    integer, dimension(:,:), intent(in) :: q2
+    double precision, dimension(nm1, max_atoms1, rep_size, max_atoms1, 3), intent(in) :: dx1
+    double precision, dimension(nm2, max_atoms2, rep_size, max_atoms2, 3), intent(in) :: dx2
 
-    integer, dimension(:), intent(in) :: n1
-    integer, dimension(:), intent(in) :: n2
+    integer, dimension(max_atoms1, nm1), intent(in) :: q1
+    integer, dimension(max_atoms2, nm2), intent(in) :: q2
 
-    integer, intent(in) :: nm1
-    integer, intent(in) :: nm2
-    integer, intent(in) :: na1
-    integer, intent(in) :: na2
+    integer, dimension(nm1), intent(in) :: n1
+    integer, dimension(nm2), intent(in) :: n2
 
-    double precision, intent(in) :: sigma
+    double precision, intent(in), value :: sigma
 
     double precision, dimension(na2*3,na1*3), intent(out) :: kernel
 
@@ -864,8 +847,6 @@ subroutine fgdml_kernel(x1, x2, dx1, dx2, q1, q2, n1, n2, nm1, nm2, na1, na2, si
     integer :: xyz2
     integer :: a, b
     integer :: idx1_end, idx1_start, idx2_end, idx2_start, idx2
-
-    integer :: rep_size
 
     double precision :: expd, expdiag
 
@@ -881,7 +862,6 @@ subroutine fgdml_kernel(x1, x2, dx1, dx2, q1, q2, n1, n2, nm1, nm2, na1, na2, si
     double precision, allocatable, dimension(:,:,:,:) :: sorted_derivs1
     double precision, allocatable, dimension(:,:,:,:) :: sorted_derivs2
 
-    rep_size = size(x1, dim=3)
     allocate(d(rep_size))
     allocate(partial(rep_size,maxval(n2)*3))
     partial = 0.0d0
@@ -1003,22 +983,23 @@ subroutine fgdml_kernel(x1, x2, dx1, dx2, q1, q2, n1, n2, nm1, nm2, na1, na2, si
 end subroutine fgdml_kernel
 
 
-subroutine fsymmetric_gdml_kernel(x1, dx1, q1, n1, nm1, na1, sigma, kernel)
+subroutine fsymmetric_gdml_kernel(x1, dx1, q1, n1, nm1, na1, sigma, kernel, &
+                                 max_atoms1, rep_size) bind(C, name="fsymmetric_gdml_kernel")
 
+    use, intrinsic :: iso_c_binding
     implicit none
 
-    double precision, dimension(:,:,:), intent(in) :: x1
+    integer(c_int), intent(in), value :: nm1, na1, max_atoms1, rep_size
 
-    double precision, dimension(:,:,:,:,:), intent(in) :: dx1
+    double precision, dimension(nm1, max_atoms1, rep_size), intent(in) :: x1
 
-    integer, dimension(:,:), intent(in) :: q1
+    double precision, dimension(nm1, max_atoms1, rep_size, max_atoms1, 3), intent(in) :: dx1
 
-    integer, dimension(:), intent(in) :: n1
+    integer, dimension(max_atoms1, nm1), intent(in) :: q1
 
-    integer, intent(in) :: nm1
-    integer, intent(in) :: na1
+    integer, dimension(nm1), intent(in) :: n1
 
-    double precision, intent(in) :: sigma
+    double precision, intent(in), value :: sigma
 
     double precision, dimension(na1*3,na1*3), intent(out) :: kernel
 
@@ -1026,8 +1007,6 @@ subroutine fsymmetric_gdml_kernel(x1, dx1, q1, n1, nm1, na1, sigma, kernel)
     integer :: xyz2
     integer :: a, b
     integer :: idx1_end, idx1_start, idx2_end, idx2_start, idx2
-
-    integer :: rep_size
 
     double precision :: expd, expdiag
 
@@ -1042,7 +1021,6 @@ subroutine fsymmetric_gdml_kernel(x1, dx1, q1, n1, nm1, na1, sigma, kernel)
 
     double precision, allocatable, dimension(:,:,:,:) :: sorted_derivs1
 
-    rep_size = size(x1, dim=3)
     allocate(d(rep_size))
     allocate(partial(rep_size,maxval(n1)*3))
     partial = 0.0d0
@@ -1135,28 +1113,27 @@ subroutine fsymmetric_gdml_kernel(x1, dx1, q1, n1, nm1, na1, sigma, kernel)
 end subroutine fsymmetric_gdml_kernel
 
 
-subroutine fgaussian_process_kernel(x1, x2, dx1, dx2, q1, q2, n1, n2, nm1, nm2, na1, na2, sigma, kernel)
+subroutine fgaussian_process_kernel(x1, x2, dx1, dx2, q1, q2, n1, n2, nm1, nm2, na1, na2, sigma, kernel, &
+                                   max_atoms1, max_atoms2, rep_size) bind(C, name="fgaussian_process_kernel")
 
+    use, intrinsic :: iso_c_binding
     implicit none
 
-    double precision, dimension(:,:,:), intent(in) :: x1
-    double precision, dimension(:,:,:), intent(in) :: x2
+    integer(c_int), intent(in), value :: nm1, nm2, na1, na2, max_atoms1, max_atoms2, rep_size
 
-    double precision, dimension(:,:,:,:,:), intent(in) :: dx1
-    double precision, dimension(:,:,:,:,:), intent(in) :: dx2
+    double precision, dimension(nm1, max_atoms1, rep_size), intent(in) :: x1
+    double precision, dimension(nm2, max_atoms2, rep_size), intent(in) :: x2
 
-    integer, dimension(:,:), intent(in) :: q1
-    integer, dimension(:,:), intent(in) :: q2
+    double precision, dimension(nm1, max_atoms1, rep_size, max_atoms1, 3), intent(in) :: dx1
+    double precision, dimension(nm2, max_atoms2, rep_size, max_atoms2, 3), intent(in) :: dx2
 
-    integer, dimension(:), intent(in) :: n1
-    integer, dimension(:), intent(in) :: n2
+    integer, dimension(max_atoms1, nm1), intent(in) :: q1
+    integer, dimension(max_atoms2, nm2), intent(in) :: q2
 
-    integer, intent(in) :: nm1
-    integer, intent(in) :: nm2
-    integer, intent(in) :: na1
-    integer, intent(in) :: na2
+    integer, dimension(nm1), intent(in) :: n1
+    integer, dimension(nm2), intent(in) :: n2
 
-    double precision, intent(in) :: sigma
+    double precision, intent(in), value :: sigma
 
     double precision, dimension(na2*3+nm2,na1*3+nm1), intent(out) :: kernel
 
@@ -1164,8 +1141,6 @@ subroutine fgaussian_process_kernel(x1, x2, dx1, dx2, q1, q2, n1, n2, nm1, nm2, 
     integer :: xyz2
     integer :: a, b
     integer :: idx1_end, idx1_start, idx2_end, idx2_start, idx2
-
-    integer :: rep_size
 
     double precision :: expd, expdiag
 
@@ -1191,7 +1166,6 @@ subroutine fgaussian_process_kernel(x1, x2, dx1, dx2, q1, q2, n1, n2, nm1, nm2, 
     inv_sigma4 = -1.0d0 / (sigma**4)
     sigma2 = -1.0d0 * sigma**2
 
-    rep_size = size(x1, dim=3)
     allocate(d(rep_size))
     allocate(partial(rep_size,maxval(n2)*3))
     partial = 0.0d0
@@ -1411,22 +1385,23 @@ subroutine fgaussian_process_kernel(x1, x2, dx1, dx2, q1, q2, n1, n2, nm1, nm2, 
 end subroutine fgaussian_process_kernel
 
 
-subroutine fsymmetric_gaussian_process_kernel(x1, dx1, q1, n1, nm1, na1, sigma, kernel)
+subroutine fsymmetric_gaussian_process_kernel(x1, dx1, q1, n1, nm1, na1, sigma, kernel, &
+                                             max_atoms1, rep_size) bind(C, name="fsymmetric_gaussian_process_kernel")
 
+    use, intrinsic :: iso_c_binding
     implicit none
 
-    double precision, dimension(:,:,:), intent(in) :: x1
+    integer(c_int), intent(in), value :: nm1, na1, max_atoms1, rep_size
 
-    double precision, dimension(:,:,:,:,:), intent(in) :: dx1
+    double precision, dimension(nm1, max_atoms1, rep_size), intent(in) :: x1
 
-    integer, dimension(:,:), intent(in) :: q1
+    double precision, dimension(nm1, max_atoms1, rep_size, max_atoms1, 3), intent(in) :: dx1
 
-    integer, dimension(:), intent(in) :: n1
+    integer, dimension(max_atoms1, nm1), intent(in) :: q1
 
-    integer, intent(in) :: nm1
-    integer, intent(in) :: na1
+    integer, dimension(nm1), intent(in) :: n1
 
-    double precision, intent(in) :: sigma
+    double precision, intent(in), value :: sigma
 
     double precision, dimension(na1*3+nm1,na1*3+nm1), intent(out) :: kernel
 
@@ -1434,8 +1409,6 @@ subroutine fsymmetric_gaussian_process_kernel(x1, dx1, q1, n1, nm1, na1, sigma, 
     integer :: xyz2
     integer :: a, b
     integer :: idx1_end, idx1_start, idx2_end, idx2_start, idx2
-
-    integer :: rep_size
 
     double precision :: expd, expdiag
 
@@ -1459,7 +1432,6 @@ subroutine fsymmetric_gaussian_process_kernel(x1, dx1, q1, n1, nm1, na1, sigma, 
     inv_sigma2 = -1.0d0 / (sigma**2)
     inv_sigma4 = -1.0d0 / (sigma**4)
     sigma2 = -1.0d0 * sigma**2
-    rep_size = size(x1, dim=3)
 
     allocate(d(rep_size))
 

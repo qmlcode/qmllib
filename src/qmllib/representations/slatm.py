@@ -1,9 +1,7 @@
-from typing import List, Optional
-
 import numpy as np
 from numpy import int64, ndarray
 
-from .fslatm import fget_sbop, fget_sbop_local, fget_sbot, fget_sbot_local
+from qmllib._fslatm import fget_sbop, fget_sbop_local, fget_sbot, fget_sbot_local
 
 
 def update_m(obj, ia, rcut=9.0, pbc=None):
@@ -110,10 +108,10 @@ def get_boa(z1: int64, zs_: ndarray) -> ndarray:
 
 
 def get_sbop(
-    mbtype: List[int64],
-    obj: List[ndarray],
+    mbtype: list[int64],
+    obj: list[ndarray],
     iloc: bool = False,
-    ia: Optional[int] = None,
+    ia: int | None = None,
     normalize: bool = True,
     sigma: float = 0.05,
     rcut: float = 4.8,
@@ -151,6 +149,7 @@ def get_sbop(
     coeff = 1 / np.sqrt(2 * sigma**2 * np.pi) if normalize else 1.0
 
     if iloc:
+        assert ia is not None  # Type narrowing: validated above
         ys = fget_sbop_local(coords, zs, ia, z1, z2, rcut, nx, dgrid, sigma, coeff, rpower)
     else:
         ys = fget_sbop(coords, zs, z1, z2, rcut, nx, dgrid, sigma, coeff, rpower)
@@ -159,10 +158,10 @@ def get_sbop(
 
 
 def get_sbot(
-    mbtype: List[int64],
-    obj: List[ndarray],
+    mbtype: list[int64],
+    obj: list[ndarray],
     iloc: bool = False,
-    ia: Optional[int] = None,
+    ia: int | None = None,
     normalize: bool = True,
     sigma: float = 0.05,
     rcut: float = 4.8,
@@ -200,6 +199,7 @@ def get_sbot(
     nx = int((a1 - a0) / dgrid) + 1
 
     if iloc:
+        assert ia is not None  # Type narrowing: validated above
         ys = fget_sbot_local(coords, zs, ia, z1, z2, z3, rcut, nx, dgrid, sigma, coeff)
     else:
         ys = fget_sbot(coords, zs, z1, z2, z3, rcut, nx, dgrid, sigma, coeff)

@@ -26,7 +26,6 @@ def get_acsf_numgrad(coordinates, nuclear_charges, dx=1e-5):
 
     for n, coord in enumerate(true_coords):
         for xyz, x in enumerate(coord):
-
             temp_coords = deepcopy(true_coords)
             temp_coords[n, xyz] = x + 2.0 * dx
 

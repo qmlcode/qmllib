@@ -1,37 +1,61 @@
 name: Test MacOS
 
 on:
-  push:
-    branches:
-      - '**'
+  # push:
+  #   branches:
+  #     - '**'
   pull_request:
-    branches: [ main ]
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-
   test:
     name: Testing ${{matrix.os}} py-${{matrix.python-version}}
     runs-on: ${{matrix.os}}
 
     strategy:
       matrix:
-        os: ['macos-latest']
-        python-version: ['3.11', '3.12']
+        os: ['macos-15']
+        python-version: ['3.12']
+
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: "1"
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-      - name: Install the latest version of uv
+      - name: Install Homebrew dependencies
+        run: |
+          brew install gcc libomp llvm
+
+      - name: Set up uv
         uses: astral-sh/setup-uv@v5
+        with:
+          python-version: ${{ matrix.python-version }}
 
-      - run: which brew
-      - run: brew install gcc openblas lapack libomp
-      - run: ls /opt/homebrew/bin/
-      - run: which gfortran-14
+      - name: Build & install (macOS only)
+        env:
+          # Set Fortran compiler to Homebrew GCC
+          FC: gfortran-14
+          CMAKE_PREFIX_PATH: /opt/homebrew
+          # Help CMake find OpenMP
+          OpenMP_ROOT: /opt/homebrew/opt/libomp
+          # Pass CMake arguments for explicit compiler selection
+          CMAKE_ARGS: >-
+            -DCMAKE_Fortran_COMPILER=gfortran-14
+            -DOpenMP_ROOT=/opt/homebrew/opt/libomp
+        run: |
+          # Install build dependencies first
+          uv pip install scikit-build-core pybind11 setuptools setuptools-scm
+          # Build and install with test dependencies
+          uv pip install -e .[test] --verbose
 
-      - run: FC=gfortran-14 make env_uv python_version=${{ matrix.python-version }}
+      - name: Run unit tests (exclude integration tests)
+        run: uv run pytest -m "not integration" -v
 
-      - run: make test
-      - run: make format
-      - run: FC=gfortran-14 make build
-      - run: make test-dist
