@@ -50,6 +50,12 @@ stubs:
 	rm -rf stubs_temp
 	uv run ruff format src/qmllib/
 
+build:
+	uv build --sdist
+
+test-dist: build
+	uv run twine check dist/*
+
 clean:
 	find ./src/ -type f \( \
 		-name "*.so" -o \
