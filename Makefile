@@ -30,6 +30,10 @@ format:
 types:
 	uv run ty check src/ --exclude tests/
 
+monkeytype:
+	uv run monkeytype run -m pytest ./tests -m "not integration"
+	uv run monkeytype list-modules | grep qmllib | xargs -I{} uv run monkeytype apply {}
+
 stubs:
 	mkdir -p stubs_temp
 	stubgen -p qmllib._fdistance -o stubs_temp
@@ -43,16 +47,16 @@ stubs:
 	stubgen -p qmllib.representations.fchl.ffchl_module -o stubs_temp
 	mv stubs_temp/qmllib/*.pyi src/qmllib/
 	mv stubs_temp/qmllib/representations/fchl/ffchl_module/*.pyi src/qmllib/representations/fchl/
-	# rm -rf stubs_temp
-	uv run ruff format src/qmllib/**/*.pyi
+	rm -rf stubs_temp
+	uv run ruff format src/qmllib/
 
 clean:
-	find ./src/ -type f \
-		-name "*.so" \
-		-name "*.pyc" \
-		-name ".pyo" \
-		-name ".mod" \
-		-delete
+	find ./src/ -type f \( \
+		-name "*.so" -o \
+		-name "*.pyc" -o \
+		-name "*.pyo" -o \
+		-name "*.mod" \
+	\) -delete
 	rm -rf ./src/*.egg-info/
 	rm -rf *.whl
 	rm -rf ./build/ ./__pycache__/
